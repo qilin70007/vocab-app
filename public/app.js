@@ -27,7 +27,8 @@ const state = {
   wordPage: 1,
   wordPageSize: 30,
   deferredInstallPrompt: null,
-  online: navigator.onLine
+  online: navigator.onLine,
+  autoReadActive: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -165,7 +166,7 @@ function showToast(message) {
 }
 
 function statusLabel(status) {
-  return status === 'known' ? '已掌握' : status === 'learning' ? '学习中' : '未背过';
+  return status === 'known' ? '已掌握' : status === 'learning' ? '模糊' : '不认识';
 }
 
 function formatDate(value) {
@@ -245,14 +246,17 @@ function renderHome() {
     ['到期复习', s.due, `错题 ${s.wrong} 个`]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
-  const goal = Math.max(1, Number(s.dailyGoal || 40));
+  const goal = Math.max(1, Number(s.dailyGoal || 45));
   const studied = Number(s.studiedToday || 0);
-  const pct = Math.min(100, Math.round((studied / goal) * 100));
-  $('#goalText').textContent = `${studied} / ${goal}`;
+  const limited = s.dailyGoalEnabled !== false;
+  const pct = limited ? Math.min(100, Math.round((studied / goal) * 100)) : 0;
+  $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 不限`;
   $('#goalPercent').textContent = `${pct}%`;
   $('#goalRing').style.setProperty('--pct', pct);
   $('#streakCount').textContent = s.streak || 0;
   $('#dailyGoalInput').value = goal;
+  const dailyGoalEnabled = $('#dailyGoalEnabled');
+  if (dailyGoalEnabled) dailyGoalEnabled.checked = limited;
 
   const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
   const days = state.daily?.days || {};
@@ -291,12 +295,13 @@ function prepareStudyQueue(force = true) {
     return;
   }
   const section = $('#studySection')?.value || '';
-  const status = $('#studyStatus')?.value || 'new';
+  const status = $('#studyStatus')?.value || 'notknown';
   const order = $('#studyOrder')?.value || 'alpha';
   let queue = filteredWords(section, status);
   if (order === 'random') queue.sort(() => Math.random() - 0.5);
   else queue.sort((a, b) => a.word.localeCompare(b.word));
-  const limit = status === 'new' ? Number(state.stats?.dailyGoal || 40) : 200;
+  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled !== false;
+  const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
   state.studyIndex = 0;
   state.studyRevealed = false;
@@ -652,10 +657,14 @@ async function copySyncCode() {
 }
 
 async function saveDailyGoal() {
-  const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 40)));
+  const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 45)));
+  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked !== false;
   try {
-    await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal }) }, { queueable: true });
-    if (state.stats) state.stats.dailyGoal = dailyGoal;
+    await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal, dailyGoalEnabled }) }, { queueable: true });
+    if (state.stats) {
+      state.stats.dailyGoal = dailyGoal;
+      state.stats.dailyGoalEnabled = dailyGoalEnabled;
+    }
     renderHome();
     showToast('每日目标已保存');
   } catch (error) {
@@ -708,14 +717,61 @@ async function resetData() {
   }
 }
 
+
+function speakText(text, lang, rate = 0.82) {
+  return new Promise((resolve) => {
+    if (!('speechSynthesis' in window)) {
+      showToast('当前浏览器不支持朗读');
+      resolve();
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = rate;
+    utterance.onend = resolve;
+    utterance.onerror = resolve;
+    speechSynthesis.speak(utterance);
+  });
+}
+
 function speakWord(word) {
   if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
   speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.82;
-  speechSynthesis.speak(utterance);
+  speakText(word, 'en-US', 0.82);
 }
+
+function firstExample(word) {
+  return (word.examples || []).find((example) => /[A-Za-z]/.test(example)) || '';
+}
+
+async function speakWordDetails(word) {
+  await speakText(word.word, 'en-US', 0.82);
+  if (word.pos) await speakText(`词性，${word.pos}`, 'zh-CN', 0.95);
+  if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.95);
+  const example = firstExample(word);
+  if (example) await speakText(example, 'en-US', 0.82);
+}
+
+async function toggleAutoReadUnknown() {
+  if (state.autoReadActive) {
+    state.autoReadActive = false;
+    speechSynthesis?.cancel();
+    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    return;
+  }
+  if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
+  state.autoReadActive = true;
+  $('#autoReadUnknown').textContent = '停止朗读';
+  const section = $('#studySection')?.value || '';
+  const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
+  for (const word of words) {
+    if (!state.autoReadActive) break;
+    await speakWordDetails(word);
+  }
+  state.autoReadActive = false;
+  $('#autoReadUnknown').textContent = '连续朗读不认识';
+}
+
 
 async function installApp() {
   if (!state.deferredInstallPrompt) {
@@ -737,6 +793,7 @@ function bindEvents() {
   $('#studyStatus').addEventListener('change', () => prepareStudyQueue(true));
   $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
   $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
+  $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
   $('#startReviewButton').addEventListener('click', startReview);
   $('#startWrongButton').addEventListener('click', loadWrongReview);
   $('#spellSection').addEventListener('change', () => prepareSpellQueue(true));

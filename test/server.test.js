@@ -66,6 +66,19 @@ test('persists status and isolates sync profiles', async () => {
   assert.equal(second.body.known, 0);
 });
 
+
+test('saves daily plan limit settings', async () => {
+  const update = await request('/api/settings', {
+    method: 'PUT', body: JSON.stringify({ dailyGoal: 45, dailyGoalEnabled: false })
+  }, 'CCCCCC');
+  assert.equal(update.response.status, 200);
+  assert.equal(update.body.dailyGoal, 45);
+  assert.equal(update.body.dailyGoalEnabled, false);
+  const stats = await request('/api/stats', {}, 'CCCCCC');
+  assert.equal(stats.body.dailyGoal, 45);
+  assert.equal(stats.body.dailyGoalEnabled, false);
+});
+
 test('applies spaced repetition reviews', async () => {
   const result = await request('/api/review', {
     method: 'POST', body: JSON.stringify({ word: 'able', rating: 'good' })

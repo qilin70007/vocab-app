@@ -6,9 +6,9 @@ const path = require('path');
 const os = require('os');
 const multer = require('multer');
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
-const DEFAULT_DAILY_GOAL = 40;
+const DEFAULT_DAILY_GOAL = 45;
 const VALID_STATUSES = new Set(['new', 'learning', 'known']);
 const VALID_RATINGS = new Set(['again', 'hard', 'good', 'easy']);
 
@@ -125,7 +125,7 @@ function blankProfile() {
     progress: {},
     wrongWords: {},
     dailyStats: {},
-    settings: { dailyGoal: DEFAULT_DAILY_GOAL },
+    settings: { dailyGoal: DEFAULT_DAILY_GOAL, dailyGoalEnabled: true },
     updatedAt: null
   };
 }
@@ -372,7 +372,8 @@ function createStore(options = {}) {
       progress: 0,
       streak: 0,
       studiedToday: 0,
-      dailyGoal: Number(profile.settings.dailyGoal || DEFAULT_DAILY_GOAL)
+      dailyGoal: Number(profile.settings.dailyGoal || DEFAULT_DAILY_GOAL),
+      dailyGoalEnabled: profile.settings.dailyGoalEnabled !== false
     };
     for (const word of words) {
       const p = getProgress(profile, word.word);
@@ -535,6 +536,9 @@ function createApp(options = {}) {
     const profile = loadRequestProfile(req);
     const dailyGoal = Math.min(500, Math.max(1, Number(req.body.dailyGoal || DEFAULT_DAILY_GOAL)));
     profile.settings.dailyGoal = dailyGoal;
+    if (Object.prototype.hasOwnProperty.call(req.body, 'dailyGoalEnabled')) {
+      profile.settings.dailyGoalEnabled = req.body.dailyGoalEnabled !== false;
+    }
     store.saveProfile(req.syncCode, profile);
     res.json(profile.settings);
   });
