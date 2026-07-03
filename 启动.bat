@@ -1,11 +1,11 @@
-@echo off
+Ôªø@echo off
 chcp 936 >nul
 title Vocab App
 cd /d "%~dp0"
 
 :: Try PowerShell launcher first
-if exist "%~dp0∆Ù∂Ø.ps1" (
-    powershell -ExecutionPolicy Bypass -File "%~dp0∆Ù∂Ø.ps1"
+if exist "%~dp0ÂêØÂä®.ps1" (
+    powershell -ExecutionPolicy Bypass -File "%~dp0ÂêØÂä®.ps1"
     if %errorlevel% neq 0 (
         echo PowerShell failed, trying direct launch...
         goto :NODIRECT
