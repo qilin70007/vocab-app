@@ -1,38 +1,29 @@
 @echo off
-title Vocab App
 chcp 936 >nul
-echo ============================
-echo   Vocab App Starting...
-echo ============================
-echo.
-
-:: Show where we are
-echo Script dir: %~dp0
+title Vocab App
 cd /d "%~dp0"
-echo Current dir: %cd%
-echo.
 
-:: Check files exist
+:: Try PowerShell launcher first
+if exist "%~dp0Æô¶¯.ps1" (
+    powershell -ExecutionPolicy Bypass -File "%~dp0Æô¶¯.ps1"
+    if %errorlevel% neq 0 (
+        echo PowerShell failed, trying direct launch...
+        goto :NODIRECT
+    )
+    goto :EOF
+)
+
+:NODIRECT
+:: Direct fallback
+echo Starting directly with node.exe
 if not exist "server.js" (
-    echo [ERROR] Missing server.js in %cd%
+    echo [ERR] missing server.js
     pause
     exit /b 1
 )
-echo Found server.js
-
-if not exist "words.json" (
-    echo [WARN] Missing words.json - app may not work
-) else (
-    echo Found words.json
+if not exist "node_modules" (
+    echo Installing dependencies...
+    call npm install
 )
-
-:: Try node
-echo.
-echo Trying to start Node...
-echo.
-
 node server.js
-
-echo.
-echo Server exited with code %errorlevel%
 pause
