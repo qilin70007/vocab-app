@@ -1,0 +1,20 @@
+{
+  "name": "中考词汇背诵助手",
+  "short_name": "中考词汇",
+  "description": "上海中考英语词汇学习、间隔复习、拼写训练与跨设备同步",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#edf2fb",
+  "theme_color": "#3157d5",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

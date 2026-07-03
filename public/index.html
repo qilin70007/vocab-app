@@ -1,197 +1,218 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3157d5">
+  <meta name="description" content="面向上海中考英语词汇的跨设备背词、复习和拼写训练工具">
   <title>中考词汇背诵助手</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css?v=2.0.0">
 </head>
 <body>
-  <div id="app">
-    <!-- Header -->
-    <header class="header">
-      <h1>📖 中考词汇背诵助手</h1>
-      <div class="header-stats" id="headerStats"></div>
+  <div class="app-shell" id="app">
+    <header class="topbar">
+      <button class="brand" type="button" data-page-link="home" aria-label="返回首页">
+        <span class="brand-mark">词</span>
+        <span><strong>中考词汇</strong><small>背诵助手</small></span>
+      </button>
+      <div class="topbar-actions">
+        <span class="connection-pill" id="connectionPill" title="连接状态"><i></i><span>连接中</span></span>
+        <button class="icon-btn hidden" id="installButton" type="button" title="安装应用">＋</button>
+      </div>
     </header>
 
-    <!-- Navigation -->
-    <nav class="nav">
-      <button class="nav-btn active" data-page="home" onclick="switchPage('home')">🏠 首页</button>
-      <button class="nav-btn" data-page="study" onclick="switchPage('study')">📚 背词</button>
-      <button class="nav-btn" data-page="review" onclick="switchPage('review')">🔄 复习</button>
-      <button class="nav-btn" data-page="spell" onclick="switchPage('spell')">✏️ 拼写</button>
-      <button class="nav-btn" data-page="list" onclick="switchPage('list')">📋 词表</button>
-      <button class="nav-btn" data-page="sync" onclick="switchPage('sync')">☁️ 同步</button>
-    </nav>
-
-    <!-- Home Page -->
-    <div class="page active" id="page-home">
-      <div class="stats-card" id="statsCard"></div>
-      <div class="streak-card" id="streakCard"></div>
-      <div class="section-grid" id="sectionGrid"></div>
-    </div>
-
-    <!-- Study Page (v4: fast mark + swipe) -->
-    <div class="page" id="page-study">
-      <div class="study-controls">
-        <select id="studySection" onchange="loadStudyWords()">
-          <option value="">全部</option>
-        </select>
-        <select id="studyFilter" onchange="loadStudyWords()">
-          <option value="new">未背过</option>
-          <option value="learning">学习中</option>
-          <option value="known">已掌握</option>
-          <option value="all">全部</option>
-          <option value="notknown">仅不认识</option>
-        </select>
-        <div class="study-counter" id="studyCounter"></div>
-      </div>
-      <div class="study-card" id="studyCard">
-        <div class="card-topline" id="cardTopline"></div>
-        <div class="card-details" id="cardDetails"></div>
-        <div class="card-actions" id="cardActions">
-          <button class="btn btn-show" onclick="showMeaning()">👁 显示释义</button>
-          <button class="btn btn-new hidden" id="btnNew" onclick="markWord('new')">😕 不认识</button>
-          <button class="btn btn-learning hidden" id="btnLearning" onclick="markWord('learning')">🤔 模糊</button>
-          <button class="btn btn-known hidden" id="btnKnown" onclick="markWord('known')">😊 认识</button>
-          <button class="btn btn-next hidden" id="btnNext" onclick="nextWord()">▶ 下一个</button>
+    <main class="main-content">
+      <section class="page active" id="page-home" aria-labelledby="homeTitle">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">今日学习</p>
+            <h1 id="homeTitle">每天 40 词，稳步完成中考词汇</h1>
+            <p class="hero-copy" id="heroCopy">正在读取学习进度……</p>
+          </div>
+          <button class="primary-btn hero-action" type="button" data-page-link="study">开始学习</button>
         </div>
-        <div class="card-progress" id="cardProgress"></div>
-      </div>
-      <div class="study-hint" id="studyHint">快捷键: ← 不认识 · → 认识 · 数字 1 模糊</div>
-    </div>
 
-    <!-- Review Page -->
-    <div class="page" id="page-review">
-      <div class="review-header">
-        <h2>🔄 复习</h2>
-        <div class="review-count" id="reviewCount"></div>
-      </div>
-      <div class="review-tabs">
-        <button class="review-tab active" data-tab="all" onclick="switchReviewTab('all')">全部待复习</button>
-        <button class="review-tab" data-tab="wrong" onclick="switchReviewTab('wrong')">⭐ 错题本</button>
-      </div>
-      <div class="review-filter-row" id="reviewFilterRow" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-        <select id="reviewSection" onchange="reviewPage=0;renderReview()" style="padding:8px 14px;border:1px solid #CBD5E1;border-radius:8px;font-size:16px;background:white">
-          <option value="">全部字母</option>
-        </select>
-      </div>
-      <div class="review-list" id="reviewList"></div>
-      <div class="review-actions" id="reviewActions"></div>
-    </div>
+        <div class="metric-grid" id="metricGrid" aria-live="polite"></div>
 
-    <!-- Quiz Modal -->
-    <div class="modal hidden" id="quizModal">
-      <div class="modal-content">
-        <div class="quiz-header">
-          <span id="quizProgress">1/10</span>
-          <span id="quizMode" class="quiz-mode-tag">英文选释义</span>
-          <button class="btn-close" onclick="closeQuiz()">✕</button>
+        <div class="dashboard-grid">
+          <article class="panel today-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">今日目标</p><h2>学习进度</h2></div>
+              <strong id="goalText">0 / 40</strong>
+            </div>
+            <div class="goal-ring-row">
+              <div class="goal-ring" id="goalRing"><span id="goalPercent">0%</span></div>
+              <div class="goal-actions">
+                <button type="button" class="secondary-btn" data-page-link="study">学习新词</button>
+                <button type="button" class="ghost-btn" data-page-link="review">复习到期词</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel streak-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">连续学习</p><h2><span id="streakCount">0</span> 天</h2></div>
+              <span class="flame">🔥</span>
+            </div>
+            <div class="week-chart" id="weekChart"></div>
+          </article>
         </div>
-        <div class="quiz-word" id="quizWord"></div>
-        <div class="quiz-phonetic" id="quizPhonetic"></div>
-        <div class="quiz-prompt" id="quizPrompt"></div>
-        <div class="quiz-options" id="quizOptions"></div>
-        <div class="quiz-result hidden" id="quizResult"></div>
-      </div>
-    </div>
 
-    <!-- Spell Practice Page -->
-    <div class="page" id="page-spell">
-      <div class="study-controls">
-        <select id="spellSection" onchange="loadSpellWords()">
-          <option value="">全部</option>
-        </select>
-        <select id="spellFilter" onchange="loadSpellWords()">
-          <option value="new">未背过</option>
-          <option value="learning">学习中</option>
-          <option value="known">已掌握</option>
-          <option value="all">全部</option>
-        </select>
-      </div>
-      <div class="spell-card" id="spellCard">
-        <div class="spell-meaning" id="spellMeaning"></div>
-        <div class="spell-pos" id="spellPos"></div>
-        <div class="spell-input-area">
-          <input type="text" id="spellInput" placeholder="在这里输入单词..." autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
-          <button class="btn btn-primary" onclick="checkSpelling()">提交</button>
-        </div>
-        <div class="spell-feedback hidden" id="spellFeedback"></div>
-        <div class="spell-actions">
-          <button class="btn btn-next" onclick="nextSpellWord()">▶ 下一个</button>
-          <button class="btn btn-show-spell" onclick="revealSpelling()">👀 看答案</button>
-        </div>
-        <div class="card-progress" id="spellProgress"></div>
-      </div>
-    </div>
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">按字母学习</p><h2>词汇分区</h2></div>
+            <button class="text-btn" type="button" data-page-link="words">查看全部</button>
+          </div>
+          <div class="section-grid" id="sectionGrid"></div>
+        </article>
+      </section>
 
-    <!-- Word List Page -->
-    <div class="page" id="page-list">
-      <div class="list-controls">
-        <input type="text" id="searchInput" placeholder="搜索单词或释义..." oninput="filterWordList()">
-        <div style="display:flex;gap:8px">
-          <select id="listSection" onchange="filterWordList()" style="flex:1">
-            <option value="">全部字母</option>
-          </select>
-          <select id="listStatus" onchange="filterWordList()" style="flex:1">
-            <option value="">全部状态</option>
+      <section class="page" id="page-study" aria-labelledby="studyTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">主动回忆</p><h1 id="studyTitle">学习单词</h1></div>
+          <span class="queue-count" id="studyQueueCount">0 词</span>
+        </div>
+        <div class="control-bar">
+          <label>范围<select id="studySection"><option value="">全部字母</option></select></label>
+          <label>状态<select id="studyStatus">
             <option value="new">未背过</option>
+            <option value="notknown">不认识＋模糊</option>
             <option value="learning">学习中</option>
             <option value="known">已掌握</option>
-          </select>
+            <option value="all">全部</option>
+          </select></label>
+          <label>顺序<select id="studyOrder"><option value="alpha">字母顺序</option><option value="random">随机</option></select></label>
+          <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
         </div>
-      </div>
-      <div class="word-list" id="wordList"></div>
-    </div>
 
-    <!-- Sync Page -->
-    <div class="page" id="page-sync">
-      <div class="sync-card">
-        <h2>☁️ 数据同步</h2>
-        <p class="sync-desc">在手机和电脑之间同步学习进度</p>
-        
-        <div class="sync-section">
-          <h3>📡 局域网访问</h3>
-          <p class="sync-info">确保手机和电脑连接同一WiFi，在手机浏览器中输入以下地址：</p>
-          <div class="sync-urls" id="syncUrls"></div>
+        <div class="flashcard-wrap">
+          <article class="flashcard" id="studyCard">
+            <div class="empty-state"><span>📚</span><p>正在准备学习队列……</p></div>
+          </article>
+          <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义</div>
         </div>
-        
-        <div class="sync-section">
-          <h3>📤 导出进度</h3>
-          <p class="sync-info">下载进度文件，可在另一台设备导入</p>
-          <button class="btn btn-primary" onclick="exportProgress()">📥 下载进度文件</button>
-        </div>
-        
-        <div class="sync-section">
-          <h3>📥 导入进度</h3>
-          <p class="sync-info">从另一台设备导出的进度文件合并到当前设备</p>
-          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProgress(this)">
-          <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">📤 选择文件导入</button>
-        </div>
-        
-        <div class="sync-section">
-          <h3>⚠️ 重置进度</h3>
-          <p class="sync-info">清除所有学习进度，重新开始</p>
-          <button class="btn" style="background:#EF4444;color:white;width:100%" onclick="resetProgress()">🗑 重置所有进度</button>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Word Detail Modal -->
-    <div class="modal hidden" id="detailModal">
-      <div class="modal-content">
-        <div class="detail-header">
-          <span class="detail-word" id="detailWord"></span>
-          <button class="btn-close" onclick="closeDetail()">✕</button>
+      <section class="page" id="page-review" aria-labelledby="reviewTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">间隔复习</p><h1 id="reviewTitle">复习中心</h1></div>
+          <span class="queue-count" id="reviewDueCount">0 到期</span>
         </div>
-        <div class="detail-body" id="detailBody"></div>
-      </div>
-    </div>
+        <div class="review-layout">
+          <article class="panel review-summary">
+            <div class="review-summary-number" id="reviewSummaryNumber">0</div>
+            <p>个单词需要复习</p>
+            <button class="primary-btn" id="startReviewButton" type="button">开始复习</button>
+            <button class="ghost-btn" id="startWrongButton" type="button">只练错题</button>
+          </article>
+          <article class="review-card hidden" id="reviewCard"></article>
+          <article class="panel" id="reviewPreviewPanel">
+            <div class="panel-heading"><div><p class="eyebrow">优先队列</p><h2>待复习词</h2></div></div>
+            <div class="compact-word-list" id="reviewPreview"></div>
+          </article>
+        </div>
+      </section>
 
-    <!-- Toast notification -->
-    <div class="toast hidden" id="toast"></div>
+      <section class="page" id="page-spell" aria-labelledby="spellTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">输出训练</p><h1 id="spellTitle">拼写练习</h1></div>
+          <span class="queue-count" id="spellCounter">0 / 0</span>
+        </div>
+        <div class="control-bar">
+          <label>范围<select id="spellSection"><option value="">全部字母</option></select></label>
+          <label>状态<select id="spellStatus"><option value="notknown">不认识＋模糊</option><option value="learning">学习中</option><option value="new">未背过</option><option value="known">已掌握</option><option value="all">全部</option></select></label>
+          <button class="secondary-btn compact" id="reloadSpell" type="button">重新生成</button>
+        </div>
+        <article class="spell-card" id="spellCard">
+          <div class="empty-state"><span>✍️</span><p>正在准备拼写练习……</p></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-words" aria-labelledby="wordsTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">完整词库</p><h1 id="wordsTitle">单词本</h1></div>
+          <span class="queue-count" id="wordCount">0 词</span>
+        </div>
+        <div class="word-toolbar">
+          <label class="search-box"><span>⌕</span><input id="wordSearch" type="search" placeholder="搜索英文、中文、搭配或例句"></label>
+          <select id="wordSection"><option value="">全部字母</option></select>
+          <select id="wordStatus"><option value="all">全部状态</option><option value="new">未背过</option><option value="learning">学习中</option><option value="known">已掌握</option><option value="notknown">不认识＋模糊</option></select>
+        </div>
+        <div class="word-table" id="wordTable"></div>
+        <div class="pagination" id="wordPagination"></div>
+      </section>
+
+      <section class="page" id="page-data" aria-labelledby="dataTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">设备与数据</p><h1 id="dataTitle">同步设置</h1></div>
+        </div>
+        <div class="settings-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">自动同步</p><h2>同步码</h2></div><span class="status-dot" id="syncStatusDot"></span></div>
+            <p class="muted">手机和电脑连接同一个服务器时，输入相同同步码即可共享学习进度。同步码不是密码，请勿使用敏感信息。</p>
+            <div class="sync-code-row">
+              <input id="syncCodeInput" type="text" maxlength="16" autocomplete="off" spellcheck="false" aria-label="同步码">
+              <button class="secondary-btn" id="applySyncCode" type="button">应用</button>
+            </div>
+            <div class="button-row">
+              <button class="ghost-btn" id="copySyncCode" type="button">复制同步码</button>
+              <button class="ghost-btn" id="newSyncCode" type="button">生成新码</button>
+            </div>
+            <div class="sync-summary" id="syncSummary"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">学习计划</p><h2>每日新词量</h2></div></div>
+            <div class="goal-setting-row">
+              <input id="dailyGoalInput" type="number" min="1" max="500" value="40">
+              <span>词 / 天</span>
+              <button class="secondary-btn" id="saveGoal" type="button">保存</button>
+            </div>
+            <p class="muted">建议每天 30～50 词。系统默认按 40 词生成学习队列。</p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">备份迁移</p><h2>导入与导出</h2></div></div>
+            <div class="button-column">
+              <button class="secondary-btn" id="exportData" type="button">导出学习数据</button>
+              <label class="secondary-btn file-button">导入学习数据<input id="importData" type="file" accept="application/json,.json"></label>
+            </div>
+          </article>
+
+          <article class="panel danger-panel">
+            <div class="panel-heading"><div><p class="eyebrow">危险操作</p><h2>重新开始</h2></div></div>
+            <p class="muted">清除当前同步码下的全部学习记录，但不会删除词库。</p>
+            <button class="danger-btn" id="resetData" type="button">清除学习记录</button>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">安装应用</p><h2>手机与 Windows</h2></div></div>
+            <p class="muted">在浏览器菜单中选择“安装应用”或“添加到主屏幕”，即可像普通应用一样使用。</p>
+            <button class="secondary-btn" id="installSettingsButton" type="button">安装到本机</button>
+            <div class="lan-urls" id="lanUrls"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主导航">
+      <button class="nav-item active" type="button" data-page="home"><span>⌂</span><small>首页</small></button>
+      <button class="nav-item" type="button" data-page="study"><span>▣</span><small>背词</small></button>
+      <button class="nav-item" type="button" data-page="review"><span>↻</span><small>复习</small></button>
+      <button class="nav-item" type="button" data-page="spell"><span>✎</span><small>拼写</small></button>
+      <button class="nav-item" type="button" data-page="words"><span>☷</span><small>词表</small></button>
+      <button class="nav-item" type="button" data-page="data"><span>⚙</span><small>同步</small></button>
+    </nav>
   </div>
 
-  <script src="app.js?v=3"></script>
+  <dialog class="word-dialog" id="wordDialog">
+    <button class="dialog-close" id="dialogClose" type="button" aria-label="关闭">×</button>
+    <div id="wordDialogBody"></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/app.js?v=2.0.0" defer></script>
 </body>
 </html>
