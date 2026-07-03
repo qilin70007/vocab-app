@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>中考词汇背诵助手</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1>📖 中考词汇背诵助手</h1>
+      <div class="header-stats" id="headerStats"></div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <button class="nav-btn active" data-page="home" onclick="switchPage('home')">🏠 首页</button>
+      <button class="nav-btn" data-page="study" onclick="switchPage('study')">📚 背词</button>
+      <button class="nav-btn" data-page="review" onclick="switchPage('review')">🔄 复习</button>
+      <button class="nav-btn" data-page="spell" onclick="switchPage('spell')">✏️ 拼写</button>
+      <button class="nav-btn" data-page="list" onclick="switchPage('list')">📋 词表</button>
+      <button class="nav-btn" data-page="sync" onclick="switchPage('sync')">☁️ 同步</button>
+    </nav>
+
+    <!-- Home Page -->
+    <div class="page active" id="page-home">
+      <div class="stats-card" id="statsCard"></div>
+      <div class="streak-card" id="streakCard"></div>
+      <div class="section-grid" id="sectionGrid"></div>
+    </div>
+
+    <!-- Study Page (v4: fast mark + swipe) -->
+    <div class="page" id="page-study">
+      <div class="study-controls">
+        <select id="studySection" onchange="loadStudyWords()">
+          <option value="">全部</option>
+        </select>
+        <select id="studyFilter" onchange="loadStudyWords()">
+          <option value="new">未背过</option>
+          <option value="learning">学习中</option>
+          <option value="known">已掌握</option>
+          <option value="all">全部</option>
+          <option value="notknown">仅不认识</option>
+        </select>
+        <div class="study-counter" id="studyCounter"></div>
+      </div>
+      <div class="study-card" id="studyCard">
+        <div class="card-topline" id="cardTopline"></div>
+        <div class="card-details" id="cardDetails"></div>
+        <div class="card-actions" id="cardActions">
+          <button class="btn btn-show" onclick="showMeaning()">👁 显示释义</button>
+          <button class="btn btn-new hidden" id="btnNew" onclick="markWord('new')">😕 不认识</button>
+          <button class="btn btn-learning hidden" id="btnLearning" onclick="markWord('learning')">🤔 模糊</button>
+          <button class="btn btn-known hidden" id="btnKnown" onclick="markWord('known')">😊 认识</button>
+          <button class="btn btn-next hidden" id="btnNext" onclick="nextWord()">▶ 下一个</button>
+        </div>
+        <div class="card-progress" id="cardProgress"></div>
+      </div>
+      <div class="study-hint" id="studyHint">快捷键: ← 不认识 · → 认识 · 数字 1 模糊</div>
+    </div>
+
+    <!-- Review Page -->
+    <div class="page" id="page-review">
+      <div class="review-header">
+        <h2>🔄 复习</h2>
+        <div class="review-count" id="reviewCount"></div>
+      </div>
+      <div class="review-tabs">
+        <button class="review-tab active" data-tab="all" onclick="switchReviewTab('all')">全部待复习</button>
+        <button class="review-tab" data-tab="wrong" onclick="switchReviewTab('wrong')">⭐ 错题本</button>
+      </div>
+      <div class="review-filter-row" id="reviewFilterRow" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <select id="reviewSection" onchange="reviewPage=0;renderReview()" style="padding:8px 14px;border:1px solid #CBD5E1;border-radius:8px;font-size:16px;background:white">
+          <option value="">全部字母</option>
+        </select>
+      </div>
+      <div class="review-list" id="reviewList"></div>
+      <div class="review-actions" id="reviewActions"></div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div class="modal hidden" id="quizModal">
+      <div class="modal-content">
+        <div class="quiz-header">
+          <span id="quizProgress">1/10</span>
+          <span id="quizMode" class="quiz-mode-tag">英文选释义</span>
+          <button class="btn-close" onclick="closeQuiz()">✕</button>
+        </div>
+        <div class="quiz-word" id="quizWord"></div>
+        <div class="quiz-phonetic" id="quizPhonetic"></div>
+        <div class="quiz-prompt" id="quizPrompt"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-result hidden" id="quizResult"></div>
+      </div>
+    </div>
+
+    <!-- Spell Practice Page -->
+    <div class="page" id="page-spell">
+      <div class="study-controls">
+        <select id="spellSection" onchange="loadSpellWords()">
+          <option value="">全部</option>
+        </select>
+        <select id="spellFilter" onchange="loadSpellWords()">
+          <option value="new">未背过</option>
+          <option value="learning">学习中</option>
+          <option value="known">已掌握</option>
+          <option value="all">全部</option>
+        </select>
+      </div>
+      <div class="spell-card" id="spellCard">
+        <div class="spell-meaning" id="spellMeaning"></div>
+        <div class="spell-pos" id="spellPos"></div>
+        <div class="spell-input-area">
+          <input type="text" id="spellInput" placeholder="在这里输入单词..." autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+          <button class="btn btn-primary" onclick="checkSpelling()">提交</button>
+        </div>
+        <div class="spell-feedback hidden" id="spellFeedback"></div>
+        <div class="spell-actions">
+          <button class="btn btn-next" onclick="nextSpellWord()">▶ 下一个</button>
+          <button class="btn btn-show-spell" onclick="revealSpelling()">👀 看答案</button>
+        </div>
+        <div class="card-progress" id="spellProgress"></div>
+      </div>
+    </div>
+
+    <!-- Word List Page -->
+    <div class="page" id="page-list">
+      <div class="list-controls">
+        <input type="text" id="searchInput" placeholder="搜索单词或释义..." oninput="filterWordList()">
+        <div style="display:flex;gap:8px">
+          <select id="listSection" onchange="filterWordList()" style="flex:1">
+            <option value="">全部字母</option>
+          </select>
+          <select id="listStatus" onchange="filterWordList()" style="flex:1">
+            <option value="">全部状态</option>
+            <option value="new">未背过</option>
+            <option value="learning">学习中</option>
+            <option value="known">已掌握</option>
+          </select>
+        </div>
+      </div>
+      <div class="word-list" id="wordList"></div>
+    </div>
+
+    <!-- Sync Page -->
+    <div class="page" id="page-sync">
+      <div class="sync-card">
+        <h2>☁️ 数据同步</h2>
+        <p class="sync-desc">在手机和电脑之间同步学习进度</p>
+        
+        <div class="sync-section">
+          <h3>📡 局域网访问</h3>
+          <p class="sync-info">确保手机和电脑连接同一WiFi，在手机浏览器中输入以下地址：</p>
+          <div class="sync-urls" id="syncUrls"></div>
+        </div>
+        
+        <div class="sync-section">
+          <h3>📤 导出进度</h3>
+          <p class="sync-info">下载进度文件，可在另一台设备导入</p>
+          <button class="btn btn-primary" onclick="exportProgress()">📥 下载进度文件</button>
+        </div>
+        
+        <div class="sync-section">
+          <h3>📥 导入进度</h3>
+          <p class="sync-info">从另一台设备导出的进度文件合并到当前设备</p>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProgress(this)">
+          <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">📤 选择文件导入</button>
+        </div>
+        
+        <div class="sync-section">
+          <h3>⚠️ 重置进度</h3>
+          <p class="sync-info">清除所有学习进度，重新开始</p>
+          <button class="btn" style="background:#EF4444;color:white;width:100%" onclick="resetProgress()">🗑 重置所有进度</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word Detail Modal -->
+    <div class="modal hidden" id="detailModal">
+      <div class="modal-content">
+        <div class="detail-header">
+          <span class="detail-word" id="detailWord"></span>
+          <button class="btn-close" onclick="closeDetail()">✕</button>
+        </div>
+        <div class="detail-body" id="detailBody"></div>
+      </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast hidden" id="toast"></div>
+  </div>
+
+  <script src="app.js?v=3"></script>
+</body>
+</html>
