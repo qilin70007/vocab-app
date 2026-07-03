@@ -1,0 +1,37 @@
+{
+  "2026-06-28": {
+    "studied": 142,
+    "known": 85,
+    "learning": 5,
+    "quizCorrect": 0,
+    "quizWrong": 0
+  },
+  "2026-06-29": {
+    "studied": 59,
+    "known": 9,
+    "learning": 8,
+    "quizCorrect": 0,
+    "quizWrong": 0
+  },
+  "2026-06-30": {
+    "studied": 72,
+    "known": 6,
+    "learning": 24,
+    "quizCorrect": 0,
+    "quizWrong": 0
+  },
+  "2026-07-01": {
+    "studied": 98,
+    "known": 6,
+    "learning": 92,
+    "quizCorrect": 0,
+    "quizWrong": 0
+  },
+  "2026-07-02": {
+    "studied": 188,
+    "known": 110,
+    "learning": 66,
+    "quizCorrect": 0,
+    "quizWrong": 0
+  }
+}
