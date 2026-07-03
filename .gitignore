@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Temporary files
+*.log
+*.tmp
+*.pyc
+__pycache__/
+
+# Generated data
+ocr_output/
+pdf_pages/
+data/*.json
+data/*.bak
+
+# Images (keep b64 files as they may be needed)
+*.png
+*.jpg
+*.jpeg
+
+# Text outputs
+*.txt
+!使用说明.md
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
