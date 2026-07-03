@@ -83,15 +83,34 @@ const words = entries.map(entry => {
   };
 });
 
-// Deduplicate by word
-const seen = new Set();
-const unique = [];
+function blankCount(word) {
+  return `${word.meaning || ''} ${word.usage || ''}`.match(/___/g)?.length || 0;
+}
+
+function contentLength(word) {
+  return `${word.meaning || ''} ${word.usage || ''}`.replace(/___/g, '').trim().length;
+}
+
+function preferCompletedEntry(candidate, current) {
+  const candidateBlankCount = blankCount(candidate);
+  const currentBlankCount = blankCount(current);
+
+  if (candidateBlankCount !== currentBlankCount) {
+    return candidateBlankCount < currentBlankCount;
+  }
+
+  return contentLength(candidate) > contentLength(current);
+}
+
+// Deduplicate by word, preferring the completed answer copy over blank exercises.
+const uniqueByWord = new Map();
 for (const w of words) {
-  if (!seen.has(w.word)) {
-    seen.add(w.word);
-    unique.push(w);
+  const current = uniqueByWord.get(w.word);
+  if (!current || preferCompletedEntry(w, current)) {
+    uniqueByWord.set(w.word, w);
   }
 }
+const unique = Array.from(uniqueByWord.values());
 
 console.log(`Unique words: ${unique.length}`);
 
