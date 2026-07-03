@@ -1,12 +1,20 @@
 {
   "name": "vocab-master",
   "version": "1.0.0",
-  "description": "中考英语词汇背诵助手",
+  "private": true,
+  "description": "面向上海中考英语词汇的跨设备背诵、间隔复习和拼写训练应用",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check public/app.js && node --test",
+    "import:ocr": "node scripts/import_ocr_data.js",
     "sync:words": "node parse_800words.js && node sync_handbook_words.js",
-    "check:words": "node -c server.js && node -c parse_800words.js && node -c sync_handbook_words.js"
+    "check:legacy": "node -c parse_800words.js && node -c sync_handbook_words.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "express": "^5.2.1",
