@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.0.0">
+  <link rel="stylesheet" href="/style.css?v=2.1.0">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -77,14 +77,15 @@
         <div class="control-bar">
           <label>范围<select id="studySection"><option value="">全部字母</option></select></label>
           <label>状态<select id="studyStatus">
-            <option value="new">未背过</option>
             <option value="notknown">不认识＋模糊</option>
+            <option value="new">不认识</option>
             <option value="learning">学习中</option>
             <option value="known">已掌握</option>
             <option value="all">全部</option>
           </select></label>
           <label>顺序<select id="studyOrder"><option value="alpha">字母顺序</option><option value="random">随机</option></select></label>
           <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
+          <button class="secondary-btn compact" id="autoReadUnknown" type="button">连续朗读不认识</button>
         </div>
 
         <div class="flashcard-wrap">
@@ -164,13 +165,14 @@
           </article>
 
           <article class="panel">
-            <div class="panel-heading"><div><p class="eyebrow">学习计划</p><h2>每日新词量</h2></div></div>
+            <div class="panel-heading"><div><p class="eyebrow">学习计划</p><h2>每日学习计划</h2></div></div>
             <div class="goal-setting-row">
-              <input id="dailyGoalInput" type="number" min="1" max="500" value="40">
+              <label class="switch-row"><input id="dailyGoalEnabled" type="checkbox" checked> 开启限制</label>
+              <input id="dailyGoalInput" type="number" min="1" max="500" value="45">
               <span>词 / 天</span>
               <button class="secondary-btn" id="saveGoal" type="button">保存</button>
             </div>
-            <p class="muted">建议每天 30～50 词。系统默认按 40 词生成学习队列。</p>
+            <p class="muted">开启后仅限制“不认识＋模糊”的每日学习数量，默认每天 45 个；关闭则不限制个数。</p>
           </article>
 
           <article class="panel">
@@ -213,6 +215,6 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/app.js?v=2.0.0" defer></script>
+  <script src="/app.js?v=2.1.0" defer></script>
 </body>
 </html>
