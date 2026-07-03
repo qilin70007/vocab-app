@@ -10,6 +10,9 @@ let lines = raw.split('\n').filter(line => {
   // Skip page headers
   if (/^第\s+\d+\s+页\s+共\s+\d+\s+页/.test(trimmed)) return false;
   if (trimmed === '') return false;
+  if (/^--\s*\d+\s+of\s+\d+\s*--$/.test(trimmed)) return false;
+  if (/^中考考纲词汇考点突破/.test(trimmed)) return false;
+  if (/^[A-Z]$/.test(trimmed)) return false;
   return true;
 });
 
@@ -76,7 +79,7 @@ const words = entries.map(entry => {
     pos,
     meaning: meaning.replace(/___/g, '___'),
     usage,
-    source: '800词'
+    source: '26年初中英语考纲词汇用法手册'
   };
 });
 

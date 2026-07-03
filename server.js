@@ -12,12 +12,36 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Data paths
 const WORDS_PATH = path.join(__dirname, 'words.json');
+const FALLBACK_WORDS_PATH = path.join(__dirname, 'data', 'words_800.json');
 const PROGRESS_PATH = path.join(__dirname, 'data', 'progress.json');
+
+function normalizeWordRecord(record, index) {
+  const word = String(record.word || '').trim().toLowerCase();
+  const section = /^[a-z]/.test(word) ? word[0].toUpperCase() : '#';
+  return {
+    id: record.id || index + 1,
+    word,
+    section: record.section || section,
+    phonetic: record.phonetic || '',
+    pos: record.pos || '',
+    meaning: record.meaning || '',
+    forms: record.forms || (record.variant ? `变体：${record.variant}` : ''),
+    collocations: record.collocations || record.usage || '',
+    example: record.example || '',
+    source: record.source || '26年初中英语考纲词汇用法手册'
+  };
+}
+
+function loadWordsFromDisk() {
+  const activePath = fs.existsSync(WORDS_PATH) ? WORDS_PATH : FALLBACK_WORDS_PATH;
+  const loaded = JSON.parse(fs.readFileSync(activePath, 'utf-8'));
+  return loaded.map(normalizeWordRecord).filter(w => w.word && w.meaning);
+}
 
 // Load words
 let words = [];
 try {
-  words = JSON.parse(fs.readFileSync(WORDS_PATH, 'utf-8'));
+  words = loadWordsFromDisk();
   console.log(`Loaded ${words.length} words`);
 } catch (e) {
   console.error('Failed to load words:', e.message);
@@ -89,7 +113,7 @@ function recordDailyActivity(type, count = 1) {
 // Reload words from file (picks up data updates without restart)
 function reloadWords() {
   try {
-    words = JSON.parse(fs.readFileSync(WORDS_PATH, 'utf-8'));
+    words = loadWordsFromDisk();
   } catch (e) {
     console.error('Failed to reload words:', e.message);
   }
@@ -128,6 +152,7 @@ app.get('/api/words', (req, res) => {
 
 // Get word sections (A-Z with counts)
 app.get('/api/sections', (req, res) => {
+  reloadWords();
   const progress = loadProgress();
   const sections = {};
   
@@ -145,6 +170,7 @@ app.get('/api/sections', (req, res) => {
 
 // Get statistics
 app.get('/api/stats', (req, res) => {
+  reloadWords();
   const progress = loadProgress();
   const stats = { total: words.length, new: 0, learning: 0, known: 0 };
   

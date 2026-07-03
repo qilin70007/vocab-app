@@ -4,7 +4,9 @@
   "description": "中考英语词汇背诵助手",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "sync:words": "node parse_800words.js && node sync_handbook_words.js",
+    "check:words": "node -c server.js && node -c parse_800words.js && node -c sync_handbook_words.js"
   },
   "dependencies": {
     "express": "^5.2.1",
