@@ -250,7 +250,7 @@ function renderHome() {
 
   const goal = Math.max(1, Number(s.dailyGoal || 45));
   const studied = Number(s.studiedToday || 0);
-  const limited = s.dailyGoalEnabled !== false;
+  const limited = s.dailyGoalEnabled === true;
   const pct = limited ? Math.min(100, Math.round((studied / goal) * 100)) : 0;
   $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 不限`;
   $('#goalPercent').textContent = `${pct}%`;
@@ -350,7 +350,7 @@ function prepareStudyQueue(force = true) {
   let queue = filteredWords(section, status);
   if (order === 'random') queue.sort(() => Math.random() - 0.5);
   else queue.sort((a, b) => a.word.localeCompare(b.word));
-  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled !== false;
+  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled === true;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
   state.studyIndex = 0;
@@ -713,7 +713,7 @@ async function copySyncCode() {
 
 async function saveDailyGoal() {
   const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 45)));
-  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked !== false;
+  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked === true;
   try {
     await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal, dailyGoalEnabled }) }, { queueable: true });
     if (state.stats) {

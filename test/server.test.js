@@ -52,6 +52,7 @@ test('serves vocabulary and initial statistics', async () => {
   assert.equal(health.body.wordCount, 2);
   const stats = await request('/api/stats');
   assert.deepEqual({ total: stats.body.total, new: stats.body.new, known: stats.body.known }, { total: 2, new: 2, known: 0 });
+  assert.equal(stats.body.dailyGoalEnabled, false);
 });
 
 test('persists status and isolates sync profiles', async () => {
