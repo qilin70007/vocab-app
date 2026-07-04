@@ -85,6 +85,7 @@
           </select></label>
           <label>顺序<select id="studyOrder"><option value="sequence">词表顺序</option><option value="random">随机</option></select></label>
           <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
+          <label class="toggle-control"><input id="alwaysShowMeaning" type="checkbox"><span>一直显示释义</span></label>
           <button class="secondary-btn compact" id="autoReadUnknown" type="button">连续朗读不认识</button>
         </div>
 
@@ -92,7 +93,7 @@
           <article class="flashcard" id="studyCard">
             <div class="empty-state"><span>📚</span><p>正在准备学习队列……</p></div>
           </article>
-          <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义</div>
+          <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义（开关打开时始终显示）</div>
         </div>
       </section>
 
