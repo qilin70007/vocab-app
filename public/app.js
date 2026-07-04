@@ -314,10 +314,10 @@ function prepareStudyQueue(force = true) {
   }
   const section = $('#studySection')?.value || '';
   const status = $('#studyStatus')?.value || 'notknown';
-  const order = $('#studyOrder')?.value || 'sequence';
+  const order = $('#studyOrder')?.value || 'alpha';
   let queue = filteredWords(section, status);
   if (order === 'random') queue.sort(() => Math.random() - 0.5);
-  else queue.sort(compareWordOrder);
+  else queue.sort((a, b) => a.word.localeCompare(b.word));
   const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled !== false;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
@@ -581,13 +581,11 @@ function getWordListFiltered() {
   const query = ($('#wordSearch')?.value || '').trim().toLowerCase();
   const section = $('#wordSection')?.value || '';
   const status = $('#wordStatus')?.value || 'all';
-  return filteredWords(section, status)
-    .filter((word) => {
-      if (!query) return true;
-      return [word.word, word.meaning, word.pos, ...(word.senses || []).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
-        .join(' ').toLowerCase().includes(query);
-    })
-    .sort(compareWordOrder);
+  return filteredWords(section, status).filter((word) => {
+    if (!query) return true;
+    return [word.word, word.meaning, word.pos, ...(word.senses || []).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
+      .join(' ').toLowerCase().includes(query);
+  });
 }
 
 function renderWordList() {
@@ -743,18 +741,6 @@ async function resetData() {
 }
 
 
-function chooseVoice(lang) {
-  if (!('speechSynthesis' in window)) return null;
-  const voices = speechSynthesis.getVoices?.() || [];
-  if (lang.startsWith('zh')) {
-    return voices.find((voice) => /zh[-_]CN/i.test(voice.lang) && /xiaoxiao|xiaoyi|tingting|huihui|yaoyao|hanhan|kangkang|google/i.test(voice.name))
-      || voices.find((voice) => /zh[-_]CN/i.test(voice.lang))
-      || voices.find((voice) => /^zh/i.test(voice.lang))
-      || null;
-  }
-  return voices.find((voice) => /en[-_]US/i.test(voice.lang)) || voices.find((voice) => /^en/i.test(voice.lang)) || null;
-}
-
 function speakText(text, lang, rate = 0.82) {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
@@ -765,9 +751,6 @@ function speakText(text, lang, rate = 0.82) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
     utterance.rate = rate;
-    utterance.pitch = lang.startsWith('zh') ? 1.05 : 1;
-    const voice = chooseVoice(lang);
-    if (voice) utterance.voice = voice;
     utterance.onend = resolve;
     utterance.onerror = resolve;
     speechSynthesis.speak(utterance);
@@ -780,26 +763,14 @@ function speakWord(word) {
   speakText(word, 'en-US', 0.82);
 }
 
-function englishOnlyExample(example) {
-  return String(example || '')
-    .split(/[㐀-鿿]/)[0]
-    .replace(/[。；，、]+$/g, '')
-    .trim();
-}
-
 function firstExample(word) {
-  return (word.examples || [])
-    .map(englishOnlyExample)
-    .find((example) => /[A-Za-z]/.test(example)) || '';
+  return (word.examples || []).find((example) => /[A-Za-z]/.test(example)) || '';
 }
 
 async function speakWordDetails(word) {
   await speakText(word.word, 'en-US', 0.82);
-  if (word.pos) await speakText(`词性，${word.pos}`, 'zh-CN', 0.9);
-  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
-  if (senses.length > 1) {
-    for (const sense of senses) await speakText(`${sense.pos ? `${sense.pos}，` : ''}${sense.meaning}`, 'zh-CN', 0.9);
-  } else if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.9);
+  if (word.pos) await speakText(`词性，${word.pos}`, 'zh-CN', 0.95);
+  if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.95);
   const example = firstExample(word);
   if (example) await speakText(example, 'en-US', 0.82);
 }
