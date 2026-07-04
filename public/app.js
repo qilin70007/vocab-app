@@ -810,21 +810,10 @@ function spokenMeaning(word) {
   return derivedSenses(word).map((sense) => `${sense.pos ? `${sense.pos}，` : ''}${sense.meaning}`).join('；') || word.meaning || '';
 }
 
-function firstEnglishExample(word) {
-  const raw = (word.examples || []).find((example) => /[A-Za-z]/.test(example));
-  if (!raw) return '';
-  const beforeChinese = String(raw).split(/[\u4e00-\u9fff]/)[0];
-  const normalized = beforeChinese.replace(/\s+/g, ' ').trim();
-  const sentence = normalized.match(/^[^.!?]+[.!?]/);
-  return (sentence ? sentence[0] : normalized).trim();
-}
-
 async function speakWordDetails(word) {
   await speakText(word.word, 'en-US', 0.82);
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', 0.88);
-  const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', 0.82);
 }
 
 async function toggleAutoReadUnknown() {
