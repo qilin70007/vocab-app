@@ -87,3 +87,25 @@ test('applies spaced repetition reviews', async () => {
   assert.equal(result.body.progress.reviewCount, 1);
   assert.ok(result.body.progress.nextReviewAt);
 });
+
+
+test('normalizes extended vocabulary metadata and preserves sequence ids', async () => {
+  const { normalizeWordRecord } = require('../server');
+  const word = normalizeWordRecord({
+    number: 56,
+    word: 'a.m.',
+    definitions: [
+      { pos: 'abbr.', meaning: '上午' },
+      { pos: 'adv.', meaning: '在上午' }
+    ],
+    synonyms: ['morning'],
+    antonyms: ['p.m.'],
+    proverbs: ['The early bird catches the worm.']
+  }, 0);
+  assert.equal(word.id, 56);
+  assert.equal(word.meaning, '上午');
+  assert.deepEqual(word.senses, [{ pos: 'abbr.', meaning: '上午' }, { pos: 'adv.', meaning: '在上午' }]);
+  assert.deepEqual(word.synonyms, ['morning']);
+  assert.deepEqual(word.antonyms, ['p.m.']);
+  assert.deepEqual(word.proverbs, ['The early bird catches the worm.']);
+});

@@ -177,7 +177,7 @@ function formatDate(value) {
 }
 
 function ensureWordArrays(word) {
-  for (const key of ['forms', 'collocations', 'examples']) {
+  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs', 'senses']) {
     if (!Array.isArray(word[key])) word[key] = word[key] ? [String(word[key])] : [];
   }
   return word;
@@ -289,6 +289,24 @@ function filteredWords(section, status) {
   return words;
 }
 
+
+function wordOrderValue(word) {
+  const value = Number(word.id || word.number || word.sequence || 0);
+  return Number.isFinite(value) && value > 0 ? value : Number.MAX_SAFE_INTEGER;
+}
+
+function compareWordOrder(a, b) {
+  return (wordOrderValue(a) - wordOrderValue(b)) || a.word.localeCompare(b.word);
+}
+
+function wordMeaningHtml(word) {
+  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
+  if (senses.length > 1) {
+    return `<div class="sense-list">${senses.map((sense) => `<div class="sense-item">${sense.pos ? `<span>${escapeHtml(sense.pos)}</span>` : ''}<strong>${escapeHtml(sense.meaning)}</strong></div>`).join('')}</div>`;
+  }
+  return `<div class="answer-meaning">${escapeHtml(word.meaning)}</div>`;
+}
+
 function prepareStudyQueue(force = true) {
   if (!force && state.studyQueue.length) {
     renderStudyCard();
@@ -310,6 +328,11 @@ function prepareStudyQueue(force = true) {
 
 function wordDetailsHtml(word) {
   const groups = [];
+  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
+  if (senses.length > 1) groups.push(['词性与释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
+  if (word.synonyms.length) groups.push(['近义词', word.synonyms]);
+  if (word.antonyms.length) groups.push(['反义词', word.antonyms]);
+  if (word.proverbs.length) groups.push(['谚语', word.proverbs]);
   if (word.forms.length) groups.push(['词形与语法', word.forms]);
   if (word.collocations.length) groups.push(['常用搭配', word.collocations]);
   if (word.examples.length) groups.push(['例句', word.examples]);
@@ -336,7 +359,7 @@ function renderStudyCard() {
     </div>
     <div class="reveal-zone">
       ${state.studyRevealed
-        ? `<div class="answer-block"><div class="answer-meaning">${escapeHtml(word.meaning)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
+        ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
         : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
     </div>
     <div class="study-actions">
@@ -452,7 +475,7 @@ function renderReviewCard() {
       </div>
     </div>
     ${state.reviewRevealed
-      ? `<div class="answer-block"><div class="answer-meaning">${escapeHtml(word.meaning)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
+      ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
       : '<button class="primary-btn" style="width:100%" type="button" data-reveal-review>显示答案</button>'}
     <div class="card-footer"><span>${state.reviewIndex + 1} / ${state.reviewQueue.length}</span><span class="progress-track"><i style="width:${Math.round(((state.reviewIndex + 1) / state.reviewQueue.length) * 100)}%"></i></span><span>${state.reviewMode === 'wrong' ? '错题专练' : '间隔复习'}</span></div>`;
   $('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
@@ -560,7 +583,7 @@ function getWordListFiltered() {
   const status = $('#wordStatus')?.value || 'all';
   return filteredWords(section, status).filter((word) => {
     if (!query) return true;
-    return [word.word, word.meaning, word.pos, ...word.forms, ...word.collocations, ...word.examples]
+    return [word.word, word.meaning, word.pos, ...(word.senses || []).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
       .join(' ').toLowerCase().includes(query);
   });
 }
@@ -613,7 +636,7 @@ async function quickSetStatus(wordText, status) {
 function showWordDialog(wordText) {
   const word = state.words.find((item) => item.word === wordText);
   if (!word) return;
-  $('#wordDialogBody').innerHTML = `<h2 class="dialog-word">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-dialog-speak>🔊</button></div><div class="dialog-meaning">${escapeHtml(word.meaning)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div>`;
+  $('#wordDialogBody').innerHTML = `<h2 class="dialog-word">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-dialog-speak>🔊</button></div><div class="dialog-meaning">${wordMeaningHtml(word)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div>`;
   $('[data-dialog-speak]')?.addEventListener('click', () => speakWord(word.word));
   $('#wordDialog').showModal();
 }
@@ -622,7 +645,7 @@ async function renderDataPage() {
   $('#syncCodeInput').value = state.syncCode;
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
-    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>最后同步：${formatDate(summary.updatedAt)}`;
+    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
     $('#syncStatusDot').classList.add('ok');
     $('#lanUrls').innerHTML = (ip.ips || []).map((address) => `<code>http://${escapeHtml(address)}:${ip.port}</code>`).join('');
   } catch {
