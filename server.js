@@ -96,7 +96,7 @@ function firstMeaning(value) {
 
 function normalizeWordRecord(record, index) {
   const rawWord = record.word || record.headword || record.term || '';
-  const word = String(rawWord).trim().toLowerCase();
+  const word = String(rawWord).trim();
   const section = /^[a-z]/i.test(word) ? word[0].toUpperCase() : '#';
   const examples = toTextList(record.examples || record.example);
 
@@ -253,7 +253,7 @@ function createStore(options = {}) {
     words = (Array.isArray(raw) ? raw : raw.words || [])
       .map(normalizeWordRecord)
       .filter((item) => item.word && item.meaning);
-    wordMap = new Map(words.map((item) => [item.word, item]));
+    wordMap = new Map(words.map((item) => [String(item.word || '').toLowerCase(), item]));
     wordFileMtime = stat.mtimeMs;
     return words;
   }
@@ -317,16 +317,17 @@ function createStore(options = {}) {
   }
 
   function getProgress(profile, word) {
-    return normalizeProgress(profile.progress[word]);
+    return normalizeProgress(profile.progress[String(word || '').toLowerCase()]);
   }
 
   function decorateWord(profile, word) {
-    const progress = getProgress(profile, word.word);
+    const progressKey = String(word.word || '').toLowerCase();
+    const progress = getProgress(profile, progressKey);
     return {
       ...word,
       ...progress,
       isDue: progress.status !== 'new' && (!progress.nextReviewAt || Date.parse(progress.nextReviewAt) <= Date.now()),
-      isWrong: Boolean(profile.wrongWords[word.word])
+      isWrong: Boolean(profile.wrongWords[progressKey])
     };
   }
 

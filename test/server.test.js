@@ -92,6 +92,8 @@ test('applies spaced repetition reviews', async () => {
 
 test('normalizes extended vocabulary metadata and preserves sequence ids', async () => {
   const { normalizeWordRecord } = require('../server');
+  const properNoun = normalizeWordRecord({ word: 'Asia', meaning: '亚洲' }, 0);
+  assert.equal(properNoun.word, 'Asia');
   const word = normalizeWordRecord({
     number: 56,
     word: 'a.m.',
