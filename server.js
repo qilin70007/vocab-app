@@ -170,7 +170,7 @@ function blankProfile() {
     progress: {},
     wrongWords: {},
     dailyStats: {},
-    settings: { dailyGoal: DEFAULT_DAILY_GOAL, dailyGoalEnabled: true },
+    settings: { dailyGoal: DEFAULT_DAILY_GOAL, dailyGoalEnabled: false },
     updatedAt: null
   };
 }
@@ -436,7 +436,7 @@ function createStore(options = {}) {
       streak: 0,
       studiedToday: 0,
       dailyGoal: Number(profile.settings.dailyGoal || DEFAULT_DAILY_GOAL),
-      dailyGoalEnabled: profile.settings.dailyGoalEnabled !== false
+      dailyGoalEnabled: profile.settings.dailyGoalEnabled === true
     };
     for (const word of words) {
       const p = getProgress(profile, word.word);
@@ -600,7 +600,7 @@ function createApp(options = {}) {
     const dailyGoal = Math.min(500, Math.max(1, Number(req.body.dailyGoal || DEFAULT_DAILY_GOAL)));
     profile.settings.dailyGoal = dailyGoal;
     if (Object.prototype.hasOwnProperty.call(req.body, 'dailyGoalEnabled')) {
-      profile.settings.dailyGoalEnabled = req.body.dailyGoalEnabled !== false;
+      profile.settings.dailyGoalEnabled = req.body.dailyGoalEnabled === true;
     }
     store.saveProfile(req.syncCode, profile);
     res.json(profile.settings);

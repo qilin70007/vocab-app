@@ -112,6 +112,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .control-bar label { display: grid; gap: 5px; color: var(--muted); font-size: 14px; font-weight: 700; }
 select, input[type="text"], input[type="search"], input[type="number"] { min-height: 42px; border: 1px solid var(--line); border-radius: 11px; background: white; color: var(--ink); padding: 8px 11px; }
 .control-bar select { min-width: 135px; }
+.toggle-control { min-height: 42px; display: inline-flex !important; grid-auto-flow: column; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink) !important; }
+.toggle-control input { width: 18px; height: 18px; accent-color: var(--brand); }
 
 .flashcard-wrap { max-width: 860px; margin: 0 auto; }
 .flashcard { min-height: 520px; padding: clamp(24px, 5vw, 42px); border: 1px solid rgba(218, 225, 238, .9); border-radius: 30px; background: linear-gradient(155deg, #fff, #fbfcff 72%, #edf2ff); box-shadow: var(--shadow); }
@@ -127,7 +129,7 @@ select, input[type="text"], input[type="search"], input[type="number"] { min-hei
 .detail-groups { display: grid; gap: 12px; margin-top: 20px; }
 .detail-group { padding: 13px 15px; border-radius: 13px; background: white; border: 1px solid var(--line); }
 .detail-group strong { display: block; margin-bottom: 7px; color: var(--brand-deep); font-size: 12px; }
-.detail-group ul { margin: 0; padding-left: 20px; color: #46516a; line-height: 1.65; }
+.detail-group ul { margin: 0; padding-left: 20px; color: #46516a; font-size: clamp(17px, 2.3vw, 21px); line-height: 1.75; }
 .study-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .study-actions button { min-height: 58px; border: 0; border-radius: 15px; font-weight: 800; }
 .action-again { background: var(--red-soft); color: var(--red); }
