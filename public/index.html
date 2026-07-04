@@ -85,6 +85,7 @@
           </select></label>
           <label>顺序<select id="studyOrder"><option value="sequence">词表顺序</option><option value="random">随机</option></select></label>
           <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
+          <label class="toggle-control"><input id="alwaysShowMeaning" type="checkbox"><span>一直显示释义</span></label>
           <button class="secondary-btn compact" id="autoReadUnknown" type="button">连续朗读不认识</button>
         </div>
 
@@ -92,7 +93,7 @@
           <article class="flashcard" id="studyCard">
             <div class="empty-state"><span>📚</span><p>正在准备学习队列……</p></div>
           </article>
-          <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义</div>
+          <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义（开关打开时始终显示）</div>
         </div>
       </section>
 
@@ -167,12 +168,12 @@
           <article class="panel">
             <div class="panel-heading"><div><p class="eyebrow">学习计划</p><h2>每日学习计划</h2></div></div>
             <div class="goal-setting-row">
-              <label class="switch-row"><input id="dailyGoalEnabled" type="checkbox" checked> 开启限制</label>
+              <label class="switch-row"><input id="dailyGoalEnabled" type="checkbox"> 开启限制</label>
               <input id="dailyGoalInput" type="number" min="1" max="500" value="45">
               <span>词 / 天</span>
               <button class="secondary-btn" id="saveGoal" type="button">保存</button>
             </div>
-            <p class="muted">开启后仅限制“不认识＋模糊”的每日学习数量，默认每天 45 个；关闭则不限制个数。</p>
+            <p class="muted">默认关闭限制；开启后仅限制“不认识＋模糊”的每日学习数量，数量默认为每天 45 个。</p>
           </article>
 
           <article class="panel">
