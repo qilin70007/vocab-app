@@ -66,6 +66,19 @@ test('persists status and isolates sync profiles', async () => {
   assert.equal(second.body.known, 0);
 });
 
+
+test('saves daily plan limit settings', async () => {
+  const update = await request('/api/settings', {
+    method: 'PUT', body: JSON.stringify({ dailyGoal: 45, dailyGoalEnabled: false })
+  }, 'CCCCCC');
+  assert.equal(update.response.status, 200);
+  assert.equal(update.body.dailyGoal, 45);
+  assert.equal(update.body.dailyGoalEnabled, false);
+  const stats = await request('/api/stats', {}, 'CCCCCC');
+  assert.equal(stats.body.dailyGoal, 45);
+  assert.equal(stats.body.dailyGoalEnabled, false);
+});
+
 test('applies spaced repetition reviews', async () => {
   const result = await request('/api/review', {
     method: 'POST', body: JSON.stringify({ word: 'able', rating: 'good' })
@@ -73,4 +86,26 @@ test('applies spaced repetition reviews', async () => {
   assert.equal(result.response.status, 200);
   assert.equal(result.body.progress.reviewCount, 1);
   assert.ok(result.body.progress.nextReviewAt);
+});
+
+
+test('normalizes extended vocabulary metadata and preserves sequence ids', async () => {
+  const { normalizeWordRecord } = require('../server');
+  const word = normalizeWordRecord({
+    number: 56,
+    word: 'a.m.',
+    definitions: [
+      { pos: 'abbr.', meaning: '上午' },
+      { pos: 'adv.', meaning: '在上午' }
+    ],
+    synonyms: ['morning'],
+    antonyms: ['p.m.'],
+    proverbs: ['The early bird catches the worm.']
+  }, 0);
+  assert.equal(word.id, 56);
+  assert.equal(word.meaning, '上午');
+  assert.deepEqual(word.senses, [{ pos: 'abbr.', meaning: '上午' }, { pos: 'adv.', meaning: '在上午' }]);
+  assert.deepEqual(word.synonyms, ['morning']);
+  assert.deepEqual(word.antonyms, ['p.m.']);
+  assert.deepEqual(word.proverbs, ['The early bird catches the worm.']);
 });

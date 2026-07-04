@@ -6,9 +6,9 @@ const path = require('path');
 const os = require('os');
 const multer = require('multer');
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.2.0';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
-const DEFAULT_DAILY_GOAL = 40;
+const DEFAULT_DAILY_GOAL = 45;
 const VALID_STATUSES = new Set(['new', 'learning', 'known']);
 const VALID_RATINGS = new Set(['again', 'hard', 'good', 'easy']);
 
@@ -36,6 +36,16 @@ function writeJsonAtomic(file, value) {
   }
 }
 
+
+function pruneOldBackups(dir, keep = 30) {
+  if (!fs.existsSync(dir)) return;
+  const files = fs.readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => ({ name, file: path.join(dir, name), mtimeMs: fs.statSync(path.join(dir, name)).mtimeMs }))
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  for (const item of files.slice(keep)) fs.rmSync(item.file, { force: true });
+}
+
 function toTextList(value) {
   if (!value) return [];
   if (Array.isArray(value)) {
@@ -53,6 +63,37 @@ function toTextList(value) {
     .filter(Boolean);
 }
 
+
+function toSenseList(record) {
+  const raw = record.senses || record.definitions || record.meanings || record.meaningItems;
+  if (!Array.isArray(raw)) {
+    const pos = String(record.pos || record.part_of_speech || record.part_of_speech_ocr || '').trim();
+    const meaning = String(record.meaning || record.meaning_zh || record.meaning_zh_ocr || '').trim();
+    return meaning ? [{ pos, meaning }] : [];
+  }
+  return raw
+    .map((item) => {
+      if (typeof item === 'string') return { pos: '', meaning: item.trim() };
+      if (!item || typeof item !== 'object') return null;
+      const pos = String(item.pos || item.partOfSpeech || item.part_of_speech || '').trim();
+      const meaning = String(item.meaning || item.meaning_zh || item.definition || item.text || '').trim();
+      return meaning ? { pos, meaning } : null;
+    })
+    .filter(Boolean);
+}
+
+function firstMeaning(value) {
+  if (!Array.isArray(value)) return toTextList(value)[0] || '';
+  for (const item of value) {
+    if (typeof item === 'string' && item.trim()) return item.trim();
+    if (item && typeof item === 'object') {
+      const text = String(item.meaning || item.meaning_zh || item.definition || item.text || '').trim();
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
 function normalizeWordRecord(record, index) {
   const rawWord = record.word || record.headword || record.term || '';
   const word = String(rawWord).trim().toLowerCase();
@@ -60,14 +101,18 @@ function normalizeWordRecord(record, index) {
   const examples = toTextList(record.examples || record.example);
 
   return {
-    id: record.id || record.sequence_no || index + 1,
+    id: Number(record.id || record.number || record.sequence_no || index + 1),
     word,
     section: String(record.section_letter || record.section || section).length === 1
       ? String(record.section_letter || record.section || section).toUpperCase()
       : section,
     phonetic: String(record.phonetic || record.phonetic_ocr || '').trim(),
     pos: String(record.pos || record.part_of_speech || record.part_of_speech_ocr || '').trim(),
-    meaning: String(record.meaning || record.meaning_zh || record.meaning_zh_ocr || '').trim(),
+    meaning: String(record.meaning || record.meaning_zh || record.meaning_zh_ocr || firstMeaning(record.definitions || record.senses || record.meanings)).trim(),
+    senses: toSenseList(record),
+    synonyms: toTextList(record.synonyms || record.synonym || record.similar_words || record.near_synonyms),
+    antonyms: toTextList(record.antonyms || record.antonym || record.opposites),
+    proverbs: toTextList(record.proverbs || record.proverb || record.sayings),
     forms: toTextList(record.forms || record.word_forms || record.grammar_note_ocr),
     collocations: toTextList(record.collocations || record.phrases || record.usage),
     examples,
@@ -125,7 +170,7 @@ function blankProfile() {
     progress: {},
     wrongWords: {},
     dailyStats: {},
-    settings: { dailyGoal: DEFAULT_DAILY_GOAL },
+    settings: { dailyGoal: DEFAULT_DAILY_GOAL, dailyGoalEnabled: true },
     updatedAt: null
   };
 }
@@ -186,7 +231,9 @@ function createStore(options = {}) {
   const wordsPath = options.wordsPath || process.env.WORDS_PATH || path.join(rootDir, 'words.json');
   const fallbackWordsPath = options.fallbackWordsPath || path.join(dataDir, 'words_800.json');
   const profilesDir = path.join(dataDir, 'profiles');
+  const backupsDir = path.join(dataDir, 'backups');
   ensureDir(profilesDir);
+  ensureDir(backupsDir);
   ensureDir(path.join(dataDir, 'uploads'));
 
   let words = [];
@@ -245,7 +292,23 @@ function createStore(options = {}) {
     return profile;
   }
 
+  function backupProfile(code, profile) {
+    const safeCode = sanitizeSyncCode(code);
+    const dir = path.join(backupsDir, safeCode);
+    ensureDir(dir);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    writeJsonAtomic(path.join(dir, `${stamp}.json`), {
+      app: 'vocab-master',
+      backupType: 'auto',
+      syncCode: safeCode,
+      exportDate: new Date().toISOString(),
+      profile
+    });
+    pruneOldBackups(dir);
+  }
+
   function saveProfile(code, profile) {
+    backupProfile(code, profile);
     profile.version = 2;
     profile.revision = Number(profile.revision || 0) + 1;
     profile.updatedAt = new Date().toISOString();
@@ -372,7 +435,8 @@ function createStore(options = {}) {
       progress: 0,
       streak: 0,
       studiedToday: 0,
-      dailyGoal: Number(profile.settings.dailyGoal || DEFAULT_DAILY_GOAL)
+      dailyGoal: Number(profile.settings.dailyGoal || DEFAULT_DAILY_GOAL),
+      dailyGoalEnabled: profile.settings.dailyGoalEnabled !== false
     };
     for (const word of words) {
       const p = getProgress(profile, word.word);
@@ -495,7 +559,7 @@ function createApp(options = {}) {
     }
     if (sort === 'random') result.sort(() => Math.random() - 0.5);
     else if (sort === 'due') result.sort((a, b) => Date.parse(a.nextReviewAt || 0) - Date.parse(b.nextReviewAt || 0));
-    else result.sort((a, b) => a.word.localeCompare(b.word));
+    else result.sort((a, b) => (Number(a.id || 0) - Number(b.id || 0)) || a.word.localeCompare(b.word));
 
     const total = result.length;
     const offset = Math.max(0, Number(req.query.offset || 0));
@@ -535,6 +599,9 @@ function createApp(options = {}) {
     const profile = loadRequestProfile(req);
     const dailyGoal = Math.min(500, Math.max(1, Number(req.body.dailyGoal || DEFAULT_DAILY_GOAL)));
     profile.settings.dailyGoal = dailyGoal;
+    if (Object.prototype.hasOwnProperty.call(req.body, 'dailyGoalEnabled')) {
+      profile.settings.dailyGoalEnabled = req.body.dailyGoalEnabled !== false;
+    }
     store.saveProfile(req.syncCode, profile);
     res.json(profile.settings);
   });
@@ -701,6 +768,16 @@ function createApp(options = {}) {
     }
   });
 
+  function latestBackupAt(code) {
+    const dir = path.join(store.dataDir, 'backups', sanitizeSyncCode(code));
+    if (!fs.existsSync(dir)) return null;
+    const latest = fs.readdirSync(dir)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => fs.statSync(path.join(dir, name)).mtimeMs)
+      .sort((a, b) => b - a)[0];
+    return latest ? new Date(latest).toISOString() : null;
+  }
+
   app.get('/api/sync/summary', (req, res) => {
     const profile = loadRequestProfile(req);
     res.json({
@@ -708,7 +785,8 @@ function createApp(options = {}) {
       revision: profile.revision,
       updatedAt: profile.updatedAt,
       progressCount: Object.keys(profile.progress).length,
-      wrongCount: Object.keys(profile.wrongWords).length
+      wrongCount: Object.keys(profile.wrongWords).length,
+      latestBackupAt: latestBackupAt(req.syncCode)
     });
   });
 
