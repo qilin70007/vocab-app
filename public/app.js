@@ -27,7 +27,8 @@ const state = {
   wordPage: 1,
   wordPageSize: 30,
   deferredInstallPrompt: null,
-  online: navigator.onLine
+  online: navigator.onLine,
+  autoReadActive: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -165,7 +166,7 @@ function showToast(message) {
 }
 
 function statusLabel(status) {
-  return status === 'known' ? '已掌握' : status === 'learning' ? '学习中' : '未背过';
+  return status === 'known' ? '已掌握' : status === 'learning' ? '模糊' : '不认识';
 }
 
 function formatDate(value) {
@@ -176,7 +177,7 @@ function formatDate(value) {
 }
 
 function ensureWordArrays(word) {
-  for (const key of ['forms', 'collocations', 'examples']) {
+  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs', 'senses']) {
     if (!Array.isArray(word[key])) word[key] = word[key] ? [String(word[key])] : [];
   }
   return word;
@@ -245,14 +246,17 @@ function renderHome() {
     ['到期复习', s.due, `错题 ${s.wrong} 个`]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
-  const goal = Math.max(1, Number(s.dailyGoal || 40));
+  const goal = Math.max(1, Number(s.dailyGoal || 45));
   const studied = Number(s.studiedToday || 0);
-  const pct = Math.min(100, Math.round((studied / goal) * 100));
-  $('#goalText').textContent = `${studied} / ${goal}`;
+  const limited = s.dailyGoalEnabled !== false;
+  const pct = limited ? Math.min(100, Math.round((studied / goal) * 100)) : 0;
+  $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 不限`;
   $('#goalPercent').textContent = `${pct}%`;
   $('#goalRing').style.setProperty('--pct', pct);
   $('#streakCount').textContent = s.streak || 0;
   $('#dailyGoalInput').value = goal;
+  const dailyGoalEnabled = $('#dailyGoalEnabled');
+  if (dailyGoalEnabled) dailyGoalEnabled.checked = limited;
 
   const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
   const days = state.daily?.days || {};
@@ -285,18 +289,37 @@ function filteredWords(section, status) {
   return words;
 }
 
+
+function wordOrderValue(word) {
+  const value = Number(word.id || word.number || word.sequence || 0);
+  return Number.isFinite(value) && value > 0 ? value : Number.MAX_SAFE_INTEGER;
+}
+
+function compareWordOrder(a, b) {
+  return (wordOrderValue(a) - wordOrderValue(b)) || a.word.localeCompare(b.word);
+}
+
+function wordMeaningHtml(word) {
+  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
+  if (senses.length > 1) {
+    return `<div class="sense-list">${senses.map((sense) => `<div class="sense-item">${sense.pos ? `<span>${escapeHtml(sense.pos)}</span>` : ''}<strong>${escapeHtml(sense.meaning)}</strong></div>`).join('')}</div>`;
+  }
+  return `<div class="answer-meaning">${escapeHtml(word.meaning)}</div>`;
+}
+
 function prepareStudyQueue(force = true) {
   if (!force && state.studyQueue.length) {
     renderStudyCard();
     return;
   }
   const section = $('#studySection')?.value || '';
-  const status = $('#studyStatus')?.value || 'new';
+  const status = $('#studyStatus')?.value || 'notknown';
   const order = $('#studyOrder')?.value || 'alpha';
   let queue = filteredWords(section, status);
   if (order === 'random') queue.sort(() => Math.random() - 0.5);
   else queue.sort((a, b) => a.word.localeCompare(b.word));
-  const limit = status === 'new' ? Number(state.stats?.dailyGoal || 40) : 200;
+  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled !== false;
+  const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
   state.studyIndex = 0;
   state.studyRevealed = false;
@@ -305,6 +328,11 @@ function prepareStudyQueue(force = true) {
 
 function wordDetailsHtml(word) {
   const groups = [];
+  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
+  if (senses.length > 1) groups.push(['词性与释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
+  if (word.synonyms.length) groups.push(['近义词', word.synonyms]);
+  if (word.antonyms.length) groups.push(['反义词', word.antonyms]);
+  if (word.proverbs.length) groups.push(['谚语', word.proverbs]);
   if (word.forms.length) groups.push(['词形与语法', word.forms]);
   if (word.collocations.length) groups.push(['常用搭配', word.collocations]);
   if (word.examples.length) groups.push(['例句', word.examples]);
@@ -331,7 +359,7 @@ function renderStudyCard() {
     </div>
     <div class="reveal-zone">
       ${state.studyRevealed
-        ? `<div class="answer-block"><div class="answer-meaning">${escapeHtml(word.meaning)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
+        ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
         : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
     </div>
     <div class="study-actions">
@@ -447,7 +475,7 @@ function renderReviewCard() {
       </div>
     </div>
     ${state.reviewRevealed
-      ? `<div class="answer-block"><div class="answer-meaning">${escapeHtml(word.meaning)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
+      ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
       : '<button class="primary-btn" style="width:100%" type="button" data-reveal-review>显示答案</button>'}
     <div class="card-footer"><span>${state.reviewIndex + 1} / ${state.reviewQueue.length}</span><span class="progress-track"><i style="width:${Math.round(((state.reviewIndex + 1) / state.reviewQueue.length) * 100)}%"></i></span><span>${state.reviewMode === 'wrong' ? '错题专练' : '间隔复习'}</span></div>`;
   $('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
@@ -555,7 +583,7 @@ function getWordListFiltered() {
   const status = $('#wordStatus')?.value || 'all';
   return filteredWords(section, status).filter((word) => {
     if (!query) return true;
-    return [word.word, word.meaning, word.pos, ...word.forms, ...word.collocations, ...word.examples]
+    return [word.word, word.meaning, word.pos, ...(word.senses || []).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
       .join(' ').toLowerCase().includes(query);
   });
 }
@@ -608,7 +636,7 @@ async function quickSetStatus(wordText, status) {
 function showWordDialog(wordText) {
   const word = state.words.find((item) => item.word === wordText);
   if (!word) return;
-  $('#wordDialogBody').innerHTML = `<h2 class="dialog-word">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-dialog-speak>🔊</button></div><div class="dialog-meaning">${escapeHtml(word.meaning)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div>`;
+  $('#wordDialogBody').innerHTML = `<h2 class="dialog-word">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-dialog-speak>🔊</button></div><div class="dialog-meaning">${wordMeaningHtml(word)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div>`;
   $('[data-dialog-speak]')?.addEventListener('click', () => speakWord(word.word));
   $('#wordDialog').showModal();
 }
@@ -617,7 +645,7 @@ async function renderDataPage() {
   $('#syncCodeInput').value = state.syncCode;
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
-    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>最后同步：${formatDate(summary.updatedAt)}`;
+    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
     $('#syncStatusDot').classList.add('ok');
     $('#lanUrls').innerHTML = (ip.ips || []).map((address) => `<code>http://${escapeHtml(address)}:${ip.port}</code>`).join('');
   } catch {
@@ -652,10 +680,14 @@ async function copySyncCode() {
 }
 
 async function saveDailyGoal() {
-  const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 40)));
+  const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 45)));
+  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked !== false;
   try {
-    await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal }) }, { queueable: true });
-    if (state.stats) state.stats.dailyGoal = dailyGoal;
+    await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal, dailyGoalEnabled }) }, { queueable: true });
+    if (state.stats) {
+      state.stats.dailyGoal = dailyGoal;
+      state.stats.dailyGoalEnabled = dailyGoalEnabled;
+    }
     renderHome();
     showToast('每日目标已保存');
   } catch (error) {
@@ -708,14 +740,61 @@ async function resetData() {
   }
 }
 
+
+function speakText(text, lang, rate = 0.82) {
+  return new Promise((resolve) => {
+    if (!('speechSynthesis' in window)) {
+      showToast('当前浏览器不支持朗读');
+      resolve();
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = rate;
+    utterance.onend = resolve;
+    utterance.onerror = resolve;
+    speechSynthesis.speak(utterance);
+  });
+}
+
 function speakWord(word) {
   if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
   speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.82;
-  speechSynthesis.speak(utterance);
+  speakText(word, 'en-US', 0.82);
 }
+
+function firstExample(word) {
+  return (word.examples || []).find((example) => /[A-Za-z]/.test(example)) || '';
+}
+
+async function speakWordDetails(word) {
+  await speakText(word.word, 'en-US', 0.82);
+  if (word.pos) await speakText(`词性，${word.pos}`, 'zh-CN', 0.95);
+  if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.95);
+  const example = firstExample(word);
+  if (example) await speakText(example, 'en-US', 0.82);
+}
+
+async function toggleAutoReadUnknown() {
+  if (state.autoReadActive) {
+    state.autoReadActive = false;
+    speechSynthesis?.cancel();
+    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    return;
+  }
+  if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
+  state.autoReadActive = true;
+  $('#autoReadUnknown').textContent = '停止朗读';
+  const section = $('#studySection')?.value || '';
+  const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
+  for (const word of words) {
+    if (!state.autoReadActive) break;
+    await speakWordDetails(word);
+  }
+  state.autoReadActive = false;
+  $('#autoReadUnknown').textContent = '连续朗读不认识';
+}
+
 
 async function installApp() {
   if (!state.deferredInstallPrompt) {
@@ -737,6 +816,7 @@ function bindEvents() {
   $('#studyStatus').addEventListener('change', () => prepareStudyQueue(true));
   $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
   $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
+  $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
   $('#startReviewButton').addEventListener('click', startReview);
   $('#startWrongButton').addEventListener('click', loadWrongReview);
   $('#spellSection').addEventListener('change', () => prepareSpellQueue(true));
