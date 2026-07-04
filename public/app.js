@@ -314,10 +314,10 @@ function prepareStudyQueue(force = true) {
   }
   const section = $('#studySection')?.value || '';
   const status = $('#studyStatus')?.value || 'notknown';
-  const order = $('#studyOrder')?.value || 'sequence';
+  const order = $('#studyOrder')?.value || 'alpha';
   let queue = filteredWords(section, status);
   if (order === 'random') queue.sort(() => Math.random() - 0.5);
-  else queue.sort(compareWordOrder);
+  else queue.sort((a, b) => a.word.localeCompare(b.word));
   const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled !== false;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
@@ -770,10 +770,7 @@ function firstExample(word) {
 async function speakWordDetails(word) {
   await speakText(word.word, 'en-US', 0.82);
   if (word.pos) await speakText(`词性，${word.pos}`, 'zh-CN', 0.95);
-  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
-  if (senses.length > 1) {
-    for (const sense of senses) await speakText(`${sense.pos ? `${sense.pos}，` : ''}${sense.meaning}`, 'zh-CN', 0.95);
-  } else if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.95);
+  if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.95);
   const example = firstExample(word);
   if (example) await speakText(example, 'en-US', 0.82);
 }
