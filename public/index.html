@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.1.0">
+  <link rel="stylesheet" href="/style.css?v=2.1.1">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -153,7 +153,7 @@
         <div class="settings-grid">
           <article class="panel">
             <div class="panel-heading"><div><p class="eyebrow">自动同步</p><h2>同步码</h2></div><span class="status-dot" id="syncStatusDot"></span></div>
-            <p class="muted">手机和电脑连接同一个服务器时，输入相同同步码即可共享学习进度。同步码不是密码，请勿使用敏感信息。</p>
+            <p class="muted">普通安卓浏览器访问的是电脑上的本地服务器网址：只有电脑开机、服务器运行，并且手机能连到同一网络时才能打开。同步码只负责把同一服务器上的手机和电脑进度归到一起；如果电脑不在身边且没有安装/缓存或云端部署，这个网址无法访问。同步码不是密码，请勿使用敏感信息。</p>
             <div class="sync-code-row">
               <input id="syncCodeInput" type="text" maxlength="16" autocomplete="off" spellcheck="false" aria-label="同步码">
               <button class="secondary-btn" id="applySyncCode" type="button">应用</button>
@@ -161,6 +161,7 @@
             <div class="button-row">
               <button class="ghost-btn" id="copySyncCode" type="button">复制同步码</button>
               <button class="ghost-btn" id="newSyncCode" type="button">生成新码</button>
+              <button class="secondary-btn" id="syncNow" type="button">立即同步</button>
             </div>
             <div class="sync-summary" id="syncSummary"></div>
           </article>
@@ -192,9 +193,14 @@
           </article>
 
           <article class="panel">
-            <div class="panel-heading"><div><p class="eyebrow">安装应用</p><h2>手机与 Windows</h2></div></div>
-            <p class="muted">手机先在同一 Wi-Fi 下打开本机地址，使用浏览器菜单“添加到主屏幕/安装应用”。安装并打开过一次后，脱离 Wi-Fi 也能背已缓存词库；离线标记会先存在手机本地，重新连回同一服务器 Wi-Fi 后自动同步。</p>
-            <button class="secondary-btn" id="installSettingsButton" type="button">安装到本机</button>
+            <div class="panel-heading"><div><p class="eyebrow">访问方式</p><h2>手机与 Windows</h2></div></div>
+            <p class="muted">仅访问下面的局域网网址不需要安装，但它依赖电脑在身边当服务器；电脑不在同一网络或服务没开时，普通网址就打不开。</p>
+            <ol class="setup-steps">
+              <li><strong>添加到主屏幕：</strong>安卓 Chrome/Edge 打开下面的网址后，点右上角 ⋮，选择“添加到主屏幕”或“安装应用”。这不是 APK，只是把已缓存的网页应用放到桌面。</li>
+              <li><strong>彻底脱离电脑：</strong>如果希望手机首次打开、词库、进度保存都不依赖电脑服务器，需要把应用做成真正的手机端版本（APK/Capacitor/TWA）或部署到 HTTPS 云端。</li>
+              <li><strong>同步电脑进度：</strong>手机离线产生的记录会先存在手机本地；重新连回同一个服务器后，点“立即同步”上传。</li>
+            </ol>
+            <button class="secondary-btn" id="installSettingsButton" type="button">添加到主屏幕/安装</button>
             <div class="lan-urls" id="lanUrls"></div>
           </article>
         </div>
@@ -217,6 +223,6 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/app.js?v=2.1.0" defer></script>
+  <script src="/app.js?v=2.1.1" defer></script>
 </body>
 </html>

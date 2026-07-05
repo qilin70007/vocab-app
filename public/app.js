@@ -5,7 +5,8 @@ const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
   cachePrefix: 'vocab.v2.3.1.cache.',
-  alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning'
+  alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
+  offlineDailyPrefix: 'vocab.v2.offlineDaily.'
 };
 
 const state = {
@@ -77,13 +78,19 @@ function writeJsonStorage(key, value) {
   }
 }
 
+function pendingMutationCount() {
+  return readJsonStorage(STORAGE.pending, []).length;
+}
+
 function setConnectionStatus(online, label) {
   state.online = online;
+  const count = pendingMutationCount();
   const pill = $('#connectionPill');
   if (!pill) return;
-  pill.classList.toggle('online', online);
-  pill.classList.toggle('offline', !online);
-  pill.querySelector('span').textContent = label || (online ? '已同步' : '离线模式');
+  pill.classList.toggle('online', online && count === 0);
+  pill.classList.toggle('offline', !online || count > 0);
+  const text = label || (online ? '已同步' : '离线模式');
+  pill.querySelector('span').textContent = count ? `${text} · 待同步 ${count}` : text;
 }
 
 function enqueueMutation(path, options) {
@@ -96,6 +103,7 @@ function enqueueMutation(path, options) {
     createdAt: new Date().toISOString()
   });
   writeJsonStorage(STORAGE.pending, queue.slice(-2000));
+  setConnectionStatus(false, '已离线保存');
 }
 
 async function api(path, options = {}, config = {}) {
@@ -153,9 +161,107 @@ async function flushPendingMutations() {
 
   writeJsonStorage(STORAGE.pending, remaining);
   if (!remaining.length) {
+    clearOfflineDailyStats();
     showToast('离线记录已同步');
     await refreshAll({ quiet: true });
+  } else {
+    setConnectionStatus(false, `仍有 ${remaining.length} 条待同步`);
   }
+}
+
+
+function todayKey() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
+
+function offlineDailyKey() {
+  return `${STORAGE.offlineDailyPrefix}${state.syncCode}`;
+}
+
+function readOfflineDailyStats() {
+  return readJsonStorage(offlineDailyKey(), {});
+}
+
+function writeOfflineDailyStats(value) {
+  writeJsonStorage(offlineDailyKey(), value);
+}
+
+function clearOfflineDailyStats() {
+  try { localStorage.removeItem(offlineDailyKey()); } catch {}
+}
+
+function touchOfflineDaily(changes) {
+  const daily = readOfflineDailyStats();
+  const day = todayKey();
+  const current = { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0, ...(daily[day] || {}) };
+  for (const [key, value] of Object.entries(changes)) current[key] = Number(current[key] || 0) + Number(value || 0);
+  daily[day] = current;
+  writeOfflineDailyStats(daily);
+  if (state.daily?.days) {
+    state.daily.days[day] ||= { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0 };
+    for (const [key, value] of Object.entries(changes)) state.daily.days[day][key] = Number(state.daily.days[day][key] || 0) + Number(value || 0);
+  }
+  if (state.stats && changes.studied) state.stats.studiedToday = Number(state.stats.studiedToday || 0) + Number(changes.studied || 0);
+  persistCurrentCache();
+}
+
+function applyDailyOverlay() {
+  const overlay = readOfflineDailyStats();
+  if (!state.daily?.days) return;
+  for (const [day, values] of Object.entries(overlay)) {
+    state.daily.days[day] ||= { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0 };
+    for (const key of Object.keys(values || {})) state.daily.days[day][key] = Number(state.daily.days[day][key] || 0) + Number(values[key] || 0);
+  }
+}
+
+function recomputeLocalStats() {
+  const counts = { total: state.words.length, new: 0, learning: 0, known: 0, due: 0, wrong: 0 };
+  const now = Date.now();
+  for (const word of state.words) {
+    counts[word.status || 'new'] = Number(counts[word.status || 'new'] || 0) + 1;
+    if (word.isWrong) counts.wrong += 1;
+    if ((word.status || 'new') !== 'new' && (!word.nextReviewAt || Date.parse(word.nextReviewAt) <= now)) counts.due += 1;
+  }
+  const today = todayKey();
+  state.stats = {
+    ...(state.stats || {}),
+    ...counts,
+    progress: counts.total ? Math.round((counts.known / counts.total) * 100) : 0,
+    studiedToday: Number(state.daily?.days?.[today]?.studied ?? state.stats?.studiedToday ?? 0)
+  };
+}
+
+function recomputeLocalSections() {
+  const sections = {};
+  for (const word of state.words) {
+    const section = word.section || '#';
+    sections[section] ||= { total: 0, new: 0, learning: 0, known: 0, due: 0 };
+    sections[section].total += 1;
+    sections[section][word.status || 'new'] += 1;
+    if ((word.status || 'new') !== 'new' && (!word.nextReviewAt || Date.parse(word.nextReviewAt) <= Date.now())) sections[section].due += 1;
+  }
+  state.sections = sections;
+}
+
+function persistCurrentCache() {
+  if (!state.syncCode || !state.words.length) return;
+  writeJsonStorage(cacheKey('/words?status=all&limit=5000'), { total: state.words.length, offset: 0, limit: 5000, words: state.words });
+  if (state.stats) writeJsonStorage(cacheKey('/stats'), state.stats);
+  if (state.sections) writeJsonStorage(cacheKey('/sections'), state.sections);
+  if (state.daily) writeJsonStorage(cacheKey('/daily-stats?days=7'), state.daily);
+}
+
+function updateLocalProgress(wordText, patch) {
+  const word = state.words.find((item) => item.word.toLowerCase() === String(wordText || '').toLowerCase());
+  if (!word) return null;
+  Object.assign(word, patch, { updatedAt: new Date().toISOString() });
+  recomputeLocalStats();
+  recomputeLocalSections();
+  persistCurrentCache();
+  renderHome();
+  return word;
 }
 
 let toastTimer = null;
@@ -201,6 +307,12 @@ async function refreshAll({ quiet = false } = {}) {
     state.stats = stats;
     state.sections = sections;
     state.daily = daily;
+    applyDailyOverlay();
+    if (pendingMutationCount()) {
+      recomputeLocalStats();
+      recomputeLocalSections();
+      persistCurrentCache();
+    }
     populateSectionSelects();
     renderHome();
     renderCurrentPage();
@@ -418,16 +530,17 @@ async function markStudyWord(status) {
   const word = state.studyQueue[state.studyIndex];
   if (!word) return;
   word.status = status;
-  const sourceWord = state.words.find((item) => item.word === word.word);
-  if (sourceWord) sourceWord.status = status;
+  const sourceWord = updateLocalProgress(word.word, { status, lastReview: new Date().toISOString(), firstSeenAt: word.firstSeenAt || new Date().toISOString() });
+  if (sourceWord) Object.assign(word, sourceWord);
   state.studyIndex += 1;
   state.studyRevealed = state.alwaysShowMeaning;
   renderStudyCard();
   try {
-    await api(`/words/${encodeURIComponent(word.word)}/status`, {
+    const payload = await api(`/words/${encodeURIComponent(word.word)}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status })
     }, { queueable: true });
+    if (payload.queued) touchOfflineDaily({ studied: 1, [status]: 1 });
     await refreshStatsOnly();
   } catch (error) {
     showToast(error.message);
@@ -523,12 +636,16 @@ async function rateReview(rating) {
   if (!word) return;
   state.reviewIndex += 1;
   state.reviewRevealed = false;
+  const nextStatus = ['again', 'hard'].includes(rating) ? 'learning' : 'known';
+  const wrongPatch = ['again', 'hard'].includes(rating) ? { isWrong: true } : { isWrong: false };
+  updateLocalProgress(word.word, { status: nextStatus, lastReview: new Date().toISOString(), ...wrongPatch });
   renderReviewCard();
   try {
     const payload = await api('/review', {
       method: 'POST',
       body: JSON.stringify({ word: word.word, rating })
     }, { queueable: true });
+    if (payload.queued) touchOfflineDaily({ studied: 1, reviewed: 1, [rating === 'again' || rating === 'hard' ? 'quizWrong' : 'quizCorrect']: 1, [nextStatus]: 1 });
     if (payload.progress) {
       const sourceWord = state.words.find((item) => item.word === word.word);
       if (sourceWord) Object.assign(sourceWord, payload.progress);
@@ -574,10 +691,12 @@ function renderSpellCard() {
 }
 
 async function submitSpellResult(word, correct) {
-  await api('/review', {
+  updateLocalProgress(word.word, { status: correct ? 'known' : 'learning', isWrong: !correct, lastReview: new Date().toISOString() });
+  const payload = await api('/review', {
     method: 'POST',
     body: JSON.stringify({ word: word.word, rating: correct ? 'good' : 'again' })
   }, { queueable: true });
+  if (payload.queued) touchOfflineDaily({ studied: 1, reviewed: 1, [correct ? 'quizCorrect' : 'quizWrong']: 1, [correct ? 'known' : 'learning']: 1 });
 }
 
 async function checkSpelling() {
@@ -658,10 +777,11 @@ function renderPagination(pages) {
 async function quickSetStatus(wordText, status) {
   const word = state.words.find((item) => item.word === wordText);
   if (!word) return;
-  word.status = status;
+  updateLocalProgress(wordText, { status, lastReview: new Date().toISOString(), firstSeenAt: word.firstSeenAt || new Date().toISOString() });
   renderWordList();
   try {
-    await api(`/words/${encodeURIComponent(wordText)}/status`, { method: 'PUT', body: JSON.stringify({ status }) }, { queueable: true });
+    const payload = await api(`/words/${encodeURIComponent(wordText)}/status`, { method: 'PUT', body: JSON.stringify({ status }) }, { queueable: true });
+    if (payload.queued) touchOfflineDaily({ studied: 1, [status]: 1 });
     await refreshStatsOnly();
   } catch (error) {
     showToast(error.message);
@@ -680,11 +800,12 @@ async function renderDataPage() {
   $('#syncCodeInput').value = state.syncCode;
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
-    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
+    const pending = pendingMutationCount();
+    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
     $('#syncStatusDot').classList.add('ok');
     $('#lanUrls').innerHTML = (ip.ips || []).map((address) => `<code>http://${escapeHtml(address)}:${ip.port}</code>`).join('');
   } catch {
-    $('#syncSummary').textContent = '当前处于离线模式，记录会在恢复连接后自动上传。';
+    $('#syncSummary').textContent = `当前处于离线模式，记录会先保存在手机本地；待上传 ${pendingMutationCount()} 条，恢复连接后会自动同步。`;
     $('#syncStatusDot').classList.remove('ok');
   }
   $('#installSettingsButton').disabled = !state.deferredInstallPrompt;
@@ -934,6 +1055,7 @@ function bindEvents() {
   $('#applySyncCode').addEventListener('click', applySyncCode);
   $('#copySyncCode').addEventListener('click', copySyncCode);
   $('#newSyncCode').addEventListener('click', () => { $('#syncCodeInput').value = generateSyncCode(); });
+  $('#syncNow').addEventListener('click', async () => { await flushPendingMutations(); await renderDataPage(); });
   $('#saveGoal').addEventListener('click', saveDailyGoal);
   $('#exportData').addEventListener('click', exportData);
   $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
