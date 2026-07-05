@@ -96,7 +96,7 @@ function firstMeaning(value) {
 
 function normalizeWordRecord(record, index) {
   const rawWord = record.word || record.headword || record.term || '';
-  const word = String(rawWord).trim().toLowerCase();
+  const word = String(rawWord).trim();
   const section = /^[a-z]/i.test(word) ? word[0].toUpperCase() : '#';
   const examples = toTextList(record.examples || record.example);
 
@@ -170,7 +170,7 @@ function blankProfile() {
     progress: {},
     wrongWords: {},
     dailyStats: {},
-    settings: { dailyGoal: DEFAULT_DAILY_GOAL, dailyGoalEnabled: true },
+    settings: { dailyGoal: DEFAULT_DAILY_GOAL, dailyGoalEnabled: false },
     updatedAt: null
   };
 }
@@ -253,7 +253,7 @@ function createStore(options = {}) {
     words = (Array.isArray(raw) ? raw : raw.words || [])
       .map(normalizeWordRecord)
       .filter((item) => item.word && item.meaning);
-    wordMap = new Map(words.map((item) => [item.word, item]));
+    wordMap = new Map(words.map((item) => [String(item.word || '').toLowerCase(), item]));
     wordFileMtime = stat.mtimeMs;
     return words;
   }
@@ -317,16 +317,17 @@ function createStore(options = {}) {
   }
 
   function getProgress(profile, word) {
-    return normalizeProgress(profile.progress[word]);
+    return normalizeProgress(profile.progress[String(word || '').toLowerCase()]);
   }
 
   function decorateWord(profile, word) {
-    const progress = getProgress(profile, word.word);
+    const progressKey = String(word.word || '').toLowerCase();
+    const progress = getProgress(profile, progressKey);
     return {
       ...word,
       ...progress,
       isDue: progress.status !== 'new' && (!progress.nextReviewAt || Date.parse(progress.nextReviewAt) <= Date.now()),
-      isWrong: Boolean(profile.wrongWords[word.word])
+      isWrong: Boolean(profile.wrongWords[progressKey])
     };
   }
 
@@ -436,7 +437,7 @@ function createStore(options = {}) {
       streak: 0,
       studiedToday: 0,
       dailyGoal: Number(profile.settings.dailyGoal || DEFAULT_DAILY_GOAL),
-      dailyGoalEnabled: profile.settings.dailyGoalEnabled !== false
+      dailyGoalEnabled: profile.settings.dailyGoalEnabled === true
     };
     for (const word of words) {
       const p = getProgress(profile, word.word);
@@ -600,7 +601,7 @@ function createApp(options = {}) {
     const dailyGoal = Math.min(500, Math.max(1, Number(req.body.dailyGoal || DEFAULT_DAILY_GOAL)));
     profile.settings.dailyGoal = dailyGoal;
     if (Object.prototype.hasOwnProperty.call(req.body, 'dailyGoalEnabled')) {
-      profile.settings.dailyGoalEnabled = req.body.dailyGoalEnabled !== false;
+      profile.settings.dailyGoalEnabled = req.body.dailyGoalEnabled === true;
     }
     store.saveProfile(req.syncCode, profile);
     res.json(profile.settings);

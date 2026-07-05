@@ -4,7 +4,8 @@ const API_ROOT = '/api';
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
-  cachePrefix: 'vocab.v2.3.1.cache.'
+  cachePrefix: 'vocab.v2.3.1.cache.',
+  alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning'
 };
 
 const state = {
@@ -28,7 +29,8 @@ const state = {
   wordPageSize: 30,
   deferredInstallPrompt: null,
   online: navigator.onLine,
-  autoReadActive: false
+  autoReadActive: false,
+  alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false)
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -248,7 +250,7 @@ function renderHome() {
 
   const goal = Math.max(1, Number(s.dailyGoal || 45));
   const studied = Number(s.studiedToday || 0);
-  const limited = s.dailyGoalEnabled !== false;
+  const limited = s.dailyGoalEnabled === true;
   const pct = limited ? Math.min(100, Math.round((studied / goal) * 100)) : 0;
   $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 不限`;
   $('#goalPercent').textContent = `${pct}%`;
@@ -290,6 +292,36 @@ function filteredWords(section, status) {
 }
 
 
+
+const POS_PATTERN = String.raw`(?:modal\s+v|aux\.?\s*v|v\.?&n\.?|n\.?&v\.?|adj\.?&n\.?|adv\.?|adj\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|vt\.?|vi\.?|v\.?|n\.?)`;
+const POS_SPLIT_RE = new RegExp(`(^|[\\s；;，,])(${POS_PATTERN})\\s*`, 'gi');
+
+function normalizePos(pos) {
+  return String(pos || '').replace(/\s+/g, ' ').trim();
+}
+
+function derivedSenses(word) {
+  const existing = (word.senses || [])
+    .filter((sense) => sense && sense.meaning)
+    .map((sense) => ({ pos: normalizePos(sense.pos), meaning: String(sense.meaning).trim() }));
+  if (existing.length > 1) return existing;
+
+  const text = String(word.meaning || '').trim();
+  const matches = [...text.matchAll(POS_SPLIT_RE)];
+  if (!matches.length) return existing.length ? existing : (text ? [{ pos: normalizePos(word.pos), meaning: text }] : []);
+
+  const senses = [];
+  for (let i = 0; i < matches.length; i += 1) {
+    const match = matches[i];
+    const next = matches[i + 1];
+    const start = match.index + match[0].length;
+    const end = next ? next.index : text.length;
+    const meaning = text.slice(start, end).replace(/^[\s；;，,。.]+|[\s；;，,。.]+$/g, '');
+    if (meaning) senses.push({ pos: normalizePos(match[2]), meaning });
+  }
+  return senses.length > 1 ? senses : (existing.length ? existing : [{ pos: normalizePos(word.pos), meaning: text }]);
+}
+
 function wordOrderValue(word) {
   const value = Number(word.id || word.number || word.sequence || 0);
   return Number.isFinite(value) && value > 0 ? value : Number.MAX_SAFE_INTEGER;
@@ -300,11 +332,11 @@ function compareWordOrder(a, b) {
 }
 
 function wordMeaningHtml(word) {
-  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
+  const senses = derivedSenses(word);
   if (senses.length > 1) {
     return `<div class="sense-list">${senses.map((sense) => `<div class="sense-item">${sense.pos ? `<span>${escapeHtml(sense.pos)}</span>` : ''}<strong>${escapeHtml(sense.meaning)}</strong></div>`).join('')}</div>`;
   }
-  return `<div class="answer-meaning">${escapeHtml(word.meaning)}</div>`;
+  return `<div class="answer-meaning">${escapeHtml(senses[0]?.meaning || word.meaning)}</div>`;
 }
 
 function prepareStudyQueue(force = true) {
@@ -318,18 +350,18 @@ function prepareStudyQueue(force = true) {
   let queue = filteredWords(section, status);
   if (order === 'random') queue.sort(() => Math.random() - 0.5);
   else queue.sort((a, b) => a.word.localeCompare(b.word));
-  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled !== false;
+  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled === true;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
   state.studyIndex = 0;
-  state.studyRevealed = false;
+  state.studyRevealed = state.alwaysShowMeaning;
   renderStudyCard();
 }
 
 function wordDetailsHtml(word) {
   const groups = [];
-  const senses = (word.senses || []).filter((sense) => sense && sense.meaning);
-  if (senses.length > 1) groups.push(['词性与释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
+  const senses = derivedSenses(word);
+  if (senses.length > 1) groups.push(['词性释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
   if (word.synonyms.length) groups.push(['近义词', word.synonyms]);
   if (word.antonyms.length) groups.push(['反义词', word.antonyms]);
   if (word.proverbs.length) groups.push(['谚语', word.proverbs]);
@@ -358,7 +390,7 @@ function renderStudyCard() {
       <button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>
     </div>
     <div class="reveal-zone">
-      ${state.studyRevealed
+      ${state.alwaysShowMeaning || state.studyRevealed
         ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
         : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
     </div>
@@ -386,7 +418,7 @@ async function markStudyWord(status) {
   const sourceWord = state.words.find((item) => item.word === word.word);
   if (sourceWord) sourceWord.status = status;
   state.studyIndex += 1;
-  state.studyRevealed = false;
+  state.studyRevealed = state.alwaysShowMeaning;
   renderStudyCard();
   try {
     await api(`/words/${encodeURIComponent(word.word)}/status`, {
@@ -681,7 +713,7 @@ async function copySyncCode() {
 
 async function saveDailyGoal() {
   const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 45)));
-  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked !== false;
+  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked === true;
   try {
     await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal, dailyGoalEnabled }) }, { queueable: true });
     if (state.stats) {
@@ -741,6 +773,15 @@ async function resetData() {
 }
 
 
+function preferredVoice(lang) {
+  const voices = speechSynthesis.getVoices?.() || [];
+  const lowerLang = String(lang).toLowerCase();
+  return voices.find((voice) => voice.lang?.toLowerCase() === lowerLang && /mandarin|普通话|国语|xiaoxiao|tingting|mei-jia/i.test(voice.name))
+    || voices.find((voice) => voice.lang?.toLowerCase() === lowerLang)
+    || voices.find((voice) => voice.lang?.toLowerCase().startsWith(lowerLang.slice(0, 2)))
+    || null;
+}
+
 function speakText(text, lang, rate = 0.82) {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
@@ -750,6 +791,8 @@ function speakText(text, lang, rate = 0.82) {
     }
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
+    const voice = preferredVoice(lang);
+    if (voice) utterance.voice = voice;
     utterance.rate = rate;
     utterance.onend = resolve;
     utterance.onerror = resolve;
@@ -763,15 +806,50 @@ function speakWord(word) {
   speakText(word, 'en-US', 0.82);
 }
 
-function firstExample(word) {
-  return (word.examples || []).find((example) => /[A-Za-z]/.test(example)) || '';
+function posToChinese(pos) {
+  const normalized = String(pos || '').toLowerCase();
+  const tokens = normalized.match(/modal\s*v|aux\.?\s*v|adj\.?|adv\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|vt\.?|vi\.?|v\.?|n\.?/g) || [];
+  const labels = tokens.map((token) => {
+    if (/modal|aux/.test(token)) return '助动词';
+    if (/^n/.test(token)) return '名词';
+    if (/^adj/.test(token)) return '形容词';
+    if (/^adv/.test(token)) return '副词';
+    if (/^prep/.test(token)) return '介词';
+    if (/^conj/.test(token)) return '连词';
+    if (/^pron/.test(token)) return '代词';
+    if (/^num/.test(token)) return '数词';
+    if (/^art/.test(token)) return '冠词';
+    if (/^int/.test(token)) return '感叹词';
+    if (/^vt/.test(token)) return '及物动词';
+    if (/^vi/.test(token)) return '不及物动词';
+    if (/^v/.test(token)) return '动词';
+    return '';
+  }).filter(Boolean);
+  return [...new Set(labels)].join('、') || String(pos || '').trim();
+}
+
+function spokenMeaning(word) {
+  return derivedSenses(word).map((sense) => `${sense.pos ? `${posToChinese(sense.pos)}，` : ''}${sense.meaning}`).join('；') || word.meaning || '';
+}
+
+function firstEnglishExample(word) {
+  const raw = (word.examples || []).find((example) => /[A-Za-z]/.test(example));
+  if (!raw) return '';
+  const beforeChinese = String(raw).split(/[\u4e00-\u9fff]/)[0];
+  const normalized = beforeChinese.replace(/\s+/g, ' ').trim();
+  const sentence = normalized.match(/^[^.!?]+[.!?]/);
+  return (sentence ? sentence[0] : normalized).trim();
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function speakWordDetails(word) {
   await speakText(word.word, 'en-US', 0.82);
-  if (word.pos) await speakText(`词性，${word.pos}`, 'zh-CN', 0.95);
-  if (word.meaning) await speakText(word.meaning, 'zh-CN', 0.95);
-  const example = firstExample(word);
+  const meaning = spokenMeaning(word);
+  if (meaning) await speakText(meaning, 'zh-CN', 0.88);
+  const example = firstEnglishExample(word);
   if (example) await speakText(example, 'en-US', 0.82);
 }
 
@@ -787,9 +865,21 @@ async function toggleAutoReadUnknown() {
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
   const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
-  for (const word of words) {
+  if (!words.length) {
+    state.autoReadActive = false;
+    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    showToast('当前没有不认识或模糊的单词');
+    return;
+  }
+  state.studyQueue = words;
+  state.studyRevealed = true;
+  for (let index = 0; index < words.length; index += 1) {
     if (!state.autoReadActive) break;
-    await speakWordDetails(word);
+    state.studyIndex = index;
+    state.studyRevealed = true;
+    renderStudyCard();
+    await speakWordDetails(words[index]);
+    if (state.autoReadActive) await delay(2000);
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读不认识';
@@ -817,6 +907,13 @@ function bindEvents() {
   $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
   $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
   $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
+  $('#alwaysShowMeaning').checked = state.alwaysShowMeaning;
+  $('#alwaysShowMeaning').addEventListener('change', (event) => {
+    state.alwaysShowMeaning = event.target.checked;
+    writeJsonStorage(STORAGE.alwaysShowMeaning, state.alwaysShowMeaning);
+    state.studyRevealed = state.alwaysShowMeaning;
+    renderStudyCard();
+  });
   $('#startReviewButton').addEventListener('click', startReview);
   $('#startWrongButton').addEventListener('click', loadWrongReview);
   $('#spellSection').addEventListener('change', () => prepareSpellQueue(true));
