@@ -1,0 +1,42 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - mobile-apk
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Build APK
+        run: npm run mobile:apk
+
+      - name: Verify APK archive
+        run: unzip -t dist/vocab-app-mobile-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vocab-app-mobile-debug-apk
+          path: dist/vocab-app-mobile-debug.apk
+          if-no-files-found: error
