@@ -64,13 +64,7 @@ function toTextList(value) {
 }
 
 
-function toSenseList(record) {
-  const raw = record.definitions || record.senses || record.meanings || record.meaningItems;
-  if (!Array.isArray(raw)) {
-    const pos = String(record.pos || record.part_of_speech || record.part_of_speech_ocr || '').trim();
-    const meaning = String(record.meaning || record.meaning_zh || record.meaning_zh_ocr || '').trim();
-    return meaning ? [{ pos, meaning }] : [];
-  }
+function normalizeSenseItems(raw) {
   return raw
     .map((item) => {
       if (typeof item === 'string') return { pos: '', meaning: item.trim() };
@@ -80,6 +74,23 @@ function toSenseList(record) {
       return meaning ? { pos, meaning } : null;
     })
     .filter(Boolean);
+}
+
+function toSenseList(record) {
+  const candidates = [record.definitions, record.senses, record.meanings, record.meaningItems];
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) continue;
+    const senses = normalizeSenseItems(candidate);
+    if (senses.length) return senses;
+  }
+
+  const raw = candidates.find((candidate) => candidate);
+  if (!raw) {
+    const pos = String(record.pos || record.part_of_speech || record.part_of_speech_ocr || '').trim();
+    const meaning = String(record.meaning || record.meaning_zh || record.meaning_zh_ocr || '').trim();
+    return meaning ? [{ pos, meaning }] : [];
+  }
+  return normalizeSenseItems([raw]);
 }
 
 function firstMeaning(value) {

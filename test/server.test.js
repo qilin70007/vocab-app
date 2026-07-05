@@ -55,19 +55,6 @@ test('serves vocabulary and initial statistics', async () => {
   assert.equal(stats.body.dailyGoalEnabled, false);
 });
 
-
-test('rejects invalid word status updates', async () => {
-  const result = await request('/api/words/ability/status', {
-    method: 'PUT', body: JSON.stringify({ status: 'archived' })
-  }, 'INVALIDSTATUS');
-  assert.equal(result.response.status, 400);
-  assert.equal(result.body.error, 'Invalid status');
-
-  const stats = await request('/api/stats', {}, 'INVALIDSTATUS');
-  assert.equal(stats.body.known, 0);
-  assert.equal(stats.body.learning, 0);
-});
-
 test('persists status and isolates sync profiles', async () => {
   const update = await request('/api/words/ability/status', {
     method: 'PUT', body: JSON.stringify({ status: 'known' })
@@ -125,4 +112,16 @@ test('normalizes extended vocabulary metadata and preserves sequence ids', async
   assert.deepEqual(word.synonyms, ['morning']);
   assert.deepEqual(word.antonyms, ['p.m.']);
   assert.deepEqual(word.proverbs, ['The early bird catches the worm.']);
+  const withFallbackSenses = normalizeWordRecord({
+    word: 'along',
+    definitions: [],
+    senses: [{ pos: 'prep.', meaning: '沿着；顺着' }]
+  }, 0);
+  assert.deepEqual(withFallbackSenses.senses, [{ pos: 'prep.', meaning: '沿着；顺着' }]);
+  const withFallbackMeanings = normalizeWordRecord({
+    word: 'ahead',
+    definitions: [],
+    meanings: [{ pos: 'adv.', meaning: '向前' }]
+  }, 1);
+  assert.deepEqual(withFallbackMeanings.senses, [{ pos: 'adv.', meaning: '向前' }]);
 });

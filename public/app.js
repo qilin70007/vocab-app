@@ -303,18 +303,10 @@ function normalizePos(pos) {
   return String(pos || '').replace(/\s+/g, ' ').trim();
 }
 
-function normalizeSenseList(items) {
-  return (Array.isArray(items) ? items : [])
-    .filter((sense) => sense && typeof sense === 'object' && sense.meaning)
-    .map((sense) => ({ pos: normalizePos(sense.pos), meaning: String(sense.meaning).trim() }))
-    .filter((sense) => sense.meaning);
-}
-
 function derivedSenses(word) {
-  const definitions = normalizeSenseList(word.definitions);
-  if (definitions.length) return definitions;
-
-  const existing = normalizeSenseList(word.senses);
+  const existing = (word.senses || [])
+    .filter((sense) => sense && sense.meaning)
+    .map((sense) => ({ pos: normalizePos(sense.pos), meaning: String(sense.meaning).trim() }));
   if (existing.length > 1) return existing;
 
   const text = String(word.meaning || '').trim();
@@ -878,7 +870,7 @@ async function toggleAutoReadUnknown() {
   const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
   if (!words.length) {
     state.autoReadActive = false;
-    $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
+    $('#autoReadUnknown').textContent = '连续朗读不认识';
     showToast('当前没有不认识或模糊的单词');
     return;
   }
