@@ -806,14 +806,51 @@ function speakWord(word) {
   speakText(word, 'en-US', 0.82);
 }
 
+function posToChinese(pos) {
+  const normalized = String(pos || '').toLowerCase();
+  const tokens = normalized.match(/modal\s*v|aux\.?\s*v|adj\.?|adv\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|vt\.?|vi\.?|v\.?|n\.?/g) || [];
+  const labels = tokens.map((token) => {
+    if (/modal|aux/.test(token)) return '助动词';
+    if (/^n/.test(token)) return '名词';
+    if (/^adj/.test(token)) return '形容词';
+    if (/^adv/.test(token)) return '副词';
+    if (/^prep/.test(token)) return '介词';
+    if (/^conj/.test(token)) return '连词';
+    if (/^pron/.test(token)) return '代词';
+    if (/^num/.test(token)) return '数词';
+    if (/^art/.test(token)) return '冠词';
+    if (/^int/.test(token)) return '感叹词';
+    if (/^vt/.test(token)) return '及物动词';
+    if (/^vi/.test(token)) return '不及物动词';
+    if (/^v/.test(token)) return '动词';
+    return '';
+  }).filter(Boolean);
+  return [...new Set(labels)].join('、') || String(pos || '').trim();
+}
+
 function spokenMeaning(word) {
-  return derivedSenses(word).map((sense) => `${sense.pos ? `${sense.pos}，` : ''}${sense.meaning}`).join('；') || word.meaning || '';
+  return derivedSenses(word).map((sense) => `${sense.pos ? `${posToChinese(sense.pos)}，` : ''}${sense.meaning}`).join('；') || word.meaning || '';
+}
+
+function firstEnglishExample(word) {
+  const raw = (word.examples || []).find((example) => /[A-Za-z]/.test(example));
+  if (!raw) return '';
+  const beforeChinese = String(raw).split(/[\u4e00-\u9fff]/)[0];
+  const normalized = beforeChinese.replace(/\s+/g, ' ').trim();
+  const sentence = normalized.match(/^[^.!?]+[.!?]/);
+  return (sentence ? sentence[0] : normalized).trim();
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function speakWordDetails(word) {
   await speakText(word.word, 'en-US', 0.82);
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', 0.88);
+  const example = firstEnglishExample(word);
+  if (example) await speakText(example, 'en-US', 0.82);
 }
 
 async function toggleAutoReadUnknown() {
@@ -828,9 +865,21 @@ async function toggleAutoReadUnknown() {
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
   const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
-  for (const word of words) {
+  if (!words.length) {
+    state.autoReadActive = false;
+    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    showToast('当前没有不认识或模糊的单词');
+    return;
+  }
+  state.studyQueue = words;
+  state.studyRevealed = true;
+  for (let index = 0; index < words.length; index += 1) {
     if (!state.autoReadActive) break;
-    await speakWordDetails(word);
+    state.studyIndex = index;
+    state.studyRevealed = true;
+    renderStudyCard();
+    await speakWordDetails(words[index]);
+    if (state.autoReadActive) await delay(2000);
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读不认识';
