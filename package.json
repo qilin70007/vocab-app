@@ -15,7 +15,8 @@
     "mobile:prepare": "node scripts/prepare_mobile.js",
     "mobile:sync": "npm run mobile:prepare && npx cap sync android",
     "mobile:open": "npx cap open android",
-    "mobile:where": "node scripts/mobile_where.js"
+    "mobile:where": "node scripts/mobile_where.js",
+    "mobile:apk": "./scripts/build_android_apk.sh"
   },
   "engines": {
     "node": ">=18"

@@ -73,3 +73,18 @@ Android Studio 打开后，选择 **Build > Build Bundle(s) / APK(s) > Build APK
 适合：希望手机用浏览器访问固定网址，且电脑不在身边也能同步。
 
 做法是把当前 Node 服务部署到云服务器，并配置 HTTPS 域名。手机和电脑都访问同一个云端网址、使用同一个同步码即可。缺点是需要服务器费用，并且要考虑账号和数据安全。
+
+## 方案 D：用 GitHub Actions 自动生成 APK
+
+如果本地电脑没有 Android Studio，或者本地网络下载 Android SDK/Capacitor 失败，可以把代码推到 GitHub 后手动运行仓库里的 **Build Android APK** 工作流。
+
+步骤：
+
+1. 打开 GitHub 仓库页面。
+2. 进入 **Actions**。
+3. 选择 **Build Android APK**。
+4. 点击 **Run workflow**。
+5. 等任务完成后，在页面底部 **Artifacts** 下载 `vocab-app-mobile-debug-apk`。
+6. 解压后得到 `vocab-app-mobile-debug.apk`，传到安卓手机安装。
+
+这个方法使用 `.github/workflows/android-apk.yml`，会在 GitHub 的 Ubuntu 构建机上执行 `npm run mobile:apk` 并上传 APK 产物。
