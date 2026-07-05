@@ -58,6 +58,17 @@ Android Studio 打开后，选择 **Build > Build Bundle(s) / APK(s) > Build APK
 3. 进度保存在手机本地，不需要电脑开机，也不需要同一个 Wi‑Fi。
 4. 建议定期到“同步设置”导出 JSON 备份。
 
+
+### APK 连接电脑同步
+
+APK 不是打开电脑网址，所以只填同步码不够；还需要在“同步设置”里填写 **APK 电脑同步地址**，例如：
+
+```text
+http://192.168.1.8:3000
+```
+
+电脑端必须先运行 `npm start`，手机和电脑必须在同一网络。保存地址后再点“立即同步”。
+
 ### APK 和电脑同步
 
 当前落地的是“手机可独立离线背词”的 APK 基础版。同步可以先用备份文件完成：
@@ -82,9 +93,9 @@ Android Studio 打开后，选择 **Build > Build Bundle(s) / APK(s) > Build APK
 
 1. 打开 GitHub 仓库页面。
 2. 进入 **Actions**。
-3. 选择 **Build Android APK**。
+3. 选择 **Build Android APK v2**（如果只看到旧的 Build Android APK，说明最新 workflow 还没推到 GitHub）。
 4. 点击 **Run workflow**。
 5. 等任务完成后，在页面底部 **Artifacts** 下载 `vocab-app-mobile-debug-apk`。
 6. 解压后得到 `vocab-app-mobile-debug.apk`，传到安卓手机安装。
 
-这个方法使用 `.github/workflows/android-apk.yml`，会在 GitHub 的 Ubuntu 构建机上执行 `npm run mobile:apk` 并上传 APK 产物。
+这个方法使用 `.github/workflows/android-apk.yml`，会在 GitHub 的 Ubuntu 构建机上分步执行 Android SDK、Capacitor、Gradle 构建并上传 APK 产物。

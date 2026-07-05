@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手（手机离线版）</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.1.1">
+  <link rel="stylesheet" href="/style.css?v=2.1.2">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -163,6 +163,11 @@
               <button class="ghost-btn" id="newSyncCode" type="button">生成新码</button>
               <button class="secondary-btn" id="syncNow" type="button">立即同步</button>
             </div>
+            <div class="remote-server-row">
+              <label for="remoteServerInput">APK 电脑同步地址</label>
+              <input id="remoteServerInput" type="url" placeholder="例如 http://192.168.1.8:3000" autocomplete="url">
+              <button class="ghost-btn" id="saveRemoteServer" type="button">保存地址</button>
+            </div>
             <div class="sync-summary" id="syncSummary"></div>
           </article>
 
@@ -224,6 +229,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>window.VOCAB_STANDALONE = true;</script>
-  <script src="/app.js?v=2.1.1" defer></script>
+  <script src="/app.js?v=2.1.2" defer></script>
 </body>
 </html>

@@ -11,7 +11,8 @@ const STORAGE = {
   alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
-  standaloneWords: 'vocab.v2.standalone.words'
+  standaloneWords: 'vocab.v2.standalone.words',
+  remoteServer: 'vocab.v2.remoteServer'
 };
 
 const state = {
@@ -36,7 +37,8 @@ const state = {
   deferredInstallPrompt: null,
   online: navigator.onLine,
   autoReadActive: false,
-  alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false)
+  alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
+  remoteServer: ''
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -547,6 +549,49 @@ function showToast(message) {
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+
+function normalizeRemoteServer(value) {
+  return String(value || '').trim().replace(/\/+$/g, '');
+}
+
+async function syncStandaloneRemote() {
+  const remote = normalizeRemoteServer($('#remoteServerInput')?.value || state.remoteServer || localStorage.getItem(STORAGE.remoteServer));
+  if (!remote) {
+    showToast('请先填写电脑同步地址，例如 http://192.168.1.8:3000');
+    return;
+  }
+  state.remoteServer = remote;
+  localStorage.setItem(STORAGE.remoteServer, remote);
+  setConnectionStatus(false, '正在连接电脑');
+
+  const headers = { 'X-Sync-Code': state.syncCode, 'Content-Type': 'application/json' };
+  const current = readStandaloneProfile();
+  let merged = current;
+
+  const download = await fetch(`${remote}/api/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
+  if (download.ok) {
+    const remotePayload = await download.json();
+    merged = mergeStandaloneProfile(current, coerceStandaloneProfile(remotePayload));
+    writeStandaloneProfile(merged);
+  } else if (download.status !== 404) {
+    throw new Error(`读取电脑进度失败：${download.status}`);
+  }
+
+  const upload = await fetch(`${remote}/api/progress/import`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ profile: merged })
+  });
+  if (!upload.ok) {
+    const payload = await upload.json().catch(() => ({}));
+    throw new Error(payload.error || `上传到电脑失败：${upload.status}`);
+  }
+  setConnectionStatus(true, '已同步到电脑');
+  showToast('手机和电脑进度已同步');
+  await refreshAll({ quiet: true });
+  await renderDataPage();
 }
 
 function statusLabel(status) {
@@ -1074,10 +1119,13 @@ function showWordDialog(wordText) {
 
 async function renderDataPage() {
   $('#syncCodeInput').value = state.syncCode;
+  const remoteInput = $('#remoteServerInput');
+  if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
     const pending = pendingMutationCount();
-    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
+    const remoteHint = STANDALONE_MODE ? `<br>电脑同步地址：${escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '未设置')}` : '';
+    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条${remoteHint}<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
     $('#syncStatusDot').classList.add('ok');
     $('#lanUrls').innerHTML = (ip.ips || []).map((address) => `<code>http://${escapeHtml(address)}:${ip.port}</code>`).join('');
   } catch {
@@ -1342,7 +1390,21 @@ function bindEvents() {
   $('#applySyncCode').addEventListener('click', applySyncCode);
   $('#copySyncCode').addEventListener('click', copySyncCode);
   $('#newSyncCode').addEventListener('click', () => { $('#syncCodeInput').value = generateSyncCode(); });
-  $('#syncNow').addEventListener('click', async () => { await flushPendingMutations(); await renderDataPage(); });
+  $('#syncNow').addEventListener('click', async () => {
+    try {
+      if (STANDALONE_MODE) await syncStandaloneRemote();
+      else { await flushPendingMutations(); await renderDataPage(); }
+    } catch (error) {
+      setConnectionStatus(false, '同步失败');
+      showToast(error.message);
+    }
+  });
+  $('#saveRemoteServer')?.addEventListener('click', () => {
+    state.remoteServer = normalizeRemoteServer($('#remoteServerInput')?.value);
+    localStorage.setItem(STORAGE.remoteServer, state.remoteServer);
+    showToast('电脑同步地址已保存');
+    renderDataPage();
+  });
   $('#saveGoal').addEventListener('click', saveDailyGoal);
   $('#exportData').addEventListener('click', exportData);
   $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
@@ -1382,6 +1444,7 @@ function bindEvents() {
 async function init() {
   const storedCode = normalizeSyncCode(localStorage.getItem(STORAGE.syncCode));
   state.syncCode = storedCode.length >= 6 ? storedCode : generateSyncCode();
+  state.remoteServer = normalizeRemoteServer(localStorage.getItem(STORAGE.remoteServer));
   localStorage.setItem(STORAGE.syncCode, state.syncCode);
   bindEvents();
   setConnectionStatus(navigator.onLine, '连接中');
