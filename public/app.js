@@ -179,8 +179,11 @@ function formatDate(value) {
 }
 
 function ensureWordArrays(word) {
-  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs', 'senses']) {
+  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs']) {
     if (!Array.isArray(word[key])) word[key] = word[key] ? [String(word[key])] : [];
+  }
+  for (const key of ['definitions', 'senses']) {
+    if (!Array.isArray(word[key])) word[key] = [];
   }
   return word;
 }
@@ -300,10 +303,18 @@ function normalizePos(pos) {
   return String(pos || '').replace(/\s+/g, ' ').trim();
 }
 
+function normalizeSenseList(items) {
+  return (Array.isArray(items) ? items : [])
+    .filter((sense) => sense && typeof sense === 'object' && sense.meaning)
+    .map((sense) => ({ pos: normalizePos(sense.pos), meaning: String(sense.meaning).trim() }))
+    .filter((sense) => sense.meaning);
+}
+
 function derivedSenses(word) {
-  const existing = (word.senses || [])
-    .filter((sense) => sense && sense.meaning)
-    .map((sense) => ({ pos: normalizePos(sense.pos), meaning: String(sense.meaning).trim() }));
+  const definitions = normalizeSenseList(word.definitions);
+  if (definitions.length) return definitions;
+
+  const existing = normalizeSenseList(word.senses);
   if (existing.length > 1) return existing;
 
   const text = String(word.meaning || '').trim();
@@ -615,7 +626,7 @@ function getWordListFiltered() {
   const status = $('#wordStatus')?.value || 'all';
   return filteredWords(section, status).filter((word) => {
     if (!query) return true;
-    return [word.word, word.meaning, word.pos, ...(word.senses || []).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
+    return [word.word, word.meaning, word.pos, ...derivedSenses(word).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
       .join(' ').toLowerCase().includes(query);
   });
 }
@@ -857,7 +868,7 @@ async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
     speechSynthesis?.cancel();
-    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
     return;
   }
   if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
@@ -867,7 +878,7 @@ async function toggleAutoReadUnknown() {
   const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
   if (!words.length) {
     state.autoReadActive = false;
-    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
     showToast('当前没有不认识或模糊的单词');
     return;
   }
@@ -882,7 +893,7 @@ async function toggleAutoReadUnknown() {
     if (state.autoReadActive) await delay(2000);
   }
   state.autoReadActive = false;
-  $('#autoReadUnknown').textContent = '连续朗读不认识';
+  $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
 }
 
 

@@ -99,6 +99,7 @@ function normalizeWordRecord(record, index) {
   const word = String(rawWord).trim();
   const section = /^[a-z]/i.test(word) ? word[0].toUpperCase() : '#';
   const examples = toTextList(record.examples || record.example);
+  const definitions = toSenseList(record);
 
   return {
     id: Number(record.id || record.number || record.sequence_no || index + 1),
@@ -109,7 +110,8 @@ function normalizeWordRecord(record, index) {
     phonetic: String(record.phonetic || record.phonetic_ocr || '').trim(),
     pos: String(record.pos || record.part_of_speech || record.part_of_speech_ocr || '').trim(),
     meaning: String(record.meaning || record.meaning_zh || record.meaning_zh_ocr || firstMeaning(record.definitions || record.senses || record.meanings)).trim(),
-    senses: toSenseList(record),
+    definitions,
+    senses: definitions,
     synonyms: toTextList(record.synonyms || record.synonym || record.similar_words || record.near_synonyms),
     antonyms: toTextList(record.antonyms || record.antonym || record.opposites),
     proverbs: toTextList(record.proverbs || record.proverb || record.sayings),
