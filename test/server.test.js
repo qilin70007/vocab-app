@@ -107,6 +107,7 @@ test('normalizes extended vocabulary metadata and preserves sequence ids', async
   }, 0);
   assert.equal(word.id, 56);
   assert.equal(word.meaning, '上午');
+  assert.deepEqual(word.definitions, [{ pos: 'abbr.', meaning: '上午' }, { pos: 'adv.', meaning: '在上午' }]);
   assert.deepEqual(word.senses, [{ pos: 'abbr.', meaning: '上午' }, { pos: 'adv.', meaning: '在上午' }]);
   assert.deepEqual(word.synonyms, ['morning']);
   assert.deepEqual(word.antonyms, ['p.m.']);

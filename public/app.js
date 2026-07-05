@@ -179,8 +179,11 @@ function formatDate(value) {
 }
 
 function ensureWordArrays(word) {
-  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs', 'senses']) {
+  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs']) {
     if (!Array.isArray(word[key])) word[key] = word[key] ? [String(word[key])] : [];
+  }
+  for (const key of ['definitions', 'senses']) {
+    if (!Array.isArray(word[key])) word[key] = [];
   }
   return word;
 }
@@ -615,7 +618,7 @@ function getWordListFiltered() {
   const status = $('#wordStatus')?.value || 'all';
   return filteredWords(section, status).filter((word) => {
     if (!query) return true;
-    return [word.word, word.meaning, word.pos, ...(word.senses || []).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
+    return [word.word, word.meaning, word.pos, ...derivedSenses(word).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
       .join(' ').toLowerCase().includes(query);
   });
 }
@@ -857,7 +860,7 @@ async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
     speechSynthesis?.cancel();
-    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
     return;
   }
   if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
@@ -882,7 +885,7 @@ async function toggleAutoReadUnknown() {
     if (state.autoReadActive) await delay(2000);
   }
   state.autoReadActive = false;
-  $('#autoReadUnknown').textContent = '连续朗读不认识';
+  $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
 }
 
 
