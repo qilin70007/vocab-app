@@ -1,0 +1,105 @@
+name: Build Android APK v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - mobile-apk
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Show tool versions
+        run: |
+          node --version
+          npm --version
+          java -version
+          sdkmanager --version || true
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+      - name: Install required Android SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Prepare mobile word asset
+        run: npm run mobile:prepare
+
+      - name: Install Capacitor packages
+        run: npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
+
+      - name: Create Android project
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          else
+            echo "android directory already exists"
+          fi
+
+      - name: Sync Android project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          set -o pipefail
+          mkdir -p dist
+          if [ -x android/gradlew ]; then
+            (cd android && ./gradlew assembleDebug --stacktrace --info 2>&1 | tee ../dist/gradle-build.log)
+          else
+            (cd android && gradle assembleDebug --stacktrace --info 2>&1 | tee ../dist/gradle-build.log)
+          fi
+
+      - name: Copy APK to dist
+        run: |
+          test -f android/app/build/outputs/apk/debug/app-debug.apk
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/vocab-app-mobile-debug.apk
+          ls -lh dist/vocab-app-mobile-debug.apk
+
+      - name: Verify APK archive
+        run: unzip -t dist/vocab-app-mobile-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vocab-app-mobile-debug-apk
+          path: dist/vocab-app-mobile-debug.apk
+          if-no-files-found: error
+
+      - name: Upload Android build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-diagnostics
+          path: |
+            dist/gradle-build.log
+            android/**/build/reports/**
+            android/**/build/outputs/logs/**
+            ~/.gradle/daemon/**/daemon-*.out.log
+          if-no-files-found: ignore
