@@ -9,7 +9,7 @@ npm run mobile:prepare
 
 echo "==> Ensuring Capacitor packages are installed"
 if [ ! -d node_modules/@capacitor/android ]; then
-  npm install -D @capacitor/core @capacitor/cli @capacitor/android
+  npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 fi
 
 echo "==> Creating Android project if needed"
@@ -22,9 +22,9 @@ npx cap sync android
 
 echo "==> Building debug APK"
 if [ -x android/gradlew ]; then
-  (cd android && ./gradlew assembleDebug)
+  (cd android && ./gradlew assembleDebug --stacktrace)
 else
-  (cd android && gradle assembleDebug)
+  (cd android && gradle assembleDebug --stacktrace)
 fi
 
 APK="android/app/build/outputs/apk/debug/app-debug.apk"

@@ -28,7 +28,7 @@ cd /workspace/vocab-app
 git status --short
 npm ci
 npm run mobile:prepare
-npm install -D @capacitor/core @capacitor/cli @capacitor/android
+npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
 # 如果 android 目录不存在，这一步会创建 Android 工程；存在则跳过
 if [ ! -d android ]; then
