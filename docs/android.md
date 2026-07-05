@@ -42,7 +42,7 @@
 > 当前执行环境无法从 npm registry 安装 `@capacitor/android`（403），所以仓库已落地 Web 侧离线模式、词库资产和 Capacitor 配置；在本机网络正常的开发机上执行下面命令即可生成安卓工程/APK。
 
 ```bash
-npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
 npm run mobile:prepare
 npx cap add android
 npx cap sync android

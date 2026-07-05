@@ -1232,6 +1232,35 @@ async function resetData() {
 }
 
 
+
+function nativeTextToSpeech() {
+  return globalThis.Capacitor?.Plugins?.TextToSpeech || null;
+}
+
+function canSpeakText() {
+  return Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window;
+}
+
+async function stopSpeaking() {
+  speechSynthesis?.cancel?.();
+  const nativeTts = nativeTextToSpeech();
+  if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
+}
+
+async function speakTextNative(text, lang, rate = 0.82) {
+  const nativeTts = nativeTextToSpeech();
+  if (!nativeTts?.speak) return false;
+  await nativeTts.speak({
+    text: String(text || ''),
+    lang,
+    rate,
+    pitch: 1.0,
+    volume: 1.0,
+    category: 'ambient'
+  });
+  return true;
+}
+
 function preferredVoice(lang) {
   const voices = speechSynthesis.getVoices?.() || [];
   const lowerLang = String(lang).toLowerCase();
@@ -1243,25 +1272,28 @@ function preferredVoice(lang) {
 
 function speakText(text, lang, rate = 0.82) {
   return new Promise((resolve) => {
-    if (!('speechSynthesis' in window)) {
-      showToast('当前浏览器不支持朗读');
-      resolve();
-      return;
-    }
+    speakTextNative(text, lang, rate).then((handled) => {
+      if (handled) { resolve(); return; }
+      if (!('speechSynthesis' in window)) {
+        showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+        resolve();
+        return;
+      }
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    const voice = preferredVoice(lang);
-    if (voice) utterance.voice = voice;
-    utterance.rate = rate;
-    utterance.onend = resolve;
-    utterance.onerror = resolve;
-    speechSynthesis.speak(utterance);
+      utterance.lang = lang;
+      const voice = preferredVoice(lang);
+      if (voice) utterance.voice = voice;
+      utterance.rate = rate;
+      utterance.onend = resolve;
+      utterance.onerror = resolve;
+      speechSynthesis.speak(utterance);
+    }).catch(() => resolve());
   });
 }
 
-function speakWord(word) {
-  if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
-  speechSynthesis.cancel();
+async function speakWord(word) {
+  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  await stopSpeaking();
   speakText(word, 'en-US', 0.82);
 }
 
@@ -1315,11 +1347,11 @@ async function speakWordDetails(word) {
 async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
-    speechSynthesis?.cancel();
+    stopSpeaking();
     $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
     return;
   }
-  if (!('speechSynthesis' in window)) return showToast('当前浏览器不支持朗读');
+  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
   state.autoReadActive = true;
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
