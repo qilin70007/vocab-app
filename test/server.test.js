@@ -52,6 +52,7 @@ test('serves vocabulary and initial statistics', async () => {
   assert.equal(health.body.wordCount, 2);
   const stats = await request('/api/stats');
   assert.deepEqual({ total: stats.body.total, new: stats.body.new, known: stats.body.known }, { total: 2, new: 2, known: 0 });
+  assert.equal(stats.body.dailyGoalEnabled, false);
 });
 
 test('persists status and isolates sync profiles', async () => {
@@ -91,6 +92,8 @@ test('applies spaced repetition reviews', async () => {
 
 test('normalizes extended vocabulary metadata and preserves sequence ids', async () => {
   const { normalizeWordRecord } = require('../server');
+  const properNoun = normalizeWordRecord({ word: 'Asia', meaning: '亚洲' }, 0);
+  assert.equal(properNoun.word, 'Asia');
   const word = normalizeWordRecord({
     number: 56,
     word: 'a.m.',
@@ -108,4 +111,16 @@ test('normalizes extended vocabulary metadata and preserves sequence ids', async
   assert.deepEqual(word.synonyms, ['morning']);
   assert.deepEqual(word.antonyms, ['p.m.']);
   assert.deepEqual(word.proverbs, ['The early bird catches the worm.']);
+  const withFallbackSenses = normalizeWordRecord({
+    word: 'along',
+    definitions: [],
+    senses: [{ pos: 'prep.', meaning: '沿着；顺着' }]
+  }, 0);
+  assert.deepEqual(withFallbackSenses.senses, [{ pos: 'prep.', meaning: '沿着；顺着' }]);
+  const withFallbackMeanings = normalizeWordRecord({
+    word: 'ahead',
+    definitions: [],
+    meanings: [{ pos: 'adv.', meaning: '向前' }]
+  }, 1);
+  assert.deepEqual(withFallbackMeanings.senses, [{ pos: 'adv.', meaning: '向前' }]);
 });
