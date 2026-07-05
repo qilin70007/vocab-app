@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3157d5">
+  <meta name="description" content="面向上海中考英语词汇的跨设备背词、复习和拼写训练工具">
+  <title>中考词汇背诵助手（手机离线版）</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css?v=2.1.1">
+</head>
+<body>
+  <div class="app-shell" id="app">
+    <header class="topbar">
+      <button class="brand" type="button" data-page-link="home" aria-label="返回首页">
+        <span class="brand-mark">词</span>
+        <span><strong>中考词汇</strong><small>背诵助手</small></span>
+      </button>
+      <div class="topbar-actions">
+        <span class="connection-pill" id="connectionPill" title="连接状态"><i></i><span>连接中</span></span>
+        <button class="icon-btn hidden" id="installButton" type="button" title="安装应用">＋</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="page active" id="page-home" aria-labelledby="homeTitle">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">今日学习</p>
+            <h1 id="homeTitle">每天按计划学，稳步完成中考词汇</h1>
+            <p class="hero-copy" id="heroCopy">正在读取学习进度……</p>
+          </div>
+          <button class="primary-btn hero-action" type="button" data-page-link="study">开始学习</button>
+        </div>
+
+        <div class="metric-grid" id="metricGrid" aria-live="polite"></div>
+
+        <div class="dashboard-grid">
+          <article class="panel today-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">今日目标</p><h2>学习进度</h2></div>
+              <strong id="goalText">0 / 40</strong>
+            </div>
+            <div class="goal-ring-row">
+              <div class="goal-ring" id="goalRing"><span id="goalPercent">0%</span></div>
+              <div class="goal-actions">
+                <button type="button" class="secondary-btn" data-page-link="study">学习新词</button>
+                <button type="button" class="ghost-btn" data-page-link="review">复习到期词</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel streak-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">连续学习</p><h2><span id="streakCount">0</span> 天</h2></div>
+              <span class="flame">🔥</span>
+            </div>
+            <div class="week-chart" id="weekChart"></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">按字母学习</p><h2>词汇分区</h2></div>
+            <button class="text-btn" type="button" data-page-link="words">查看全部</button>
+          </div>
+          <div class="section-grid" id="sectionGrid"></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-study" aria-labelledby="studyTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">主动回忆</p><h1 id="studyTitle">学习单词</h1></div>
+          <span class="queue-count" id="studyQueueCount">0 词</span>
+        </div>
+        <div class="control-bar">
+          <label>范围<select id="studySection"><option value="">全部字母</option></select></label>
+          <label>状态<select id="studyStatus">
+            <option value="notknown">不认识＋模糊</option>
+            <option value="new">不认识</option>
+            <option value="learning">学习中</option>
+            <option value="known">已掌握</option>
+            <option value="all">全部</option>
+          </select></label>
+          <label>顺序<select id="studyOrder"><option value="sequence">词表顺序</option><option value="random">随机</option></select></label>
+          <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
+          <label class="toggle-control"><input id="alwaysShowMeaning" type="checkbox"><span>一直显示释义</span></label>
+          <button class="secondary-btn compact" id="autoReadUnknown" type="button">连续朗读不认识</button>
+        </div>
+
+        <div class="flashcard-wrap">
+          <article class="flashcard" id="studyCard">
+            <div class="empty-state"><span>📚</span><p>正在准备学习队列……</p></div>
+          </article>
+          <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义（开关打开时始终显示）</div>
+        </div>
+      </section>
+
+      <section class="page" id="page-review" aria-labelledby="reviewTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">间隔复习</p><h1 id="reviewTitle">复习中心</h1></div>
+          <span class="queue-count" id="reviewDueCount">0 到期</span>
+        </div>
+        <div class="review-layout">
+          <article class="panel review-summary">
+            <div class="review-summary-number" id="reviewSummaryNumber">0</div>
+            <p>个单词需要复习</p>
+            <button class="primary-btn" id="startReviewButton" type="button">开始复习</button>
+            <button class="ghost-btn" id="startWrongButton" type="button">只练错题</button>
+          </article>
+          <article class="review-card hidden" id="reviewCard"></article>
+          <article class="panel" id="reviewPreviewPanel">
+            <div class="panel-heading"><div><p class="eyebrow">优先队列</p><h2>待复习词</h2></div></div>
+            <div class="compact-word-list" id="reviewPreview"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" id="page-spell" aria-labelledby="spellTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">输出训练</p><h1 id="spellTitle">拼写练习</h1></div>
+          <span class="queue-count" id="spellCounter">0 / 0</span>
+        </div>
+        <div class="control-bar">
+          <label>范围<select id="spellSection"><option value="">全部字母</option></select></label>
+          <label>状态<select id="spellStatus"><option value="notknown">不认识＋模糊</option><option value="learning">学习中</option><option value="new">未背过</option><option value="known">已掌握</option><option value="all">全部</option></select></label>
+          <button class="secondary-btn compact" id="reloadSpell" type="button">重新生成</button>
+        </div>
+        <article class="spell-card" id="spellCard">
+          <div class="empty-state"><span>✍️</span><p>正在准备拼写练习……</p></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-words" aria-labelledby="wordsTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">完整词库</p><h1 id="wordsTitle">单词本</h1></div>
+          <span class="queue-count" id="wordCount">0 词</span>
+        </div>
+        <div class="word-toolbar">
+          <label class="search-box"><span>⌕</span><input id="wordSearch" type="search" placeholder="搜索英文、中文、搭配或例句"></label>
+          <select id="wordSection"><option value="">全部字母</option></select>
+          <select id="wordStatus"><option value="all">全部状态</option><option value="new">未背过</option><option value="learning">学习中</option><option value="known">已掌握</option><option value="notknown">不认识＋模糊</option></select>
+        </div>
+        <div class="word-table" id="wordTable"></div>
+        <div class="pagination" id="wordPagination"></div>
+      </section>
+
+      <section class="page" id="page-data" aria-labelledby="dataTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">设备与数据</p><h1 id="dataTitle">同步设置</h1></div>
+        </div>
+        <div class="settings-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">自动同步</p><h2>同步码</h2></div><span class="status-dot" id="syncStatusDot"></span></div>
+            <p class="muted">普通安卓浏览器访问的是电脑上的本地服务器网址：只有电脑开机、服务器运行，并且手机能连到同一网络时才能打开。同步码只负责把同一服务器上的手机和电脑进度归到一起；如果电脑不在身边且没有安装/缓存或云端部署，这个网址无法访问。同步码不是密码，请勿使用敏感信息。</p>
+            <div class="sync-code-row">
+              <input id="syncCodeInput" type="text" maxlength="16" autocomplete="off" spellcheck="false" aria-label="同步码">
+              <button class="secondary-btn" id="applySyncCode" type="button">应用</button>
+            </div>
+            <div class="button-row">
+              <button class="ghost-btn" id="copySyncCode" type="button">复制同步码</button>
+              <button class="ghost-btn" id="newSyncCode" type="button">生成新码</button>
+              <button class="secondary-btn" id="syncNow" type="button">立即同步</button>
+            </div>
+            <div class="sync-summary" id="syncSummary"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">学习计划</p><h2>每日学习计划</h2></div></div>
+            <div class="goal-setting-row">
+              <label class="switch-row"><input id="dailyGoalEnabled" type="checkbox"> 开启限制</label>
+              <input id="dailyGoalInput" type="number" min="1" max="500" value="45">
+              <span>词 / 天</span>
+              <button class="secondary-btn" id="saveGoal" type="button">保存</button>
+            </div>
+            <p class="muted">默认关闭限制；开启后仅限制“不认识＋模糊”的每日学习数量，数量默认为每天 45 个。</p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">备份迁移</p><h2>导入与导出</h2></div></div>
+            <div class="button-column">
+              <button class="secondary-btn" id="exportData" type="button">立即导出学习数据</button>
+              <label class="secondary-btn file-button">导入学习数据<input id="importData" type="file" accept="application/json,.json"></label>
+            </div>
+            <p class="muted">每次保存学习进度时，服务器会自动在 data/backups/同步码/ 下保留最近 30 份备份，避免更新 GitHub 或替换文件时冲掉进度。</p>
+          </article>
+
+          <article class="panel danger-panel">
+            <div class="panel-heading"><div><p class="eyebrow">危险操作</p><h2>重新开始</h2></div></div>
+            <p class="muted">清除当前同步码下的全部学习记录，但不会删除词库。</p>
+            <button class="danger-btn" id="resetData" type="button">清除学习记录</button>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">访问方式</p><h2>手机与 Windows</h2></div></div>
+            <p class="muted">仅访问下面的局域网网址不需要安装，但它依赖电脑在身边当服务器；电脑不在同一网络或服务没开时，普通网址就打不开。</p>
+            <ol class="setup-steps">
+              <li><strong>添加到主屏幕：</strong>安卓 Chrome/Edge 打开下面的网址后，点右上角 ⋮，选择“添加到主屏幕”或“安装应用”。这不是 APK，只是把已缓存的网页应用放到桌面。</li>
+              <li><strong>彻底脱离电脑：</strong>如果希望手机首次打开、词库、进度保存都不依赖电脑服务器，需要把应用做成真正的手机端版本（APK/Capacitor/TWA）或部署到 HTTPS 云端。</li>
+              <li><strong>同步电脑进度：</strong>手机离线产生的记录会先存在手机本地；重新连回同一个服务器后，点“立即同步”上传。</li>
+            </ol>
+            <button class="secondary-btn" id="installSettingsButton" type="button">添加到主屏幕/安装</button>
+            <div class="lan-urls" id="lanUrls"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主导航">
+      <button class="nav-item active" type="button" data-page="home"><span>⌂</span><small>首页</small></button>
+      <button class="nav-item" type="button" data-page="study"><span>▣</span><small>背词</small></button>
+      <button class="nav-item" type="button" data-page="review"><span>↻</span><small>复习</small></button>
+      <button class="nav-item" type="button" data-page="spell"><span>✎</span><small>拼写</small></button>
+      <button class="nav-item" type="button" data-page="words"><span>☷</span><small>词表</small></button>
+      <button class="nav-item" type="button" data-page="data"><span>⚙</span><small>同步</small></button>
+    </nav>
+  </div>
+
+  <dialog class="word-dialog" id="wordDialog">
+    <button class="dialog-close" id="dialogClose" type="button" aria-label="关闭">×</button>
+    <div id="wordDialogBody"></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>window.VOCAB_STANDALONE = true;</script>
+  <script src="/app.js?v=2.1.1" defer></script>
+</body>
+</html>

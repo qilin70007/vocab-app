@@ -1,12 +1,17 @@
 'use strict';
 
 const API_ROOT = '/api';
+const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
+  || globalThis.VOCAB_STANDALONE === true
+  || globalThis.Capacitor?.isNativePlatform?.() === true;
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
   cachePrefix: 'vocab.v2.3.1.cache.',
   alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
-  offlineDailyPrefix: 'vocab.v2.offlineDaily.'
+  offlineDailyPrefix: 'vocab.v2.offlineDaily.',
+  standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
+  standaloneWords: 'vocab.v2.standalone.words'
 };
 
 const state = {
@@ -106,7 +111,278 @@ function enqueueMutation(path, options) {
   setConnectionStatus(false, '已离线保存');
 }
 
+
+async function loadStandaloneWords() {
+  const cached = readJsonStorage(STORAGE.standaloneWords, null);
+  if (cached?.length) return cached;
+  const response = await fetch('/words.json');
+  if (!response.ok) throw new Error('无法读取手机内置词库');
+  const words = await response.json();
+  writeJsonStorage(STORAGE.standaloneWords, words);
+  return words;
+}
+
+function blankStandaloneProgress() {
+  return {
+    status: 'new', reviewCount: 0, correctCount: 0, wrongCount: 0,
+    intervalDays: 0, easeFactor: 2.5, firstSeenAt: null,
+    lastReview: null, nextReviewAt: null, updatedAt: null
+  };
+}
+
+function blankStandaloneProfile() {
+  return {
+    revision: 0,
+    progress: {},
+    wrongWords: {},
+    dailyStats: {},
+    settings: { dailyGoal: 45, dailyGoalEnabled: false },
+    updatedAt: null
+  };
+}
+
+function standaloneProfileKey() {
+  return `${STORAGE.standaloneProfilePrefix}${state.syncCode || 'LOCAL'}`;
+}
+
+function readStandaloneProfile() {
+  return { ...blankStandaloneProfile(), ...readJsonStorage(standaloneProfileKey(), {}) };
+}
+
+function writeStandaloneProfile(profile) {
+  profile.revision = Number(profile.revision || 0) + 1;
+  profile.updatedAt = new Date().toISOString();
+  writeJsonStorage(standaloneProfileKey(), profile);
+  return profile;
+}
+
+
+function coerceStandaloneProfile(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return blankStandaloneProfile();
+  if (payload.profile && typeof payload.profile === 'object') return payload.profile;
+  if (payload.progress || payload.wrongWords || payload.dailyStats || payload.settings) return payload;
+  return { progress: payload };
+}
+
+function mergeStandaloneProfile(current, incoming) {
+  const result = {
+    ...blankStandaloneProfile(),
+    ...current,
+    settings: { ...blankStandaloneProfile().settings, ...(current.settings || {}), ...(incoming.settings || {}) },
+    progress: { ...(current.progress || {}) },
+    wrongWords: { ...(current.wrongWords || {}) },
+    dailyStats: { ...(current.dailyStats || {}) }
+  };
+  for (const [word, raw] of Object.entries(incoming.progress || {})) {
+    const existing = result.progress[word];
+    const existingTime = Date.parse(existing?.updatedAt || existing?.lastReview || 0) || 0;
+    const incomingTime = Date.parse(raw?.updatedAt || raw?.lastReview || 0) || 0;
+    if (!existing || incomingTime >= existingTime) result.progress[word] = raw;
+  }
+  for (const [word, raw] of Object.entries(incoming.wrongWords || {})) {
+    const existing = result.wrongWords[word];
+    const existingTime = Date.parse(existing?.lastWrongAt || 0) || 0;
+    const incomingTime = Date.parse(raw?.lastWrongAt || 0) || 0;
+    if (!existing || incomingTime >= existingTime) result.wrongWords[word] = raw;
+  }
+  for (const [day, raw] of Object.entries(incoming.dailyStats || {})) {
+    const merged = { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0, ...(result.dailyStats[day] || {}) };
+    for (const [key, value] of Object.entries(raw || {})) merged[key] = Math.max(Number(merged[key] || 0), Number(value || 0));
+    result.dailyStats[day] = merged;
+  }
+  return result;
+}
+
+function standaloneDayKey(date = new Date()) {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
+function standaloneAddDays(date, days) {
+  return new Date(date.getTime() + days * 86_400_000);
+}
+
+function touchStandaloneDaily(profile, changes) {
+  const today = standaloneDayKey();
+  const current = { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0, ...(profile.dailyStats[today] || {}) };
+  for (const [key, value] of Object.entries(changes)) current[key] = Number(current[key] || 0) + Number(value || 0);
+  profile.dailyStats[today] = current;
+}
+
+function standaloneProgress(profile, word) {
+  return { ...blankStandaloneProgress(), ...(profile.progress[String(word || '').toLowerCase()] || {}) };
+}
+
+function decorateStandaloneWord(profile, word) {
+  const key = String(word.word || '').toLowerCase();
+  const progress = standaloneProgress(profile, key);
+  return {
+    ...word,
+    ...progress,
+    isDue: progress.status !== 'new' && (!progress.nextReviewAt || Date.parse(progress.nextReviewAt) <= Date.now()),
+    isWrong: Boolean(profile.wrongWords[key])
+  };
+}
+
+function calculateStandaloneStats(profile, words) {
+  const stats = {
+    total: words.length, new: 0, learning: 0, known: 0, due: 0,
+    wrong: Object.keys(profile.wrongWords || {}).length,
+    progress: 0, streak: 0,
+    studiedToday: Number(profile.dailyStats[standaloneDayKey()]?.studied || 0),
+    dailyGoal: Number(profile.settings?.dailyGoal || 45),
+    dailyGoalEnabled: profile.settings?.dailyGoalEnabled === true
+  };
+  for (const word of words) {
+    const p = standaloneProgress(profile, word.word);
+    stats[p.status] += 1;
+    if (p.status !== 'new' && (!p.nextReviewAt || Date.parse(p.nextReviewAt) <= Date.now())) stats.due += 1;
+  }
+  stats.progress = stats.total ? Math.round((stats.known / stats.total) * 100) : 0;
+  for (let i = 0; i < 365; i += 1) {
+    const day = standaloneDayKey(standaloneAddDays(new Date(), -i));
+    if (Number(profile.dailyStats[day]?.studied || 0) > 0) stats.streak += 1;
+    else if (i > 0) break;
+  }
+  return stats;
+}
+
+function setStandaloneStatus(profile, word, status) {
+  const now = new Date();
+  const key = String(word || '').toLowerCase();
+  const progress = standaloneProgress(profile, key);
+  progress.status = status;
+  progress.reviewCount += 1;
+  progress.firstSeenAt ||= now.toISOString();
+  progress.lastReview = now.toISOString();
+  progress.updatedAt = now.toISOString();
+  if (status === 'new') {
+    progress.intervalDays = 0;
+    progress.nextReviewAt = null;
+  } else if (status === 'learning') {
+    progress.intervalDays = Math.max(1, progress.intervalDays || 1);
+    progress.nextReviewAt = standaloneAddDays(now, progress.intervalDays).toISOString();
+  } else {
+    progress.intervalDays = Math.max(7, progress.intervalDays || 7);
+    progress.nextReviewAt = standaloneAddDays(now, progress.intervalDays).toISOString();
+  }
+  profile.progress[key] = progress;
+  touchStandaloneDaily(profile, { studied: 1, [status]: 1 });
+  return progress;
+}
+
+function addStandaloneWrong(profile, word) {
+  const key = String(word || '').toLowerCase();
+  const now = new Date().toISOString();
+  const current = profile.wrongWords[key] || { wrongCount: 0, addedAt: now };
+  profile.wrongWords[key] = { ...current, wrongCount: Number(current.wrongCount || 0) + 1, lastWrongAt: now };
+}
+
+function reviewStandaloneWord(profile, word, rating) {
+  const now = new Date();
+  const key = String(word || '').toLowerCase();
+  const progress = standaloneProgress(profile, key);
+  progress.reviewCount += 1;
+  progress.firstSeenAt ||= now.toISOString();
+  progress.lastReview = now.toISOString();
+  progress.updatedAt = now.toISOString();
+  if (rating === 'again' || rating === 'hard') {
+    progress.status = 'learning';
+    progress.wrongCount += 1;
+    progress.easeFactor = Math.max(1.3, progress.easeFactor - (rating === 'again' ? 0.2 : 0.15));
+    progress.intervalDays = rating === 'again' ? 0 : Math.max(1, Math.round((progress.intervalDays || 1) * 1.2));
+    progress.nextReviewAt = rating === 'again' ? new Date(now.getTime() + 10 * 60_000).toISOString() : standaloneAddDays(now, progress.intervalDays).toISOString();
+    addStandaloneWrong(profile, key);
+    touchStandaloneDaily(profile, { studied: 1, reviewed: 1, quizWrong: 1 });
+  } else {
+    progress.correctCount += 1;
+    progress.intervalDays = rating === 'easy'
+      ? (progress.intervalDays < 1 ? 4 : Math.max(4, Math.round(progress.intervalDays * progress.easeFactor * 1.3)))
+      : (progress.intervalDays < 1 ? 1 : progress.intervalDays === 1 ? 3 : Math.max(3, Math.round(progress.intervalDays * progress.easeFactor)));
+    progress.easeFactor = Math.min(3.2, progress.easeFactor + (rating === 'easy' ? 0.15 : 0.05));
+    progress.status = progress.intervalDays >= 3 ? 'known' : 'learning';
+    progress.nextReviewAt = standaloneAddDays(now, progress.intervalDays).toISOString();
+    delete profile.wrongWords[key];
+    touchStandaloneDaily(profile, { studied: 1, reviewed: 1, quizCorrect: 1, [progress.status]: 1 });
+  }
+  profile.progress[key] = progress;
+  return progress;
+}
+
+async function standaloneApi(path, options = {}) {
+  const method = options.method || 'GET';
+  const profile = readStandaloneProfile();
+  const words = await loadStandaloneWords();
+  const url = new URL(path, 'http://standalone.local');
+
+  if (method === 'GET' && url.pathname === '/words') return { total: words.length, offset: 0, limit: words.length, words: words.map((word) => decorateStandaloneWord(profile, word)) };
+  if (method === 'GET' && url.pathname === '/stats') return calculateStandaloneStats(profile, words);
+  if (method === 'GET' && url.pathname === '/sections') {
+    const sections = {};
+    for (const word of words) {
+      const decorated = decorateStandaloneWord(profile, word);
+      sections[decorated.section] ||= { total: 0, new: 0, learning: 0, known: 0, due: 0 };
+      sections[decorated.section].total += 1;
+      sections[decorated.section][decorated.status] += 1;
+      if (decorated.isDue) sections[decorated.section].due += 1;
+    }
+    return sections;
+  }
+  if (method === 'GET' && url.pathname === '/daily-stats') {
+    const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days') || 30)));
+    const result = {};
+    for (let i = days - 1; i >= 0; i -= 1) {
+      const key = standaloneDayKey(standaloneAddDays(new Date(), -i));
+      result[key] = { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0, ...(profile.dailyStats[key] || {}) };
+    }
+    return { days: result, streak: calculateStandaloneStats(profile, words).streak, today: standaloneDayKey() };
+  }
+  if (method === 'GET' && url.pathname === '/sync/summary') return { syncCode: state.syncCode, revision: profile.revision, updatedAt: profile.updatedAt, progressCount: Object.keys(profile.progress).length, wrongCount: Object.keys(profile.wrongWords).length, latestBackupAt: null };
+  if (method === 'GET' && url.pathname === '/ip') return { ips: [], port: 0 };
+  if (method === 'GET' && url.pathname === '/review-queue') {
+    const decorated = words.map((word) => decorateStandaloneWord(profile, word));
+    const due = decorated.filter((word) => word.isWrong || word.isDue).sort((a, b) => (b.isWrong - a.isWrong) || Date.parse(a.nextReviewAt || 0) - Date.parse(b.nextReviewAt || 0));
+    return { total: due.length, words: due.slice(0, Number(url.searchParams.get('limit') || 40)) };
+  }
+  if (method === 'GET' && url.pathname === '/wrong-words') return { total: Object.keys(profile.wrongWords).length, words: words.map((word) => decorateStandaloneWord(profile, word)).filter((word) => word.isWrong) };
+  if (method === 'PUT' && /\/words\/[^/]+\/status$/.test(url.pathname)) {
+    const body = JSON.parse(options.body || '{}');
+    const word = decodeURIComponent(url.pathname.split('/')[2]).toLowerCase();
+    const progress = setStandaloneStatus(profile, word, body.status);
+    writeStandaloneProfile(profile);
+    return { word, progress };
+  }
+  if (method === 'POST' && url.pathname === '/review') {
+    const body = JSON.parse(options.body || '{}');
+    const progress = reviewStandaloneWord(profile, body.word, body.rating);
+    writeStandaloneProfile(profile);
+    return { word: body.word, rating: body.rating, progress };
+  }
+  if (method === 'PUT' && url.pathname === '/settings') {
+    const body = JSON.parse(options.body || '{}');
+    profile.settings.dailyGoal = Math.min(500, Math.max(1, Number(body.dailyGoal || 45)));
+    if (Object.prototype.hasOwnProperty.call(body, 'dailyGoalEnabled')) profile.settings.dailyGoalEnabled = body.dailyGoalEnabled === true;
+    writeStandaloneProfile(profile);
+    return profile.settings;
+  }
+  if (method === 'POST' && url.pathname === '/progress/import') {
+    const incoming = coerceStandaloneProfile(JSON.parse(options.body || '{}'));
+    const merged = mergeStandaloneProfile(profile, incoming);
+    writeStandaloneProfile(merged);
+    return { message: 'Imported', revision: merged.revision, words: Object.keys(merged.progress).length };
+  }
+  if (method === 'POST' && url.pathname === '/reset') {
+    writeJsonStorage(standaloneProfileKey(), blankStandaloneProfile());
+    return { message: 'Progress reset', syncCode: state.syncCode };
+  }
+  throw new Error(`手机离线版暂不支持此操作：${method} ${url.pathname}`);
+}
+
 async function api(path, options = {}, config = {}) {
+  if (STANDALONE_MODE) {
+    setConnectionStatus(true, '手机离线版');
+    return standaloneApi(path, options);
+  }
   const method = options.method || 'GET';
   const headers = new Headers(options.headers || {});
   headers.set('X-Sync-Code', state.syncCode);
@@ -853,6 +1129,17 @@ async function saveDailyGoal() {
 
 async function exportData() {
   try {
+    if (STANDALONE_MODE) {
+      const payload = { app: 'vocab-master-mobile', syncCode: state.syncCode, exportDate: new Date().toISOString(), profile: readStandaloneProfile() };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vocab-mobile-backup-${state.syncCode}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
     if (!response.ok) throw new Error('导出失败');
     const blob = await response.blob();
