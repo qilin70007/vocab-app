@@ -55,6 +55,19 @@ test('serves vocabulary and initial statistics', async () => {
   assert.equal(stats.body.dailyGoalEnabled, false);
 });
 
+
+test('rejects invalid word status updates', async () => {
+  const result = await request('/api/words/ability/status', {
+    method: 'PUT', body: JSON.stringify({ status: 'archived' })
+  }, 'INVALIDSTATUS');
+  assert.equal(result.response.status, 400);
+  assert.equal(result.body.error, 'Invalid status');
+
+  const stats = await request('/api/stats', {}, 'INVALIDSTATUS');
+  assert.equal(stats.body.known, 0);
+  assert.equal(stats.body.learning, 0);
+});
+
 test('persists status and isolates sync profiles', async () => {
   const update = await request('/api/words/ability/status', {
     method: 'PUT', body: JSON.stringify({ status: 'known' })
@@ -107,6 +120,7 @@ test('normalizes extended vocabulary metadata and preserves sequence ids', async
   }, 0);
   assert.equal(word.id, 56);
   assert.equal(word.meaning, '上午');
+  assert.deepEqual(word.definitions, [{ pos: 'abbr.', meaning: '上午' }, { pos: 'adv.', meaning: '在上午' }]);
   assert.deepEqual(word.senses, [{ pos: 'abbr.', meaning: '上午' }, { pos: 'adv.', meaning: '在上午' }]);
   assert.deepEqual(word.synonyms, ['morning']);
   assert.deepEqual(word.antonyms, ['p.m.']);
