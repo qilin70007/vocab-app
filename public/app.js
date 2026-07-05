@@ -556,12 +556,32 @@ function normalizeRemoteServer(value) {
   return String(value || '').trim().replace(/\/+$/g, '');
 }
 
+
+function validateRemoteServer(remote) {
+  if (!/^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(remote)) {
+    throw new Error('电脑同步地址必须以 http:// 或 https:// 开头，例如 http://192.168.1.8:3000');
+  }
+}
+
+async function fetchDesktopServer(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    throw new Error('无法连接电脑同步地址：请确认电脑已运行 npm start、手机和电脑在同一网络、地址类似 http://192.168.x.x:3000，且 Windows 防火墙允许 Node.js 访问。');
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function syncStandaloneRemote() {
   const remote = normalizeRemoteServer($('#remoteServerInput')?.value || state.remoteServer || localStorage.getItem(STORAGE.remoteServer));
   if (!remote) {
     showToast('请先填写电脑同步地址，例如 http://192.168.1.8:3000');
     return;
   }
+  validateRemoteServer(remote);
   state.remoteServer = remote;
   localStorage.setItem(STORAGE.remoteServer, remote);
   setConnectionStatus(false, '正在连接电脑');
@@ -570,7 +590,7 @@ async function syncStandaloneRemote() {
   const current = readStandaloneProfile();
   let merged = current;
 
-  const download = await fetch(`${remote}/api/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
+  const download = await fetchDesktopServer(`${remote}/api/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
   if (download.ok) {
     const remotePayload = await download.json();
     merged = mergeStandaloneProfile(current, coerceStandaloneProfile(remotePayload));
@@ -579,7 +599,7 @@ async function syncStandaloneRemote() {
     throw new Error(`读取电脑进度失败：${download.status}`);
   }
 
-  const upload = await fetch(`${remote}/api/progress/import`, {
+  const upload = await fetchDesktopServer(`${remote}/api/progress/import`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ profile: merged })

@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 const multer = require('multer');
 
-const APP_VERSION = '2.1.2';
+const APP_VERSION = '2.1.3';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 const DEFAULT_DAILY_GOAL = 45;
 const VALID_STATUSES = new Set(['new', 'learning', 'known']);

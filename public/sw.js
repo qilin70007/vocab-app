@@ -1,13 +1,13 @@
 'use strict';
 
-const CACHE_NAME = 'vocab-master-v2.1.2';
+const CACHE_NAME = 'vocab-master-v2.1.3';
 const SHELL = [
   '/',
   '/index.html',
   '/mobile.html',
   '/words.json',
-  '/style.css?v=2.1.2',
-  '/app.js?v=2.1.2',
+  '/style.css?v=2.1.3',
+  '/app.js?v=2.1.3',
   '/manifest.webmanifest',
   '/icons/icon.svg'
 ];

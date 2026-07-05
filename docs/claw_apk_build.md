@@ -21,6 +21,7 @@
 2. JDK 17
 3. Android Studio 或 Android SDK / Gradle
 4. 可用网络，能安装 `@capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech`
+5. `capacitor.config.json` 中必须保留 `androidScheme: "http"` 和 `cleartext: true`，否则 APK 可能无法请求电脑的 `http://192.168.x.x:3000`
 
 ## 如果从 GitHub Actions 构建
 
@@ -47,7 +48,7 @@ cd /workspace/vocab-app
 git status --short
 npm ci
 npm run mobile:prepare
-npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
+npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
 
 if [ ! -d android ]; then
   npx cap add android

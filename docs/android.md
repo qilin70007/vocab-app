@@ -42,7 +42,7 @@
 > 当前执行环境无法从 npm registry 安装 `@capacitor/android`（403），所以仓库已落地 Web 侧离线模式、词库资产和 Capacitor 配置；在本机网络正常的开发机上执行下面命令即可生成安卓工程/APK。
 
 ```bash
-npm install -D @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
+npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
 npm run mobile:prepare
 npx cap add android
 npx cap sync android
@@ -68,6 +68,14 @@ http://192.168.1.8:3000
 ```
 
 电脑端必须先运行 `npm start`，手机和电脑必须在同一网络。保存地址后再点“立即同步”。
+如果提示 `Failed to fetch` / `无法连接电脑同步地址`：
+
+1. 确认 APK 里填的是电脑终端显示的完整地址，例如 `http://192.168.1.8:3000`，不是只填同步码。
+2. 确认电脑正在运行 `npm start`。
+3. 确认手机和电脑在同一个 Wi‑Fi，且手机浏览器能打开这个地址。
+4. Windows 防火墙弹窗请选择允许 Node.js 访问专用网络。
+5. 重新生成 APK，确保 `capacitor.config.json` 使用 `androidScheme: "http"` 和 `cleartext: true`。
+
 
 ### APK 和电脑同步
 
