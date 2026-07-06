@@ -4,6 +4,8 @@ const API_ROOT = '/api';
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
   || globalThis.Capacitor?.isNativePlatform?.() === true;
+const REMOTE_REVISION_POLL_MS = 15_000;
+
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
@@ -38,7 +40,10 @@ const state = {
   online: navigator.onLine,
   autoReadActive: false,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
-  remoteServer: ''
+  remoteServer: '',
+  serverRevision: null,
+  revisionPollTimer: null,
+  revisionPollInFlight: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -704,6 +709,43 @@ async function refreshAll({ quiet = false } = {}) {
   }
 }
 
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
+    }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
+function startServerRevisionPolling() {
+  if (STANDALONE_MODE || state.revisionPollTimer) return;
+  state.revisionPollTimer = setInterval(() => checkForServerRevisionChange(), REMOTE_REVISION_POLL_MS);
+  window.addEventListener('focus', () => checkForServerRevisionChange({ force: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkForServerRevisionChange({ force: true });
+  });
+}
+
 function renderCurrentPage() {
   if (state.page === 'study') prepareStudyQueue(false);
   if (state.page === 'review') loadReviewCenter();
@@ -741,7 +783,7 @@ function renderHome() {
   $('#metricGrid').innerHTML = [
     ['词库总量', s.total, '完整可检索'],
     ['未背过', s.new, '优先学习'],
-    ['学习中', s.learning, '需要巩固'],
+    ['待巩固', s.learning, '模糊/还需复习'],
     ['到期复习', s.due, `错题 ${s.wrong} 个`]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
@@ -1132,7 +1174,7 @@ function renderWordList() {
   const pageWords = words.slice(start, start + state.wordPageSize);
   $('#wordCount').textContent = `${words.length} 词`;
   $('#wordTable').innerHTML = pageWords.length
-    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="学习中">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
+    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="待巩固">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
     : '<div class="empty-state"><span>⌕</span><p>没有找到匹配单词。</p></div>';
 
   $$('[data-word-detail]').forEach((row) => row.addEventListener('click', () => showWordDialog(row.dataset.wordDetail)));
@@ -1184,6 +1226,7 @@ async function renderDataPage() {
   if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
+    state.serverRevision = Number(summary.revision || state.serverRevision || 0);
     const pending = pendingMutationCount();
     const remoteHint = STANDALONE_MODE ? `<br>电脑同步地址：${escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '未设置')}` : '';
     $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条${remoteHint}<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
@@ -1640,6 +1683,8 @@ async function init() {
 
   await refreshAll();
   await flushPendingMutations();
+  await checkForServerRevisionChange({ force: true });
+  startServerRevisionPolling();
 }
 
 document.addEventListener('DOMContentLoaded', init);
