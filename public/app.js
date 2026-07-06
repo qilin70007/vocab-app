@@ -1363,6 +1363,7 @@ async function speakTextNative(text, lang, rate = 0.82) {
   if (hasNativeAndroidBridge()) {
     const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
     if (result === 'OK') return true;
+    if (result === 'NO_TTS_ENGINE') showToast('当前设备没有可用的系统文字转语音引擎，请先在系统设置中安装或启用 TTS');
   }
   const nativeTts = nativeTextToSpeech();
   if (!nativeTts?.speak) return false;
