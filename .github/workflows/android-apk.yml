@@ -75,9 +75,19 @@ jobs:
           set -o pipefail
           mkdir -p dist
           if [ -x android/gradlew ]; then
-            (cd android && ./gradlew assembleDebug --stacktrace --info 2>&1 | tee ../dist/gradle-build.log)
+            (cd android && ./gradlew assembleDebug --stacktrace --info 2>&1 | tee ../dist/gradle-build.log) || {
+              echo "::group::Gradle failure summary"
+              grep -n -i -E "error:|FAILURE:|What went wrong|Execution failed|Compilation failed|A problem occurred" dist/gradle-build.log | tail -120 || true
+              echo "::endgroup::"
+              exit 1
+            }
           else
-            (cd android && gradle assembleDebug --stacktrace --info 2>&1 | tee ../dist/gradle-build.log)
+            (cd android && gradle assembleDebug --stacktrace --info 2>&1 | tee ../dist/gradle-build.log) || {
+              echo "::group::Gradle failure summary"
+              grep -n -i -E "error:|FAILURE:|What went wrong|Execution failed|Compilation failed|A problem occurred" dist/gradle-build.log | tail -120 || true
+              echo "::endgroup::"
+              exit 1
+            }
           fi
 
       - name: Copy APK to dist

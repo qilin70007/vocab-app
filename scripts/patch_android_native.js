@@ -14,9 +14,6 @@ if (!fs.existsSync(mainActivity)) {
 
 const source = `package com.vocabmaster.app;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
@@ -36,8 +33,6 @@ import java.util.Iterator;
 import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
-  private static final int CREATE_BACKUP_FILE = 7001;
-  private String pendingBackupJson = null;
   private TextToSpeech textToSpeech = null;
   private boolean ttsReady = false;
   private boolean ttsInitFailed = false;
@@ -73,23 +68,6 @@ public class MainActivity extends BridgeActivity {
     super.onDestroy();
   }
 
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    super.onActivityResult(requestCode, resultCode, data);
-    if (requestCode == CREATE_BACKUP_FILE && resultCode == Activity.RESULT_OK && data != null && pendingBackupJson != null) {
-      Uri uri = data.getData();
-      if (uri != null) {
-        try (OutputStream output = getContentResolver().openOutputStream(uri)) {
-          if (output != null) output.write(pendingBackupJson.getBytes(StandardCharsets.UTF_8));
-          showToast("学习数据已导出到你选择的位置");
-        } catch (Exception error) {
-          showToast("导出失败：" + error.getMessage());
-        }
-      }
-      pendingBackupJson = null;
-    }
-  }
-
   private void showToast(String message) {
     runOnUiThread(() -> android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_LONG).show());
   }
@@ -111,33 +89,23 @@ public class MainActivity extends BridgeActivity {
     }
     textToSpeech.setSpeechRate(rate);
     int speakStatus = textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "vocab-" + System.currentTimeMillis());
-    return speakStatus != TextToSpeech.ERROR;
+    return speakStatus == TextToSpeech.SUCCESS;
   }
 
   public class VocabNativeBridge {
     @JavascriptInterface
     public String saveJson(String filename, String content) {
-      pendingBackupJson = content;
-      Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-      intent.addCategory(Intent.CATEGORY_OPENABLE);
-      intent.setType("application/json");
-      intent.putExtra(Intent.EXTRA_TITLE, filename);
-      try {
-        startActivityForResult(intent, CREATE_BACKUP_FILE);
-        return "OPENED";
-      } catch (Exception error) {
-        File downloads = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        if (downloads == null) downloads = getFilesDir();
-        if (!downloads.exists()) downloads.mkdirs();
-        File outputFile = new File(downloads, filename);
-        try (OutputStream output = new FileOutputStream(outputFile)) {
-          output.write(content.getBytes(StandardCharsets.UTF_8));
-          pendingBackupJson = null;
-          return "SAVED_DOWNLOADS:" + outputFile.getAbsolutePath();
-        } catch (Exception writeError) {
-          showToast("导出失败：" + writeError.getMessage());
-          return "ERROR";
-        }
+      File downloads = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+      if (downloads == null) downloads = getFilesDir();
+      if (!downloads.exists()) downloads.mkdirs();
+      File outputFile = new File(downloads, filename);
+      try (OutputStream output = new FileOutputStream(outputFile)) {
+        output.write(content.getBytes(StandardCharsets.UTF_8));
+        showToast("学习数据已导出到：" + outputFile.getAbsolutePath());
+        return "SAVED_DOWNLOADS:" + outputFile.getAbsolutePath();
+      } catch (Exception writeError) {
+        showToast("导出失败：" + writeError.getMessage());
+        return "ERROR";
       }
     }
 
