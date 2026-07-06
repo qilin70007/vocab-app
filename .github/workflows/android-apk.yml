@@ -54,7 +54,7 @@ jobs:
       - name: Install Capacitor packages
         run: |
           set -o pipefail
-          npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech @capacitor/filesystem@7 @capacitor/share@7 2>&1 | tee npm-install-capacitor.log
+          npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 2>&1 | tee npm-install-capacitor.log
 
       - name: Create Android project
         run: |
