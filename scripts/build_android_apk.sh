@@ -20,6 +20,9 @@ fi
 echo "==> Syncing web assets into Android project"
 npx cap sync android
 
+echo "==> Patching native Android bridge"
+npm run mobile:patch
+
 echo "==> Building debug APK"
 if [ -x android/gradlew ]; then
   (cd android && ./gradlew assembleDebug --stacktrace)

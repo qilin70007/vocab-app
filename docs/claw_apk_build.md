@@ -55,6 +55,7 @@ if [ ! -d android ]; then
 fi
 
 npx cap sync android
+npm run mobile:patch
 
 if [ -x android/gradlew ]; then
   (cd android && ./gradlew assembleDebug --stacktrace --info)

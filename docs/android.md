@@ -46,6 +46,7 @@ npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/
 npm run mobile:prepare
 npx cap add android
 npx cap sync android
+npm run mobile:patch
 npx cap open android
 ```
 
@@ -116,6 +117,21 @@ http://192.168.1.8:3000
 ```bash
 npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech @capacitor/filesystem@7 @capacitor/share@7
 npx cap sync android
+npm run mobile:patch
 ```
 
 然后重新生成并安装 APK。新版前端会同时识别 `TextToSpeech` 和 `TextToSpeechPlugin` 两种 Capacitor 插件名；如果插件不可用，才会回退到浏览器 `speechSynthesis`。
+
+### APK 原生桥接能力
+
+新版 APK 构建时会执行 `npm run mobile:patch`，向 Android `MainActivity` 注入 `VocabNative` 原生桥接：
+
+1. **朗读：** 直接调用 Android 系统 `TextToSpeech`，不再只依赖 WebView 是否暴露 Capacitor TTS 插件。
+2. **导出：** 点击“立即导出学习数据”会打开 Android 文件创建器，让你选择保存目录和确认文件名。
+3. **同步：** APK 访问电脑同步地址时优先走 Android 原生 `HttpURLConnection`，绕过 WebView 的 CORS/预检限制；如果手机浏览器能打开电脑地址，APK 同步成功率会更高。
+
+如果你是手动构建 APK，请确认每次 `npx cap sync android` 后都执行：
+
+```bash
+npm run mobile:patch
+```

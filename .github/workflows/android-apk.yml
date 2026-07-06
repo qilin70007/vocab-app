@@ -67,6 +67,9 @@ jobs:
       - name: Sync Android project
         run: npx cap sync android
 
+      - name: Patch native Android bridge
+        run: npm run mobile:patch
+
       - name: Build debug APK
         run: |
           set -o pipefail
