@@ -18,6 +18,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
 
@@ -25,6 +26,8 @@ import com.getcapacitor.BridgeActivity;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -45,6 +48,7 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getBridge().getWebView().addJavascriptInterface(new VocabNativeBridge(), "VocabNative");
+    getBridge().getWebView().post(() -> getBridge().getWebView().reload());
     textToSpeech = new TextToSpeech(this, status -> {
       ttsReady = status == TextToSpeech.SUCCESS;
       if (ttsReady && pendingTtsText != null) {
@@ -107,8 +111,23 @@ public class MainActivity extends BridgeActivity {
       intent.addCategory(Intent.CATEGORY_OPENABLE);
       intent.setType("application/json");
       intent.putExtra(Intent.EXTRA_TITLE, filename);
-      startActivityForResult(intent, CREATE_BACKUP_FILE);
-      return "OPENED";
+      try {
+        startActivityForResult(intent, CREATE_BACKUP_FILE);
+        return "OPENED";
+      } catch (Exception error) {
+        File downloads = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (downloads == null) downloads = getFilesDir();
+        if (!downloads.exists()) downloads.mkdirs();
+        File outputFile = new File(downloads, filename);
+        try (OutputStream output = new FileOutputStream(outputFile)) {
+          output.write(content.getBytes(StandardCharsets.UTF_8));
+          pendingBackupJson = null;
+          return "SAVED_DOWNLOADS";
+        } catch (Exception writeError) {
+          showToast("导出失败：" + writeError.getMessage());
+          return "ERROR";
+        }
+      }
     }
 
     @JavascriptInterface
