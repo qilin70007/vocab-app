@@ -11,7 +11,13 @@
     "check": "node --check server.js && node --check public/app.js && node --test",
     "import:ocr": "node scripts/import_ocr_data.js",
     "sync:words": "node parse_800words.js && node sync_handbook_words.js",
-    "check:legacy": "node -c parse_800words.js && node -c sync_handbook_words.js"
+    "check:legacy": "node -c parse_800words.js && node -c sync_handbook_words.js",
+    "mobile:prepare": "node scripts/prepare_mobile.js",
+    "mobile:sync": "npm run mobile:prepare && npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:where": "node scripts/mobile_where.js",
+    "mobile:patch": "node scripts/patch_android_native.js",
+    "mobile:apk": "./scripts/build_android_apk.sh"
   },
   "engines": {
     "node": ">=18"
