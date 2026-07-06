@@ -18,6 +18,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
 
@@ -25,6 +26,8 @@ import com.getcapacitor.BridgeActivity;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -37,6 +40,7 @@ public class MainActivity extends BridgeActivity {
   private String pendingBackupJson = null;
   private TextToSpeech textToSpeech = null;
   private boolean ttsReady = false;
+  private boolean ttsInitFailed = false;
   private String pendingTtsText = null;
   private String pendingTtsLang = "en-US";
   private float pendingTtsRate = 0.82f;
@@ -45,9 +49,15 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getBridge().getWebView().addJavascriptInterface(new VocabNativeBridge(), "VocabNative");
+    getBridge().getWebView().post(() -> getBridge().getWebView().reload());
     textToSpeech = new TextToSpeech(this, status -> {
       ttsReady = status == TextToSpeech.SUCCESS;
-      if (ttsReady && pendingTtsText != null) {
+      ttsInitFailed = !ttsReady;
+      if (!ttsReady) {
+        showToast("当前设备没有可用的系统文字转语音引擎");
+        return;
+      }
+      if (pendingTtsText != null) {
         speakNow(pendingTtsText, pendingTtsLang, pendingTtsRate);
         pendingTtsText = null;
       }
@@ -91,12 +101,17 @@ public class MainActivity extends BridgeActivity {
     ));
   }
 
-  private void speakNow(String text, String lang, float rate) {
-    if (textToSpeech == null) return;
+  private boolean speakNow(String text, String lang, float rate) {
+    if (textToSpeech == null || ttsInitFailed) return false;
     Locale locale = String.valueOf(lang).toLowerCase(Locale.ROOT).startsWith("zh") ? Locale.CHINA : Locale.US;
-    textToSpeech.setLanguage(locale);
+    int languageStatus = textToSpeech.setLanguage(locale);
+    if (languageStatus == TextToSpeech.LANG_MISSING_DATA || languageStatus == TextToSpeech.LANG_NOT_SUPPORTED) {
+      showToast("当前文字转语音引擎不支持该语言，请在系统设置中安装英语语音包");
+      return false;
+    }
     textToSpeech.setSpeechRate(rate);
-    textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "vocab-" + System.currentTimeMillis());
+    int speakStatus = textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "vocab-" + System.currentTimeMillis());
+    return speakStatus != TextToSpeech.ERROR;
   }
 
   public class VocabNativeBridge {
@@ -107,8 +122,23 @@ public class MainActivity extends BridgeActivity {
       intent.addCategory(Intent.CATEGORY_OPENABLE);
       intent.setType("application/json");
       intent.putExtra(Intent.EXTRA_TITLE, filename);
-      startActivityForResult(intent, CREATE_BACKUP_FILE);
-      return "OPENED";
+      try {
+        startActivityForResult(intent, CREATE_BACKUP_FILE);
+        return "OPENED";
+      } catch (Exception error) {
+        File downloads = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (downloads == null) downloads = getFilesDir();
+        if (!downloads.exists()) downloads.mkdirs();
+        File outputFile = new File(downloads, filename);
+        try (OutputStream output = new FileOutputStream(outputFile)) {
+          output.write(content.getBytes(StandardCharsets.UTF_8));
+          pendingBackupJson = null;
+          return "SAVED_DOWNLOADS";
+        } catch (Exception writeError) {
+          showToast("导出失败：" + writeError.getMessage());
+          return "ERROR";
+        }
+      }
     }
 
     @JavascriptInterface
@@ -117,14 +147,14 @@ public class MainActivity extends BridgeActivity {
       try {
         rate = Float.parseFloat(rateText);
       } catch (Exception ignored) {}
+      if (ttsInitFailed) return "NO_TTS_ENGINE";
       if (textToSpeech == null || !ttsReady) {
         pendingTtsText = text;
         pendingTtsLang = lang;
         pendingTtsRate = rate;
         return "OK";
       }
-      speakNow(text, lang, rate);
-      return "OK";
+      return speakNow(text, lang, rate) ? "OK" : "NO_TTS_ENGINE";
     }
 
     @JavascriptInterface

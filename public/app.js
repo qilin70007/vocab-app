@@ -1245,13 +1245,8 @@ async function exportData() {
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
     if (!response.ok) throw new Error('导出失败');
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `vocab-backup-${state.syncCode}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const payload = await response.json();
+    await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
   } catch (error) {
     showToast(error.message);
   }
@@ -1264,10 +1259,18 @@ function capacitorPlugin(name) {
 async function saveJsonFile(filename, payload) {
   const content = JSON.stringify(payload, null, 2);
   if (window.VocabNative?.saveJson) {
-    const result = window.VocabNative.saveJson(filename, content);
-    if (result === 'OPENED') {
-      showToast('请选择保存目录并确认文件名');
-      return;
+    try {
+      const result = window.VocabNative.saveJson(filename, content);
+      if (result === 'OPENED') {
+        showToast('请选择保存目录并确认文件名');
+        return;
+      }
+      if (result === 'SAVED_DOWNLOADS') {
+        showToast(`已导出到下载目录：${filename}`);
+        return;
+      }
+    } catch (error) {
+      console.warn('Native export failed, falling back to web download', error);
     }
   }
   const filesystem = capacitorPlugin('Filesystem');
@@ -1341,8 +1344,12 @@ function nativeTextToSpeech() {
   return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
+function hasNativeAndroidBridge() {
+  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
+}
+
 function canSpeakText() {
-  return Boolean(window.VocabNative?.speak) || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window;
+  return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window;
 }
 
 async function stopSpeaking() {
@@ -1353,9 +1360,10 @@ async function stopSpeaking() {
 }
 
 async function speakTextNative(text, lang, rate = 0.82) {
-  if (window.VocabNative?.speak) {
+  if (hasNativeAndroidBridge()) {
     const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
     if (result === 'OK') return true;
+    if (result === 'NO_TTS_ENGINE') showToast('当前设备没有可用的系统文字转语音引擎，请先在系统设置中安装或启用 TTS');
   }
   const nativeTts = nativeTextToSpeech();
   if (!nativeTts?.speak) return false;
@@ -1384,7 +1392,7 @@ function speakText(text, lang, rate = 0.82) {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
       if (!('speechSynthesis' in window)) {
-        showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
         resolve();
         return;
       }
@@ -1401,7 +1409,7 @@ function speakText(text, lang, rate = 0.82) {
 }
 
 async function speakWord(word) {
-  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   await stopSpeaking();
   speakText(word, 'en-US', 0.82);
 }
@@ -1460,7 +1468,7 @@ async function toggleAutoReadUnknown() {
     $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
     return;
   }
-  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
