@@ -59,14 +59,6 @@ public class MainActivity extends BridgeActivity {
     });
   }
 
-  @Override
-  protected void onDestroy() {
-    if (textToSpeech != null) {
-      textToSpeech.stop();
-      textToSpeech.shutdown();
-    }
-    super.onDestroy();
-  }
 
   private void showToast(String message) {
     runOnUiThread(() -> android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_LONG).show());
