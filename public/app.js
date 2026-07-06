@@ -1252,6 +1252,10 @@ async function exportData() {
   }
 }
 
+function isNativeApp() {
+  return globalThis.Capacitor?.isNativePlatform?.() === true || Boolean(window.VocabNative);
+}
+
 function capacitorPlugin(name) {
   return globalThis.Capacitor?.Plugins?.[name] || null;
 }
@@ -1265,8 +1269,9 @@ async function saveJsonFile(filename, payload) {
         showToast('请选择保存目录并确认文件名');
         return;
       }
-      if (result === 'SAVED_DOWNLOADS') {
-        showToast(`已导出到下载目录：${filename}`);
+      if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
+        const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
+        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
         return;
       }
     } catch (error) {
@@ -1294,6 +1299,11 @@ async function saveJsonFile(filename, payload) {
     return;
   }
 
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
+
   const blob = new Blob([content], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1306,7 +1316,7 @@ async function saveJsonFile(filename, payload) {
     URL.revokeObjectURL(url);
     link.remove();
   }, 1000);
-  showToast('已开始导出学习数据');
+  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
 }
 
 async function importData(file) {
@@ -1349,7 +1359,7 @@ function hasNativeAndroidBridge() {
 }
 
 function canSpeakText() {
-  return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window;
+  return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
 }
 
 async function stopSpeaking() {
@@ -1359,14 +1369,40 @@ async function stopSpeaking() {
   if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
 }
 
+
+function remoteTtsUrl(text, lang) {
+  const encoded = encodeURIComponent(String(text || '').trim());
+  const language = encodeURIComponent(lang || 'en-US');
+  return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
+}
+
+function playRemoteTtsAudio(text, lang) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(remoteTtsUrl(text, lang));
+    audio.preload = 'auto';
+    audio.onended = resolve;
+    audio.onerror = reject;
+    audio.play().catch(reject);
+  });
+}
+
 async function speakTextNative(text, lang, rate = 0.82) {
   if (hasNativeAndroidBridge()) {
     const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
     if (result === 'OK') return true;
-    if (result === 'NO_TTS_ENGINE') showToast('当前设备没有可用的系统文字转语音引擎，请先在系统设置中安装或启用 TTS');
+    if (result === 'NO_TTS_ENGINE') {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
   }
   const nativeTts = nativeTextToSpeech();
-  if (!nativeTts?.speak) return false;
+  if (!nativeTts?.speak) {
+    if (isNativeApp()) {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
+    return false;
+  }
   await nativeTts.speak({
     text: String(text || ''),
     lang,

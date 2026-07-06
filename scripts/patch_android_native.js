@@ -81,7 +81,7 @@ public class MainActivity extends BridgeActivity {
       if (uri != null) {
         try (OutputStream output = getContentResolver().openOutputStream(uri)) {
           if (output != null) output.write(pendingBackupJson.getBytes(StandardCharsets.UTF_8));
-          showToast("学习数据已导出");
+          showToast("学习数据已导出到你选择的位置");
         } catch (Exception error) {
           showToast("导出失败：" + error.getMessage());
         }
@@ -133,7 +133,7 @@ public class MainActivity extends BridgeActivity {
         try (OutputStream output = new FileOutputStream(outputFile)) {
           output.write(content.getBytes(StandardCharsets.UTF_8));
           pendingBackupJson = null;
-          return "SAVED_DOWNLOADS";
+          return "SAVED_DOWNLOADS:" + outputFile.getAbsolutePath();
         } catch (Exception writeError) {
           showToast("导出失败：" + writeError.getMessage());
           return "ERROR";
