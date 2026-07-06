@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 const multer = require('multer');
 
-const APP_VERSION = '2.1.3';
+const APP_VERSION = '2.1.4';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 const DEFAULT_DAILY_GOAL = 45;
 const VALID_STATUSES = new Set(['new', 'learning', 'known']);
@@ -489,6 +489,13 @@ function createStore(options = {}) {
 }
 
 function coerceImportedProfile(payload) {
+  if (typeof payload === 'string') {
+    try {
+      return coerceImportedProfile(JSON.parse(payload));
+    } catch {
+      return blankProfile();
+    }
+  }
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return blankProfile();
   if (payload.profile && typeof payload.profile === 'object') return payload.profile;
   if (payload.progress || payload.wrongWords || payload.dailyStats || payload.settings) return payload;
@@ -530,6 +537,7 @@ function createApp(options = {}) {
     return next();
   });
   app.use(express.json({ limit: '2mb' }));
+  app.use(express.text({ type: 'text/plain', limit: '2mb' }));
   app.use(express.static(publicDir, { etag: true, maxAge: '1h' }));
   app.use('/api', (req, res, next) => {
     req.syncCode = sanitizeSyncCode(req.get('x-sync-code') || req.query.syncCode || 'LOCAL');

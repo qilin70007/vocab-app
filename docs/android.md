@@ -42,7 +42,7 @@
 > 当前执行环境无法从 npm registry 安装 `@capacitor/android`（403），所以仓库已落地 Web 侧离线模式、词库资产和 Capacitor 配置；在本机网络正常的开发机上执行下面命令即可生成安卓工程/APK。
 
 ```bash
-npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech
+npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech @capacitor/filesystem@7 @capacitor/share@7
 npm run mobile:prepare
 npx cap add android
 npx cap sync android
@@ -74,14 +74,15 @@ http://192.168.1.8:3000
 2. 确认电脑正在运行 `npm start`。
 3. 确认手机和电脑在同一个 Wi‑Fi，且手机浏览器能打开这个地址。
 4. Windows 防火墙弹窗请选择允许 Node.js 访问专用网络。
-5. 重新生成 APK，确保 `capacitor.config.json` 使用 `androidScheme: "http"` 和 `cleartext: true`。
+5. 重新生成 APK，确保 `capacitor.config.json` 使用 `androidScheme: "http"`、`cleartext: true` 和局域网 `allowNavigation` 配置。
+6. 新版 APK 会用 `?syncCode=...` 和 `text/plain` 上传来减少 Android WebView/CORS 预检拦截；如果手机浏览器能打开但 APK 仍失败，请确认安装的是重新构建后的新版 APK。
 
 
 ### APK 和电脑同步
 
-当前落地的是“手机可独立离线背词”的 APK 基础版。同步可以先用备份文件完成：
+当前落地的是“手机可独立离线背词”的 APK 版。手机和电脑在同一网络时，优先使用“同步设置”里的 **APK 电脑同步地址** + “立即同步”直接合并。也可以用备份文件手动迁移：
 
-1. 手机 APK：进入“同步设置” → “立即导出学习数据”。
+1. 手机 APK：进入“同步设置” → “立即导出学习数据”。新版 APK 会优先调用 Capacitor Filesystem/Share 插件保存或分享 JSON；浏览器环境才回退到下载链接。
 2. 电脑网页版：进入“同步设置” → “导入学习数据”。
 3. 或反过来，把电脑导出的 JSON 导入手机 APK。
 
@@ -107,3 +108,14 @@ http://192.168.1.8:3000
 6. 解压后得到 `vocab-app-mobile-debug.apk`，传到安卓手机安装。
 
 这个方法使用 `.github/workflows/android-apk.yml`，会在 GitHub 的 Ubuntu 构建机上分步执行 Android SDK、Capacitor、Gradle 构建并上传 APK 产物。
+
+### APK 朗读不可用
+
+如果点击“连续朗读不认识”提示“当前设备不支持朗读”，请确认构建 APK 时安装并同步了：
+
+```bash
+npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech @capacitor/filesystem@7 @capacitor/share@7
+npx cap sync android
+```
+
+然后重新生成并安装 APK。新版前端会同时识别 `TextToSpeech` 和 `TextToSpeechPlugin` 两种 Capacitor 插件名；如果插件不可用，才会回退到浏览器 `speechSynthesis`。

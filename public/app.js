@@ -542,6 +542,101 @@ function updateLocalProgress(wordText, patch) {
   return word;
 }
 
+
+function todayKey() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
+
+function offlineDailyKey() {
+  return `${STORAGE.offlineDailyPrefix}${state.syncCode}`;
+}
+
+function readOfflineDailyStats() {
+  return readJsonStorage(offlineDailyKey(), {});
+}
+
+function writeOfflineDailyStats(value) {
+  writeJsonStorage(offlineDailyKey(), value);
+}
+
+function clearOfflineDailyStats() {
+  try { localStorage.removeItem(offlineDailyKey()); } catch {}
+}
+
+function touchOfflineDaily(changes) {
+  const daily = readOfflineDailyStats();
+  const day = todayKey();
+  const current = { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0, ...(daily[day] || {}) };
+  for (const [key, value] of Object.entries(changes)) current[key] = Number(current[key] || 0) + Number(value || 0);
+  daily[day] = current;
+  writeOfflineDailyStats(daily);
+  if (state.daily?.days) {
+    state.daily.days[day] ||= { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0 };
+    for (const [key, value] of Object.entries(changes)) state.daily.days[day][key] = Number(state.daily.days[day][key] || 0) + Number(value || 0);
+  }
+  if (state.stats && changes.studied) state.stats.studiedToday = Number(state.stats.studiedToday || 0) + Number(changes.studied || 0);
+  persistCurrentCache();
+}
+
+function applyDailyOverlay() {
+  const overlay = readOfflineDailyStats();
+  if (!state.daily?.days) return;
+  for (const [day, values] of Object.entries(overlay)) {
+    state.daily.days[day] ||= { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0 };
+    for (const key of Object.keys(values || {})) state.daily.days[day][key] = Number(state.daily.days[day][key] || 0) + Number(values[key] || 0);
+  }
+}
+
+function recomputeLocalStats() {
+  const counts = { total: state.words.length, new: 0, learning: 0, known: 0, due: 0, wrong: 0 };
+  const now = Date.now();
+  for (const word of state.words) {
+    counts[word.status || 'new'] = Number(counts[word.status || 'new'] || 0) + 1;
+    if (word.isWrong) counts.wrong += 1;
+    if ((word.status || 'new') !== 'new' && (!word.nextReviewAt || Date.parse(word.nextReviewAt) <= now)) counts.due += 1;
+  }
+  const today = todayKey();
+  state.stats = {
+    ...(state.stats || {}),
+    ...counts,
+    progress: counts.total ? Math.round((counts.known / counts.total) * 100) : 0,
+    studiedToday: Number(state.daily?.days?.[today]?.studied ?? state.stats?.studiedToday ?? 0)
+  };
+}
+
+function recomputeLocalSections() {
+  const sections = {};
+  for (const word of state.words) {
+    const section = word.section || '#';
+    sections[section] ||= { total: 0, new: 0, learning: 0, known: 0, due: 0 };
+    sections[section].total += 1;
+    sections[section][word.status || 'new'] += 1;
+    if ((word.status || 'new') !== 'new' && (!word.nextReviewAt || Date.parse(word.nextReviewAt) <= Date.now())) sections[section].due += 1;
+  }
+  state.sections = sections;
+}
+
+function persistCurrentCache() {
+  if (!state.syncCode || !state.words.length) return;
+  writeJsonStorage(cacheKey('/words?status=all&limit=5000'), { total: state.words.length, offset: 0, limit: 5000, words: state.words });
+  if (state.stats) writeJsonStorage(cacheKey('/stats'), state.stats);
+  if (state.sections) writeJsonStorage(cacheKey('/sections'), state.sections);
+  if (state.daily) writeJsonStorage(cacheKey('/daily-stats?days=7'), state.daily);
+}
+
+function updateLocalProgress(wordText, patch) {
+  const word = state.words.find((item) => item.word.toLowerCase() === String(wordText || '').toLowerCase());
+  if (!word) return null;
+  Object.assign(word, patch, { updatedAt: new Date().toISOString() });
+  recomputeLocalStats();
+  recomputeLocalSections();
+  persistCurrentCache();
+  renderHome();
+  return word;
+}
+
 let toastTimer = null;
 function showToast(message) {
   const toast = $('#toast');
@@ -567,9 +662,9 @@ async function fetchDesktopServer(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    return await fetch(url, { ...options, mode: 'cors', signal: controller.signal });
   } catch (error) {
-    throw new Error('无法连接电脑同步地址：请确认电脑已运行 npm start、手机和电脑在同一网络、地址类似 http://192.168.x.x:3000，且 Windows 防火墙允许 Node.js 访问。');
+    throw new Error(`无法连接电脑同步地址：${error?.message || '网络请求失败'}。请确认电脑已运行 npm start、手机和电脑在同一网络、地址类似 http://192.168.x.x:3000，且 Windows 防火墙允许 Node.js 访问。`);
   } finally {
     clearTimeout(timeout);
   }
@@ -586,11 +681,11 @@ async function syncStandaloneRemote() {
   localStorage.setItem(STORAGE.remoteServer, remote);
   setConnectionStatus(false, '正在连接电脑');
 
-  const headers = { 'X-Sync-Code': state.syncCode, 'Content-Type': 'application/json' };
+  const syncQuery = `syncCode=${encodeURIComponent(state.syncCode)}`;
   const current = readStandaloneProfile();
   let merged = current;
 
-  const download = await fetchDesktopServer(`${remote}/api/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
+  const download = await fetchDesktopServer(`${remote}/api/progress/download?${syncQuery}`);
   if (download.ok) {
     const remotePayload = await download.json();
     merged = mergeStandaloneProfile(current, coerceStandaloneProfile(remotePayload));
@@ -599,9 +694,9 @@ async function syncStandaloneRemote() {
     throw new Error(`读取电脑进度失败：${download.status}`);
   }
 
-  const upload = await fetchDesktopServer(`${remote}/api/progress/import`, {
+  const upload = await fetchDesktopServer(`${remote}/api/progress/import?${syncQuery}`, {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
     body: JSON.stringify({ profile: merged })
   });
   if (!upload.ok) {
@@ -1199,13 +1294,7 @@ async function exportData() {
   try {
     if (STANDALONE_MODE) {
       const payload = { app: 'vocab-master-mobile', syncCode: state.syncCode, exportDate: new Date().toISOString(), profile: readStandaloneProfile() };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `vocab-mobile-backup-${state.syncCode}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
+      await saveJsonFile(`vocab-mobile-backup-${state.syncCode}.json`, payload);
       return;
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
@@ -1220,6 +1309,48 @@ async function exportData() {
   } catch (error) {
     showToast(error.message);
   }
+}
+
+function capacitorPlugin(name) {
+  return globalThis.Capacitor?.Plugins?.[name] || null;
+}
+
+async function saveJsonFile(filename, payload) {
+  const content = JSON.stringify(payload, null, 2);
+  const filesystem = capacitorPlugin('Filesystem');
+  const share = capacitorPlugin('Share');
+  if (filesystem?.writeFile) {
+    const result = await filesystem.writeFile({
+      path: filename,
+      data: content,
+      directory: 'DOCUMENTS',
+      recursive: true
+    });
+    if (share?.share) {
+      await share.share({
+        title: '导出学习数据',
+        text: '请选择保存位置或发送到微信/文件管理器。',
+        url: result.uri,
+        dialogTitle: '保存学习数据备份'
+      }).catch(() => {});
+    }
+    showToast(`已导出到文档目录：${filename}`);
+    return;
+  }
+
+  const blob = new Blob([content], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    link.remove();
+  }, 1000);
+  showToast('已开始导出学习数据');
 }
 
 async function importData(file) {
@@ -1254,7 +1385,7 @@ async function resetData() {
 
 
 function nativeTextToSpeech() {
-  return globalThis.Capacitor?.Plugins?.TextToSpeech || null;
+  return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
 function canSpeakText() {
@@ -1262,7 +1393,7 @@ function canSpeakText() {
 }
 
 async function stopSpeaking() {
-  speechSynthesis?.cancel?.();
+  window.speechSynthesis?.cancel?.();
   const nativeTts = nativeTextToSpeech();
   if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
 }
@@ -1282,7 +1413,7 @@ async function speakTextNative(text, lang, rate = 0.82) {
 }
 
 function preferredVoice(lang) {
-  const voices = speechSynthesis.getVoices?.() || [];
+  const voices = window.speechSynthesis?.getVoices?.() || [];
   const lowerLang = String(lang).toLowerCase();
   return voices.find((voice) => voice.lang?.toLowerCase() === lowerLang && /mandarin|普通话|国语|xiaoxiao|tingting|mei-jia/i.test(voice.name))
     || voices.find((voice) => voice.lang?.toLowerCase() === lowerLang)
@@ -1306,7 +1437,7 @@ function speakText(text, lang, rate = 0.82) {
       utterance.rate = rate;
       utterance.onend = resolve;
       utterance.onerror = resolve;
-      speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(utterance);
     }).catch(() => resolve());
   });
 }
