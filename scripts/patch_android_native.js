@@ -5,6 +5,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const mainActivity = path.join(root, 'android', 'app', 'src', 'main', 'java', 'com', 'vocabmaster', 'app', 'MainActivity.java');
+const variablesGradle = path.join(root, 'android', 'variables.gradle');
 
 if (!fs.existsSync(mainActivity)) {
   console.error(`Android MainActivity not found: ${mainActivity}`);
@@ -182,3 +183,13 @@ public class MainActivity extends BridgeActivity {
 
 fs.writeFileSync(mainActivity, source, 'utf8');
 console.log(`Patched native Android bridge: ${path.relative(root, mainActivity)}`);
+
+if (fs.existsSync(variablesGradle)) {
+  let gradle = fs.readFileSync(variablesGradle, 'utf8');
+  gradle = gradle
+    .replace(/minSdkVersion\s*=\s*\d+/g, 'minSdkVersion = 26')
+    .replace(/compileSdkVersion\s*=\s*\d+/g, 'compileSdkVersion = 35')
+    .replace(/targetSdkVersion\s*=\s*\d+/g, 'targetSdkVersion = 35');
+  fs.writeFileSync(variablesGradle, gradle, 'utf8');
+  console.log('Patched Android SDK versions: minSdkVersion=26 compileSdkVersion=35 targetSdkVersion=35');
+}

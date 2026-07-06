@@ -135,3 +135,23 @@ npm run mobile:patch
 ```bash
 npm run mobile:patch
 ```
+
+### `uses-sdk` / `minSdkVersion` 编译错误
+
+如果 Gradle/Manifest merger 报错位置指向类似：
+
+```xml
+<uses-sdk
+    android:minSdkVersion="23"
+    android:targetSdkVersion="35" />
+```
+
+请重新执行新版构建流程。`npm run mobile:patch` 现在会同时把生成的 Android 工程 SDK 版本固定为：
+
+```text
+minSdkVersion = 26
+compileSdkVersion = 35
+targetSdkVersion = 35
+```
+
+这样可以避开部分 AndroidX / Capacitor 插件要求高于 23 的最小 SDK 时触发的 Manifest merger 失败。
