@@ -54,16 +54,12 @@ public class MainActivity extends BridgeActivity {
         return;
       }
       if (pendingTtsText != null) {
-        if (pendingTtsCallbackId != null) {
-          speakWithCallbackNow(pendingTtsText, pendingTtsLang, pendingTtsRate, pendingTtsCallbackId);
-        } else {
-          speakNow(pendingTtsText, pendingTtsLang, pendingTtsRate);
-        }
+        speakNow(pendingTtsText, pendingTtsLang, pendingTtsRate);
         pendingTtsText = null;
-        pendingTtsCallbackId = null;
       }
     });
   }
+
 
   private void showToast(String message) {
     runOnUiThread(() -> android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_LONG).show());
@@ -72,14 +68,6 @@ public class MainActivity extends BridgeActivity {
   private void callback(String callbackId, JSONObject payload) {
     runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(
       "window.__vocabNativeCallbacks&&window.__vocabNativeCallbacks[" + JSONObject.quote(callbackId) + "]&&window.__vocabNativeCallbacks[" + JSONObject.quote(callbackId) + "](" + payload.toString() + ")",
-      null
-    ));
-  }
-
-  private void ttsCallback(String callbackId, String result) {
-    if (callbackId == null || callbackId.isEmpty()) return;
-    runOnUiThread(() -> getBridge().getWebView().evaluateJavascript(
-      "window.__ttsCallback&&window.__ttsCallback(" + JSONObject.quote(callbackId) + "," + JSONObject.quote(result) + ")",
       null
     ));
   }
@@ -95,42 +83,6 @@ public class MainActivity extends BridgeActivity {
     textToSpeech.setSpeechRate(rate);
     int speakStatus = textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "vocab-" + System.currentTimeMillis());
     return speakStatus == TextToSpeech.SUCCESS;
-  }
-
-  private void speakWithCallbackNow(String text, String lang, float rate, String callbackId) {
-    if (textToSpeech == null || ttsInitFailed) {
-      ttsCallback(callbackId, "NO_TTS_ENGINE");
-      return;
-    }
-    Locale locale = String.valueOf(lang).toLowerCase(Locale.ROOT).startsWith("zh") ? Locale.CHINA : Locale.US;
-    int languageStatus = textToSpeech.setLanguage(locale);
-    if (languageStatus == TextToSpeech.LANG_MISSING_DATA || languageStatus == TextToSpeech.LANG_NOT_SUPPORTED) {
-      showToast("当前文字转语音引擎不支持该语言，请在系统设置中安装英语语音包");
-      ttsCallback(callbackId, "error");
-      return;
-    }
-    textToSpeech.setSpeechRate(rate);
-    // Set up completion listener
-    textToSpeech.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
-      @Override
-      public void onStart(String utteranceId) {
-        // Speech started
-      }
-
-      @Override
-      public void onDone(String utteranceId) {
-        ttsCallback(callbackId, "done");
-      }
-
-      @Override
-      public void onError(String utteranceId) {
-        ttsCallback(callbackId, "error");
-      }
-    });
-    int speakStatus = textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "vocab-" + System.currentTimeMillis());
-    if (speakStatus != TextToSpeech.SUCCESS) {
-      ttsCallback(callbackId, "error");
-    }
   }
 
   public class VocabNativeBridge {
@@ -151,30 +103,6 @@ public class MainActivity extends BridgeActivity {
     }
 
     @JavascriptInterface
-    public void initTts() {
-      // Force re-initialization if needed
-      if (textToSpeech == null && !ttsInitFailed) {
-        textToSpeech = new TextToSpeech(MainActivity.this, status -> {
-          ttsReady = status == TextToSpeech.SUCCESS;
-          ttsInitFailed = !ttsReady;
-          if (!ttsReady) {
-            showToast("当前设备没有可用的系统文字转语音引擎");
-            return;
-          }
-          if (pendingTtsText != null) {
-            if (pendingTtsCallbackId != null) {
-              speakWithCallbackNow(pendingTtsText, pendingTtsLang, pendingTtsRate, pendingTtsCallbackId);
-            } else {
-              speakNow(pendingTtsText, pendingTtsLang, pendingTtsRate);
-            }
-            pendingTtsText = null;
-            pendingTtsCallbackId = null;
-          }
-        });
-      }
-    }
-
-    @JavascriptInterface
     public String speak(String text, String lang, String rateText) {
       float rate = 0.82f;
       try {
@@ -189,27 +117,6 @@ public class MainActivity extends BridgeActivity {
         return "OK";
       }
       return speakNow(text, lang, rate) ? "OK" : "NO_TTS_ENGINE";
-    }
-
-    @JavascriptInterface
-    public void speakWithCallback(String text, String lang, String rateText, String callbackId) {
-      float rate = 0.82f;
-      try {
-        rate = Float.parseFloat(rateText);
-      } catch (Exception ignored) {}
-      if (ttsInitFailed) {
-        ttsCallback(callbackId, "NO_TTS_ENGINE");
-        return;
-      }
-      if (textToSpeech == null || !ttsReady) {
-        // Store pending request, will be executed when TTS initializes
-        pendingTtsText = text;
-        pendingTtsLang = lang;
-        pendingTtsRate = rate;
-        pendingTtsCallbackId = callbackId;
-        return;
-      }
-      speakWithCallbackNow(text, lang, rate, callbackId);
     }
 
     @JavascriptInterface

@@ -43,9 +43,7 @@ const state = {
   remoteServer: '',
   serverRevision: null,
   revisionPollTimer: null,
-  revisionPollInFlight: false,
-  ttsReady: false,
-  ttsInitializing: false
+  revisionPollInFlight: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -487,19 +485,217 @@ async function initTts() {
       console.warn('Native TTS init failed:', e);
     }
   }
+}
 
-  // Warm up Web Speech API voices
-  if ('speechSynthesis' in window) {
-    try {
-      // Trigger voice loading
-      window.speechSynthesis.getVoices();
-      // Some browsers need onvoiceschanged to populate
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    } catch (e) {
-      console.warn('Web Speech API init failed:', e);
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
     }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
+function startServerRevisionPolling() {
+  if (STANDALONE_MODE || state.revisionPollTimer) return;
+  state.revisionPollTimer = setInterval(() => checkForServerRevisionChange(), REMOTE_REVISION_POLL_MS);
+  window.addEventListener('focus', () => checkForServerRevisionChange({ force: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkForServerRevisionChange({ force: true });
+  });
+}
+
+function renderCurrentPage() {
+  if (state.page === 'study') prepareStudyQueue(false);
+  if (state.page === 'review') loadReviewCenter();
+  if (state.page === 'spell') prepareSpellQueue(false);
+  if (state.page === 'words') renderWordList();
+  if (state.page === 'data') renderDataPage();
+}
+
+function switchPage(page) {
+  state.page = page;
+  $$('.page').forEach((element) => element.classList.toggle('active', element.id === `page-${page}`));
+  $$('.nav-item').forEach((button) => button.classList.toggle('active', button.dataset.page === page));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderCurrentPage();
+}
+
+function populateSectionSelects() {
+  const options = Object.entries(state.sections)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([letter, values]) => `<option value="${escapeHtml(letter)}">${escapeHtml(letter)}（${values.total}）</option>`)
+    .join('');
+  for (const id of ['studySection', 'spellSection', 'wordSection']) {
+    const select = $(`#${id}`);
+    if (!select) continue;
+    const current = select.value;
+    select.innerHTML = `<option value="">全部字母</option>${options}`;
+    if ([...select.options].some((option) => option.value === current)) select.value = current;
+  }
+}
+
+function renderHome() {
+  if (!state.stats) return;
+  const s = state.stats;
+  $('#heroCopy').textContent = `词库共 ${s.total} 词，已掌握 ${s.known} 词。今天先完成新词，再处理 ${s.due} 个到期复习词。`;
+  $('#metricGrid').innerHTML = [
+    ['词库总量', s.total, '完整可检索'],
+    ['未背过', s.new, '优先学习'],
+    ['待巩固', s.learning, '模糊/还需复习'],
+    ['到期复习', s.due, `错题 ${s.wrong} 个`]
+  ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
+
+  const goal = Math.max(1, Number(s.dailyGoal || 45));
+  const studied = Number(s.studiedToday || 0);
+  const limited = s.dailyGoalEnabled === true;
+  const pct = limited ? Math.min(100, Math.round((studied / goal) * 100)) : 0;
+  $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 不限`;
+  $('#goalPercent').textContent = `${pct}%`;
+  $('#goalRing').style.setProperty('--pct', pct);
+  $('#streakCount').textContent = s.streak || 0;
+  $('#dailyGoalInput').value = goal;
+  const dailyGoalEnabled = $('#dailyGoalEnabled');
+  if (dailyGoalEnabled) dailyGoalEnabled.checked = limited;
+
+  const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+  const days = state.daily?.days || {};
+  const max = Math.max(1, ...Object.values(days).map((item) => Number(item.studied || 0)));
+  $('#weekChart').innerHTML = Object.entries(days).map(([day, item]) => {
+    const height = Math.max(5, Math.round((Number(item.studied || 0) / max) * 100));
+    const isToday = day === state.daily.today;
+    return `<div class="week-day ${isToday ? 'today' : ''}"><span>${item.studied || 0}</span><div class="bar-track"><i class="bar" style="height:${height}%"></i></div><small>周${dayNames[new Date(`${day}T00:00:00`).getDay()]}</small></div>`;
+  }).join('');
+
+  $('#sectionGrid').innerHTML = Object.entries(state.sections)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([letter, values]) => {
+      const progress = values.total ? Math.round((values.known / values.total) * 100) : 0;
+      return `<button class="section-button" type="button" data-study-section="${escapeHtml(letter)}"><strong>${escapeHtml(letter)}</strong><small>${values.total} 词</small><span class="mini-progress"><i style="width:${progress}%"></i></span></button>`;
+    }).join('');
+
+  $$('[data-study-section]').forEach((button) => button.addEventListener('click', () => {
+    switchPage('study');
+    $('#studySection').value = button.dataset.studySection;
+    prepareStudyQueue(true);
+  }));
+}
+
+function filteredWords(section, status) {
+  let words = [...state.words];
+  if (section) words = words.filter((word) => word.section === section);
+  if (status === 'notknown') words = words.filter((word) => word.status === 'new' || word.status === 'learning');
+  else if (status && status !== 'all') words = words.filter((word) => word.status === status);
+  return words;
+}
+
+
+
+const POS_PATTERN = String.raw`(?:modal\s+v|aux\.?\s*v|v\.?&n\.?|n\.?&v\.?|adj\.?&n\.?|adv\.?|adj\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|vt\.?|vi\.?|v\.?|n\.?)`;
+const POS_SPLIT_RE = new RegExp(`(^|[\\s；;，,])(${POS_PATTERN})\\s*`, 'gi');
+
+function normalizePos(pos) {
+  return String(pos || '').replace(/\s+/g, ' ').trim();
+}
+
+function derivedSenses(word) {
+  const existing = (word.senses || [])
+    .filter((sense) => sense && sense.meaning)
+    .map((sense) => ({ pos: normalizePos(sense.pos), meaning: String(sense.meaning).trim() }));
+  if (existing.length > 1) return existing;
+
+  const text = String(word.meaning || '').trim();
+  const matches = [...text.matchAll(POS_SPLIT_RE)];
+  if (!matches.length) return existing.length ? existing : (text ? [{ pos: normalizePos(word.pos), meaning: text }] : []);
+
+  const senses = [];
+  for (let i = 0; i < matches.length; i += 1) {
+    const match = matches[i];
+    const next = matches[i + 1];
+    const start = match.index + match[0].length;
+    const end = next ? next.index : text.length;
+    const meaning = text.slice(start, end).replace(/^[\s；;，,。.]+|[\s；;，,。.]+$/g, '');
+    if (meaning) senses.push({ pos: normalizePos(match[2]), meaning });
+  }
+  return senses.length > 1 ? senses : (existing.length ? existing : [{ pos: normalizePos(word.pos), meaning: text }]);
+}
+
+function wordOrderValue(word) {
+  const value = Number(word.id || word.number || word.sequence || 0);
+  return Number.isFinite(value) && value > 0 ? value : Number.MAX_SAFE_INTEGER;
+}
+
+function compareWordOrder(a, b) {
+  return (wordOrderValue(a) - wordOrderValue(b)) || a.word.localeCompare(b.word);
+}
+
+function wordMeaningHtml(word) {
+  const senses = derivedSenses(word);
+  if (senses.length > 1) {
+    return `<div class="sense-list">${senses.map((sense) => `<div class="sense-item">${sense.pos ? `<span>${escapeHtml(sense.pos)}</span>` : ''}<strong>${escapeHtml(sense.meaning)}</strong></div>`).join('')}</div>`;
+  }
+  return `<div class="answer-meaning">${escapeHtml(senses[0]?.meaning || word.meaning)}</div>`;
+}
+
+function prepareStudyQueue(force = true) {
+  if (!force && state.studyQueue.length) {
+    renderStudyCard();
+    return;
+  }
+  const section = $('#studySection')?.value || '';
+  const status = $('#studyStatus')?.value || 'notknown';
+  const order = $('#studyOrder')?.value || 'alpha';
+  let queue = filteredWords(section, status);
+  if (order === 'random') queue.sort(() => Math.random() - 0.5);
+  else queue.sort((a, b) => a.word.localeCompare(b.word));
+  const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled === true;
+  const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
+  state.studyQueue = queue.slice(0, limit);
+  state.studyIndex = 0;
+  state.studyRevealed = state.alwaysShowMeaning;
+  renderStudyCard();
+}
+
+function wordDetailsHtml(word) {
+  const groups = [];
+  const senses = derivedSenses(word);
+  if (senses.length > 1) groups.push(['词性释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
+  if (word.synonyms.length) groups.push(['近义词', word.synonyms]);
+  if (word.antonyms.length) groups.push(['反义词', word.antonyms]);
+  if (word.proverbs.length) groups.push(['谚语', word.proverbs]);
+  if (word.forms.length) groups.push(['词形与语法', word.forms]);
+  if (word.collocations.length) groups.push(['常用搭配', word.collocations]);
+  if (word.examples.length) groups.push(['例句', word.examples]);
+  return groups.map(([title, values]) => `<section class="detail-group"><strong>${title}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul></section>`).join('');
+}
+
+function renderStudyCard() {
+  const card = $('#studyCard');
+  $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
+  if (!state.studyQueue.length || state.studyIndex >= state.studyQueue.length) {
+    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去到期复习巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
+    $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true));
+    refreshStatsOnly();
+    return;
   }
 
   state.ttsReady = true;
@@ -537,46 +733,99 @@ function remoteTtsUrl(text, lang) {
   return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
 }
 
-function playRemoteTtsAudio(text, lang) {
-  return new Promise((resolve, reject) => {
-    try {
-      const url = remoteTtsUrl(text, lang);
-      const audio = new Audio(url);
-      audio.crossOrigin = 'anonymous';
-      audio.preload = 'auto';
-      audio.onended = () => resolve(true);
-      audio.onerror = (e) => {
-        console.warn('Remote TTS audio error:', e);
-        reject(new Error('Audio playback failed'));
-      };
-      // Set a timeout in case audio hangs
-      const timeout = setTimeout(() => {
-        audio.pause();
-        reject(new Error('Audio timeout'));
-      }, 15000);
-      audio.onended = () => { clearTimeout(timeout); resolve(true); };
-      audio.onerror = () => { clearTimeout(timeout); reject(new Error('Audio error')); };
-      audio.play().catch((err) => {
-        clearTimeout(timeout);
-        console.warn('Remote TTS play() failed:', err);
-        reject(err);
-      });
-    } catch (err) {
-      reject(err);
+function renderReviewCard() {
+  const card = $('#reviewCard');
+  if (state.reviewIndex >= state.reviewQueue.length) {
+    card.innerHTML = `<div class="empty-state"><span>🎯</span><p>本轮复习完成。</p><button class="primary-btn" type="button" data-review-finish>返回到期复习</button></div>`;
+    $('[data-review-finish]')?.addEventListener('click', () => loadReviewCenter());
+    refreshAll({ quiet: true });
+    return;
+  }
+  const word = state.reviewQueue[state.reviewIndex];
+  card.innerHTML = `
+    <div class="review-front">
+      <div>
+        <h2>${escapeHtml(word.word)}</h2>
+        <p>${escapeHtml(word.phonetic || word.pos || '先回忆中文释义')}</p>
+        <button class="speak-btn" type="button" data-speak-review aria-label="朗读单词">🔊</button>
+      </div>
+    </div>
+    ${state.reviewRevealed
+      ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
+      : '<button class="primary-btn" style="width:100%" type="button" data-reveal-review>显示答案</button>'}
+    <div class="card-footer"><span>${state.reviewIndex + 1} / ${state.reviewQueue.length}</span><span class="progress-track"><i style="width:${Math.round(((state.reviewIndex + 1) / state.reviewQueue.length) * 100)}%"></i></span><span>${state.reviewMode === 'wrong' ? '错题专练' : '间隔复习'}</span></div>`;
+  $('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
+  $('[data-reveal-review]')?.addEventListener('click', () => { state.reviewRevealed = true; renderReviewCard(); });
+  $$('[data-rating]').forEach((button) => button.addEventListener('click', () => rateReview(button.dataset.rating)));
+}
+
+async function rateReview(rating) {
+  const word = state.reviewQueue[state.reviewIndex];
+  if (!word) return;
+  state.reviewIndex += 1;
+  state.reviewRevealed = false;
+  const nextStatus = ['again', 'hard'].includes(rating) ? 'learning' : 'known';
+  const wrongPatch = ['again', 'hard'].includes(rating) ? { isWrong: true } : { isWrong: false };
+  updateLocalProgress(word.word, { status: nextStatus, lastReview: new Date().toISOString(), ...wrongPatch });
+  renderReviewCard();
+  try {
+    const payload = await api('/review', {
+      method: 'POST',
+      body: JSON.stringify({ word: word.word, rating })
+    }, { queueable: true });
+    if (payload.queued) touchOfflineDaily({ studied: 1, reviewed: 1, [rating === 'again' || rating === 'hard' ? 'quizWrong' : 'quizCorrect']: 1, [nextStatus]: 1 });
+    if (payload.progress) {
+      const sourceWord = state.words.find((item) => item.word === word.word);
+      if (sourceWord) Object.assign(sourceWord, payload.progress);
     }
   });
 }
 
-// Try to use Web Speech API (works in browser, may work in some WebViews)
-function speakWithWebSpeech(text, lang, rate) {
-  return new Promise((resolve) => {
-    if (!('speechSynthesis' in window)) {
-      resolve(false);
-      return;
-    }
-    try {
-      // Cancel any ongoing speech first
-      window.speechSynthesis.cancel();
+function renderWordList() {
+  const words = getWordListFiltered();
+  const pages = Math.max(1, Math.ceil(words.length / state.wordPageSize));
+  state.wordPage = Math.min(pages, Math.max(1, state.wordPage));
+  const start = (state.wordPage - 1) * state.wordPageSize;
+  const pageWords = words.slice(start, start + state.wordPageSize);
+  $('#wordCount').textContent = `${words.length} 词`;
+  $('#wordTable').innerHTML = pageWords.length
+    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="待巩固">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
+    : '<div class="empty-state"><span>⌕</span><p>没有找到匹配单词。</p></div>';
+
+  $$('[data-word-detail]').forEach((row) => row.addEventListener('click', () => showWordDialog(row.dataset.wordDetail)));
+  $$('[data-quick-status]').forEach((button) => button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    quickSetStatus(button.dataset.word, button.dataset.quickStatus);
+  }));
+  renderPagination(pages);
+}
+
+function renderPagination(pages) {
+  const container = $('#wordPagination');
+  if (pages <= 1) { container.innerHTML = ''; return; }
+  const numbers = [];
+  for (let page = Math.max(1, state.wordPage - 2); page <= Math.min(pages, state.wordPage + 2); page += 1) numbers.push(page);
+  container.innerHTML = `<button type="button" data-page-number="${Math.max(1, state.wordPage - 1)}">‹</button>${numbers.map((page) => `<button type="button" class="${page === state.wordPage ? 'active' : ''}" data-page-number="${page}">${page}</button>`).join('')}<button type="button" data-page-number="${Math.min(pages, state.wordPage + 1)}">›</button>`;
+  $$('[data-page-number]').forEach((button) => button.addEventListener('click', () => {
+    state.wordPage = Number(button.dataset.pageNumber);
+    renderWordList();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }));
+}
+
+async function quickSetStatus(wordText, status) {
+  const word = state.words.find((item) => item.word === wordText);
+  if (!word) return;
+  updateLocalProgress(wordText, { status, lastReview: new Date().toISOString(), firstSeenAt: word.firstSeenAt || new Date().toISOString() });
+  renderWordList();
+  try {
+    const payload = await api(`/words/${encodeURIComponent(wordText)}/status`, { method: 'PUT', body: JSON.stringify({ status }) }, { queueable: true });
+    if (payload.queued) touchOfflineDaily({ studied: 1, [status]: 1 });
+    await refreshStatsOnly();
+  } catch (error) {
+    showToast(error.message);
+  }
+}
 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
@@ -592,12 +841,24 @@ function speakWithWebSpeech(text, lang, rate) {
         || null;
       if (voice) utterance.voice = voice;
 
-      let resolved = false;
-      const finish = (result) => {
-        if (resolved) return;
-        resolved = true;
-        resolve(result);
-      };
+async function renderDataPage() {
+  $('#syncCodeInput').value = state.syncCode;
+  const remoteInput = $('#remoteServerInput');
+  if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
+  try {
+    const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
+    state.serverRevision = Number(summary.revision || state.serverRevision || 0);
+    const pending = pendingMutationCount();
+    const remoteHint = STANDALONE_MODE ? `<br>电脑同步地址：${escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '未设置')}` : '';
+    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条${remoteHint}<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
+    $('#syncStatusDot').classList.add('ok');
+    $('#lanUrls').innerHTML = (ip.ips || []).map((address) => `<code>http://${escapeHtml(address)}:${ip.port}</code>`).join('');
+  } catch {
+    $('#syncSummary').textContent = `当前处于离线模式，记录会先保存在手机本地；待上传 ${pendingMutationCount()} 条，恢复连接后会自动同步。`;
+    $('#syncStatusDot').classList.remove('ok');
+  }
+  $('#installSettingsButton').disabled = !state.deferredInstallPrompt;
+}
 
       utterance.onend = () => finish(true);
       utterance.onerror = (e) => {
@@ -618,57 +879,59 @@ function speakWithWebSpeech(text, lang, rate) {
       console.warn('Web Speech exception:', err);
       resolve(false);
     }
-  });
+    const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
+    if (!response.ok) throw new Error('导出失败');
+    const payload = await response.json();
+    await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
+  } catch (error) {
+    showToast(error.message);
+  }
 }
 
-// Native Android bridge with async callback support
-function speakWithNativeBridge(text, lang, rate) {
-  return new Promise((resolve) => {
-    if (!hasNativeAndroidBridge()) {
-      resolve(false);
-      return;
-    }
+function isNativeApp() {
+  return globalThis.Capacitor?.isNativePlatform?.() === true || Boolean(window.VocabNative);
+}
 
+function capacitorPlugin(name) {
+  return globalThis.Capacitor?.Plugins?.[name] || null;
+}
+
+async function saveJsonFile(filename, payload) {
+  const content = JSON.stringify(payload, null, 2);
+  if (window.VocabNative?.saveJson) {
     try {
-      // Check if the bridge supports async callback (newer version)
-      if (typeof window.VocabNative.speakWithCallback === 'function') {
-        const callbackId = String(++ttsCallbackId);
-        const timeout = setTimeout(() => {
-          ttsCallbacks.delete(callbackId);
-          // Fallback: assume it didn't work
-          resolve(false);
-        }, 30000); // 30s timeout for long text
-
-        ttsCallbacks.set(callbackId, (result) => {
-          clearTimeout(timeout);
-          if (result === 'error' || result === 'NO_TTS_ENGINE') {
-            resolve(false);
-          } else {
-            resolve(true);
-          }
-        });
-
-        window.VocabNative.speakWithCallback(String(text || ''), lang, String(rate), callbackId);
-      } else {
-        // Fallback to old synchronous speak() method
-        const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
-        if (result === 'OK') {
-          // Speech was queued successfully. Wait a bit for it to start,
-          // then resolve. The actual completion isn't tracked in the old API.
-          // Estimate duration: ~150ms per character + 500ms base
-          const estimatedMs = Math.min(15000, Math.max(1000, text.length * 150 + 500));
-          setTimeout(() => resolve(true), estimatedMs);
-        } else if (result === 'NO_TTS_ENGINE') {
-          resolve(false);
-        } else {
-          resolve(false);
-        }
+      const result = window.VocabNative.saveJson(filename, content);
+      if (result === 'OPENED') {
+        showToast('请选择保存目录并确认文件名');
+        return;
       }
-    } catch (err) {
-      console.warn('Native bridge speak error:', err);
-      resolve(false);
+      if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
+        const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
+        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
+        return;
+      }
+    } catch (error) {
+      console.warn('Native export failed, falling back to web download', error);
     }
-  });
+
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
+
+  const blob = new Blob([content], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    link.remove();
+  }, 1000);
+  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
 }
 
 // Main TTS function - tries multiple strategies in order
@@ -682,11 +945,71 @@ async function speakText(text, lang, rate = 0.82) {
     if (nativeOk) return;
   }
 
-  // Strategy 2: Web Speech API
-  if ('speechSynthesis' in window) {
-    const webOk = await speakWithWebSpeech(cleanText, lang, rate);
-    if (webOk) return;
+
+
+function nativeTextToSpeech() {
+  return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
+}
+
+function hasNativeAndroidBridge() {
+  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
+}
+
+function canSpeakText() {
+  return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
+}
+
+async function stopSpeaking() {
+  window.speechSynthesis?.cancel?.();
+  if (window.VocabNative?.stopTts) window.VocabNative.stopTts();
+  const nativeTts = nativeTextToSpeech();
+  if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
+}
+
+
+function remoteTtsUrl(text, lang) {
+  const encoded = encodeURIComponent(String(text || '').trim());
+  const language = encodeURIComponent(lang || 'en-US');
+  return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
+}
+
+function playRemoteTtsAudio(text, lang) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(remoteTtsUrl(text, lang));
+    audio.preload = 'auto';
+    audio.onended = resolve;
+    audio.onerror = reject;
+    audio.play().catch(reject);
+  });
+}
+
+async function speakTextNative(text, lang, rate = 0.82) {
+  if (hasNativeAndroidBridge()) {
+    const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
+    if (result === 'OK') return true;
+    if (result === 'NO_TTS_ENGINE') {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
   }
+  const nativeTts = nativeTextToSpeech();
+  if (!nativeTts?.speak) {
+    if (isNativeApp()) {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
+    return false;
+  }
+  await nativeTts.speak({
+    text: String(text || ''),
+    lang,
+    rate,
+    pitch: 1.0,
+    volume: 1.0,
+    category: 'ambient'
+  });
+  return true;
+}
 
   // Strategy 3: Remote TTS audio (Google Translate)
   if (isNativeApp() || state.online) {
@@ -698,15 +1021,29 @@ async function speakText(text, lang, rate = 0.82) {
     }
   }
 
-  // All strategies failed
-  console.warn('All TTS strategies failed for:', cleanText);
+function speakText(text, lang, rate = 0.82) {
+  return new Promise((resolve) => {
+    speakTextNative(text, lang, rate).then((handled) => {
+      if (handled) { resolve(); return; }
+      if (!('speechSynthesis' in window)) {
+        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+        resolve();
+        return;
+      }
+    const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      const voice = preferredVoice(lang);
+      if (voice) utterance.voice = voice;
+      utterance.rate = rate;
+      utterance.onend = resolve;
+      utterance.onerror = resolve;
+      window.speechSynthesis.speak(utterance);
+    }).catch(() => resolve());
+  });
 }
 
 async function speakWord(word) {
-  if (!canSpeakText()) {
-    showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
-    return;
-  }
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   await stopSpeaking();
   await speakText(word, 'en-US', 0.82);
 }
@@ -780,6 +1117,7 @@ async function toggleAutoReadUnknown() {
     showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
     return;
   }
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
   const btn = $('#autoReadUnknown');
   if (btn) btn.textContent = '停止朗读';
@@ -1444,13 +1782,10 @@ async function init() {
     if (input) input.value = state.remoteServer;
   }
 
-  bindEvents();
-  setConnectionStatus(navigator.onLine);
-
-  // Initialize TTS engine early
-  initTts();
-
-  await loadData();
+  await refreshAll();
+  await flushPendingMutations();
+  await checkForServerRevisionChange({ force: true });
+  startServerRevisionPolling();
 }
 
 if (document.readyState === 'loading') {
