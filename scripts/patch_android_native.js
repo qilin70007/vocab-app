@@ -50,8 +50,7 @@ public class MainActivity extends BridgeActivity {
       ttsReady = status == TextToSpeech.SUCCESS;
       ttsInitFailed = !ttsReady;
       if (!ttsReady) {
-        showToast("当前设备没有可用的系统文字转语音引擎，请按提示安装语音数据");
-        promptInstallTtsData();
+        showToast("当前设备没有可用的系统文字转语音引擎");
         return;
       }
       if (pendingTtsText != null) {
@@ -84,8 +83,7 @@ public class MainActivity extends BridgeActivity {
     Locale locale = String.valueOf(lang).toLowerCase(Locale.ROOT).startsWith("zh") ? Locale.CHINA : Locale.US;
     int languageStatus = textToSpeech.setLanguage(locale);
     if (languageStatus == TextToSpeech.LANG_MISSING_DATA || languageStatus == TextToSpeech.LANG_NOT_SUPPORTED) {
-      showToast("当前文字转语音引擎缺少英语语音包，请按提示安装");
-      promptInstallTtsData();
+      showToast("当前文字转语音引擎不支持该语言，请在系统设置中安装英语语音包");
       return false;
     }
     textToSpeech.setSpeechRate(rate);

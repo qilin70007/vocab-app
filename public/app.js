@@ -10,8 +10,9 @@ const APK_WEBVIEW_MODE = IS_ANDROID && (
 );
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
-  || globalThis.Capacitor?.isNativePlatform?.() === true
-  || APK_WEBVIEW_MODE;
+  || globalThis.Capacitor?.isNativePlatform?.() === true;
+const REMOTE_REVISION_POLL_MS = 15_000;
+
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
@@ -619,6 +620,34 @@ async function checkForServerRevisionChange({ force = false } = {}) {
   }
 }
 
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
+    }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
 function startServerRevisionPolling() {
   if (STANDALONE_MODE || state.revisionPollTimer) return;
   state.revisionPollTimer = setInterval(() => checkForServerRevisionChange(), REMOTE_REVISION_POLL_MS);
@@ -663,10 +692,10 @@ function renderHome() {
   const s = state.stats;
   $('#heroCopy').textContent = `璇嶅簱鍏?${s.total} 璇嶏紝宸叉帉鎻?${s.known} 璇嶃€備粖澶╁厛瀹屾垚鏂拌瘝锛屽啀澶勭悊 ${s.due} 涓埌鏈熷涔犺瘝銆俙;
   $('#metricGrid').innerHTML = [
-    ['璇嶅簱鎬婚噺', s.total, '瀹屾暣鍙绱?],
-    ['鏈儗杩?, s.new, '浼樺厛瀛︿範'],
-    ['寰呭珐鍥?, s.learning, '妯＄硦/杩橀渶澶嶄範'],
-    ['鍒版湡澶嶄範', s.due, `閿欓 ${s.wrong} 涓猔]
+    ['词库总量', s.total, '完整可检索'],
+    ['未背过', s.new, '优先学习'],
+    ['待巩固', s.learning, '模糊/还需复习'],
+    ['到期复习', s.due, `错题 ${s.wrong} 个`]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
   const goal = Math.max(1, Number(s.dailyGoal || 45));
@@ -893,8 +922,8 @@ function renderWordList() {
   const pageWords = words.slice(start, start + state.wordPageSize);
   $('#wordCount').textContent = `${words.length} 璇峘;
   $('#wordTable').innerHTML = pageWords.length
-    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' 路 '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="鏈儗杩?>?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="寰呭珐鍥?>~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="宸叉帉鎻?>鉁?/button></div></article>`).join('')
-    : '<div class="empty-state"><span>鈱?/span><p>娌℃湁鎵惧埌鍖归厤鍗曡瘝銆?/p></div>';
+    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="待巩固">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
+    : '<div class="empty-state"><span>⌕</span><p>没有找到匹配单词。</p></div>';
 
   $$('[data-word-detail]').forEach((row) => row.addEventListener('click', () => showWordDialog(row.dataset.wordDetail)));
   $$('[data-quick-status]').forEach((button) => button.addEventListener('click', (event) => {
@@ -984,7 +1013,7 @@ async function renderDataPage() {
       resolve(false);
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
-    if (!response.ok) throw new Error('瀵煎嚭澶辫触');
+    if (!response.ok) throw new Error('导出失败');
     const payload = await response.json();
     await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
   } catch (error) {
@@ -1006,12 +1035,12 @@ async function saveJsonFile(filename, payload) {
     try {
       const result = window.VocabNative.saveJson(filename, content);
       if (result === 'OPENED') {
-        showToast('璇烽€夋嫨淇濆瓨鐩綍骞剁‘璁ゆ枃浠跺悕');
+        showToast('请选择保存目录并确认文件名');
         return;
       }
       if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
         const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
-        showToast(savedPath ? `宸插鍑哄埌锛?{savedPath}` : `宸插鍑哄埌涓嬭浇鐩綍锛?{filename}`);
+        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
         return;
       }
     } catch (error) {
@@ -1051,6 +1080,11 @@ async function saveJsonFile(filename, payload) {
     return;
   }
 
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
+
   const blob = new Blob([content], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1063,7 +1097,7 @@ async function saveJsonFile(filename, payload) {
     URL.revokeObjectURL(url);
     link.remove();
   }, 1000);
-  showToast(`宸茶Е鍙戞祻瑙堝櫒涓嬭浇锛?{filename}锛岃鍦ㄦ祻瑙堝櫒涓嬭浇璁板綍涓煡鐪媊);
+  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
 }
 
 // Main TTS function - tries multiple strategies in order
@@ -1083,53 +1117,11 @@ function nativeTextToSpeech() {
   return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
-
-
-// Native Android bridge with async callback support
-function speakWithNativeBridge(text, lang, rate) {
-  return new Promise((resolve) => {
-    if (!hasNativeAndroidBridge()) {
-      resolve(false);
-      return;
-    }
-
-    try {
-      if (typeof window.VocabNative.speakWithCallback === 'function') {
-        const callbackId = String(++ttsCallbackId);
-        const timeout = setTimeout(() => {
-          ttsCallbacks.delete(callbackId);
-          resolve(false);
-        }, 30000);
-
-        ttsCallbacks.set(callbackId, (result) => {
-          clearTimeout(timeout);
-          if (result === 'error' || result === 'NO_TTS_ENGINE') {
-            resolve(false);
-          } else {
-            resolve(true);
-          }
-        });
-
-        window.VocabNative.speakWithCallback(String(text || ''), lang, String(rate), callbackId);
-      } else {
-        const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
-        if (result === 'OK') {
-          const estimatedMs = Math.min(15000, Math.max(1000, text.length * 150 + 500));
-          setTimeout(() => resolve(true), estimatedMs);
-        } else if (result === 'NO_TTS_ENGINE') {
-          resolve(false);
-        } else {
-          resolve(false);
-        }
-      }
-    } catch (err) {
-      console.warn('Native bridge speak error:', err);
-      resolve(false);
-    }
-  });
+function hasNativeAndroidBridge() {
+  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
 }
-function canSpeakText() {
 
+function canSpeakText() {
   return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
 }
 
@@ -1200,7 +1192,7 @@ function speakText(text, lang, rate = 0.82) {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
       if (!('speechSynthesis' in window)) {
-        showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
+        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
         resolve();
         return;
       }
@@ -1217,7 +1209,7 @@ function speakText(text, lang, rate = 0.82) {
 }
 
 async function speakWord(word) {
-  if (!canSpeakText()) return showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   await stopSpeaking();
   await speakText(word, 'en-US', 0.82);
 }
@@ -1287,11 +1279,7 @@ async function toggleAutoReadUnknown() {
     if (btn) btn.textContent = '杩炵画鏈楄鏈帉鎻＄殑鍗曡瘝';
     return;
   }
-  if (!canSpeakText()) {
-    showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
-    return;
-  }
-  if (!canSpeakText()) return showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
   const btn = $('#autoReadUnknown');
   if (btn) btn.textContent = '鍋滄鏈楄';
