@@ -39,6 +39,7 @@ public class MainActivity extends BridgeActivity {
   private String pendingTtsText = null;
   private String pendingTtsLang = "en-US";
   private float pendingTtsRate = 0.82f;
+  private String pendingTtsCallbackId = null;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,12 @@ public class MainActivity extends BridgeActivity {
 
   private void showToast(String message) {
     runOnUiThread(() -> android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_LONG).show());
+  }
+
+  private void promptInstallTtsData() {
+    try {
+      startActivity(new android.content.Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+    } catch (Exception ignored) {}
   }
 
   private void callback(String callbackId, JSONObject payload) {
@@ -112,6 +119,7 @@ public class MainActivity extends BridgeActivity {
         pendingTtsText = text;
         pendingTtsLang = lang;
         pendingTtsRate = rate;
+        pendingTtsCallbackId = null;
         return "OK";
       }
       return speakNow(text, lang, rate) ? "OK" : "NO_TTS_ENGINE";
@@ -119,7 +127,9 @@ public class MainActivity extends BridgeActivity {
 
     @JavascriptInterface
     public void stopTts() {
-      if (textToSpeech != null) textToSpeech.stop();
+      if (textToSpeech != null) {
+        textToSpeech.stop();
+      }
     }
 
     @JavascriptInterface
