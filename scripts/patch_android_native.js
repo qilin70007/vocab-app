@@ -39,6 +39,7 @@ public class MainActivity extends BridgeActivity {
   private String pendingTtsText = null;
   private String pendingTtsLang = "en-US";
   private float pendingTtsRate = 0.82f;
+  private String pendingTtsCallbackId = null;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -120,6 +121,7 @@ public class MainActivity extends BridgeActivity {
         pendingTtsText = text;
         pendingTtsLang = lang;
         pendingTtsRate = rate;
+        pendingTtsCallbackId = null;
         return "OK";
       }
       return speakNow(text, lang, rate) ? "OK" : "NO_TTS_ENGINE";
@@ -127,7 +129,9 @@ public class MainActivity extends BridgeActivity {
 
     @JavascriptInterface
     public void stopTts() {
-      if (textToSpeech != null) textToSpeech.stop();
+      if (textToSpeech != null) {
+        textToSpeech.stop();
+      }
     }
 
     @JavascriptInterface
