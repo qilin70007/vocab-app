@@ -1,9 +1,13 @@
 'use strict';
 
 const API_ROOT = '/api';
+const ANDROID_WEBVIEW_HOST = location.hostname === 'localhost' && /Android/i.test(navigator.userAgent || '');
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
-  || globalThis.Capacitor?.isNativePlatform?.() === true;
+  || globalThis.Capacitor?.isNativePlatform?.() === true
+  || ANDROID_WEBVIEW_HOST;
+const REMOTE_REVISION_POLL_MS = 15_000;
+
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
@@ -38,7 +42,10 @@ const state = {
   online: navigator.onLine,
   autoReadActive: false,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
-  remoteServer: ''
+  remoteServer: '',
+  serverRevision: null,
+  revisionPollTimer: null,
+  revisionPollInFlight: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -117,7 +124,7 @@ function enqueueMutation(path, options) {
 async function loadStandaloneWords() {
   const cached = readJsonStorage(STORAGE.standaloneWords, null);
   if (cached?.length) return cached;
-  const response = await fetch('/words.json');
+  const response = await fetch('words.json', { cache: 'no-store' });
   if (!response.ok) throw new Error('无法读取手机内置词库');
   const words = await response.json();
   writeJsonStorage(STORAGE.standaloneWords, words);
@@ -704,6 +711,43 @@ async function refreshAll({ quiet = false } = {}) {
   }
 }
 
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
+    }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
+function startServerRevisionPolling() {
+  if (STANDALONE_MODE || state.revisionPollTimer) return;
+  state.revisionPollTimer = setInterval(() => checkForServerRevisionChange(), REMOTE_REVISION_POLL_MS);
+  window.addEventListener('focus', () => checkForServerRevisionChange({ force: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkForServerRevisionChange({ force: true });
+  });
+}
+
 function renderCurrentPage() {
   if (state.page === 'study') prepareStudyQueue(false);
   if (state.page === 'review') loadReviewCenter();
@@ -741,7 +785,7 @@ function renderHome() {
   $('#metricGrid').innerHTML = [
     ['词库总量', s.total, '完整可检索'],
     ['未背过', s.new, '优先学习'],
-    ['学习中', s.learning, '需要巩固'],
+    ['待巩固', s.learning, '模糊/还需复习'],
     ['到期复习', s.due, `错题 ${s.wrong} 个`]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
@@ -872,7 +916,7 @@ function renderStudyCard() {
   const card = $('#studyCard');
   $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
   if (!state.studyQueue.length || state.studyIndex >= state.studyQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去复习中心巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
+    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去到期复习巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
     $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true));
     refreshStatsOnly();
     return;
@@ -990,7 +1034,7 @@ function startReview() {
 function renderReviewCard() {
   const card = $('#reviewCard');
   if (state.reviewIndex >= state.reviewQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎯</span><p>本轮复习完成。</p><button class="primary-btn" type="button" data-review-finish>返回复习中心</button></div>`;
+    card.innerHTML = `<div class="empty-state"><span>🎯</span><p>本轮复习完成。</p><button class="primary-btn" type="button" data-review-finish>返回到期复习</button></div>`;
     $('[data-review-finish]')?.addEventListener('click', () => loadReviewCenter());
     refreshAll({ quiet: true });
     return;
@@ -1132,7 +1176,7 @@ function renderWordList() {
   const pageWords = words.slice(start, start + state.wordPageSize);
   $('#wordCount').textContent = `${words.length} 词`;
   $('#wordTable').innerHTML = pageWords.length
-    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="学习中">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
+    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="待巩固">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
     : '<div class="empty-state"><span>⌕</span><p>没有找到匹配单词。</p></div>';
 
   $$('[data-word-detail]').forEach((row) => row.addEventListener('click', () => showWordDialog(row.dataset.wordDetail)));
@@ -1184,6 +1228,7 @@ async function renderDataPage() {
   if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
+    state.serverRevision = Number(summary.revision || state.serverRevision || 0);
     const pending = pendingMutationCount();
     const remoteHint = STANDALONE_MODE ? `<br>电脑同步地址：${escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '未设置')}` : '';
     $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条${remoteHint}<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
@@ -1245,16 +1290,15 @@ async function exportData() {
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
     if (!response.ok) throw new Error('导出失败');
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `vocab-backup-${state.syncCode}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const payload = await response.json();
+    await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
   } catch (error) {
     showToast(error.message);
   }
+}
+
+function isNativeApp() {
+  return globalThis.Capacitor?.isNativePlatform?.() === true || Boolean(window.VocabNative);
 }
 
 function capacitorPlugin(name) {
@@ -1264,10 +1308,19 @@ function capacitorPlugin(name) {
 async function saveJsonFile(filename, payload) {
   const content = JSON.stringify(payload, null, 2);
   if (window.VocabNative?.saveJson) {
-    const result = window.VocabNative.saveJson(filename, content);
-    if (result === 'OPENED') {
-      showToast('请选择保存目录并确认文件名');
-      return;
+    try {
+      const result = window.VocabNative.saveJson(filename, content);
+      if (result === 'OPENED') {
+        showToast('请选择保存目录并确认文件名');
+        return;
+      }
+      if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
+        const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
+        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
+        return;
+      }
+    } catch (error) {
+      console.warn('Native export failed, falling back to web download', error);
     }
   }
   const filesystem = capacitorPlugin('Filesystem');
@@ -1291,6 +1344,11 @@ async function saveJsonFile(filename, payload) {
     return;
   }
 
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
+
   const blob = new Blob([content], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1303,7 +1361,7 @@ async function saveJsonFile(filename, payload) {
     URL.revokeObjectURL(url);
     link.remove();
   }, 1000);
-  showToast('已开始导出学习数据');
+  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
 }
 
 async function importData(file) {
@@ -1341,8 +1399,12 @@ function nativeTextToSpeech() {
   return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
+function hasNativeAndroidBridge() {
+  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
+}
+
 function canSpeakText() {
-  return Boolean(window.VocabNative?.speak) || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window;
+  return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
 }
 
 async function stopSpeaking() {
@@ -1352,13 +1414,40 @@ async function stopSpeaking() {
   if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
 }
 
+
+function remoteTtsUrl(text, lang) {
+  const encoded = encodeURIComponent(String(text || '').trim());
+  const language = encodeURIComponent(lang || 'en-US');
+  return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
+}
+
+function playRemoteTtsAudio(text, lang) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(remoteTtsUrl(text, lang));
+    audio.preload = 'auto';
+    audio.onended = resolve;
+    audio.onerror = reject;
+    audio.play().catch(reject);
+  });
+}
+
 async function speakTextNative(text, lang, rate = 0.82) {
-  if (window.VocabNative?.speak) {
+  if (hasNativeAndroidBridge()) {
     const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
     if (result === 'OK') return true;
+    if (result === 'NO_TTS_ENGINE') {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
   }
   const nativeTts = nativeTextToSpeech();
-  if (!nativeTts?.speak) return false;
+  if (!nativeTts?.speak) {
+    if (isNativeApp()) {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
+    return false;
+  }
   await nativeTts.speak({
     text: String(text || ''),
     lang,
@@ -1384,7 +1473,7 @@ function speakText(text, lang, rate = 0.82) {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
       if (!('speechSynthesis' in window)) {
-        showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
         resolve();
         return;
       }
@@ -1401,7 +1490,7 @@ function speakText(text, lang, rate = 0.82) {
 }
 
 async function speakWord(word) {
-  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   await stopSpeaking();
   speakText(word, 'en-US', 0.82);
 }
@@ -1460,7 +1549,7 @@ async function toggleAutoReadUnknown() {
     $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
     return;
   }
-  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
@@ -1596,6 +1685,8 @@ async function init() {
 
   await refreshAll();
   await flushPendingMutations();
+  await checkForServerRevisionChange({ force: true });
+  startServerRevisionPolling();
 }
 
 document.addEventListener('DOMContentLoaded', init);
