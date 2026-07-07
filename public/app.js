@@ -545,6 +545,34 @@ async function checkForServerRevisionChange({ force = false } = {}) {
   }
 }
 
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
+    }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
 function startServerRevisionPolling() {
   if (STANDALONE_MODE || state.revisionPollTimer) return;
   state.revisionPollTimer = setInterval(() => checkForServerRevisionChange(), REMOTE_REVISION_POLL_MS);
@@ -961,6 +989,11 @@ async function saveJsonFile(filename, payload) {
         dialogTitle: '保存学习数据备份'
       }).catch(() => {});
     }
+
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
 
   if (isNativeApp()) {
     showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
