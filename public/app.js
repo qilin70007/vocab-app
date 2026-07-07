@@ -1,9 +1,17 @@
 'use strict';
 
 const API_ROOT = '/api';
+const IS_ANDROID = /Android/i.test(navigator.userAgent || '');
+const APK_WEBVIEW_MODE = IS_ANDROID && (
+  /; wv\)/i.test(navigator.userAgent || '')
+  || ['localhost', 'appassets.androidplatform.net'].includes(location.hostname)
+  || location.protocol === 'file:'
+  || location.protocol === 'capacitor:'
+);
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
-  || globalThis.Capacitor?.isNativePlatform?.() === true;
+  || globalThis.Capacitor?.isNativePlatform?.() === true
+  || APK_WEBVIEW_MODE;
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
@@ -1590,7 +1598,10 @@ async function init() {
   bindEvents();
   setConnectionStatus(navigator.onLine, '连接中');
 
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && STANDALONE_MODE) {
+    navigator.serviceWorker.getRegistrations?.().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
+    globalThis.caches?.keys?.().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))).catch(() => {});
+  } else if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error));
   }
 
