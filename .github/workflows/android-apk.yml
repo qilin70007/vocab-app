@@ -64,9 +64,6 @@ jobs:
             echo "android directory already exists"
           fi
 
-      - name: Use mobile standalone entrypoint
-        run: cp public/mobile.html public/index.html
-
       - name: Sync Android project
         run: npx cap sync android
 
