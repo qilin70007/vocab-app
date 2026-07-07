@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const API_ROOT = '/api';
 const IS_ANDROID = /Android/i.test(navigator.userAgent || '');
@@ -107,8 +107,8 @@ function setConnectionStatus(online, label) {
   if (!pill) return;
   pill.classList.toggle('online', online && count === 0);
   pill.classList.toggle('offline', !online || count > 0);
-  const text = label || (online ? '已连接' : '离线模式');
-  pill.querySelector('span').textContent = count ? `${text} · 待同步 ${count}` : text;
+  const text = label || (online ? '宸茶繛鎺? : '绂荤嚎妯″紡');
+  pill.querySelector('span').textContent = count ? `${text} 路 寰呭悓姝?${count}` : text;
 }
 
 function enqueueMutation(path, options) {
@@ -121,7 +121,7 @@ function enqueueMutation(path, options) {
     createdAt: new Date().toISOString()
   });
   writeJsonStorage(STORAGE.pending, queue.slice(-2000));
-  setConnectionStatus(false, '离线已保存');
+  setConnectionStatus(false, '绂荤嚎宸蹭繚瀛?);
 }
 
 
@@ -129,7 +129,7 @@ async function loadStandaloneWords() {
   const cached = readJsonStorage(STORAGE.standaloneWords, null);
   if (cached?.length) return cached;
   const response = await fetch('words.json', { cache: 'no-store' });
-  if (!response.ok) throw new Error('无法读取手机内置词库');
+  if (!response.ok) throw new Error('鏃犳硶璇诲彇鎵嬫満鍐呯疆璇嶅簱');
   const words = await response.json();
   writeJsonStorage(STORAGE.standaloneWords, words);
   return words;
@@ -397,7 +397,7 @@ function remoteApiBase() {
 async function apiFetch(path, options = {}) {
   if (isStandaloneMode()) return standaloneApi(path, options);
   const base = remoteApiBase();
-  if (!base) throw new Error('离线模式：无法连接服务器');
+  if (!base) throw new Error('绂荤嚎妯″紡锛氭棤娉曡繛鎺ユ湇鍔″櫒');
   const url = new URL(path, base);
   const response = await fetch(url, {
     method: options.method || 'GET',
@@ -409,7 +409,7 @@ async function apiFetch(path, options = {}) {
 }
 
 function statusLabel(status) {
-  return { new: '生词', learning: '模糊', known: '掌握', notknown: '不认识' }[status] || status || '';
+  return { new: '鐢熻瘝', learning: '妯＄硦', known: '鎺屾彙', notknown: '涓嶈璇? }[status] || status || '';
 }
 
 function filteredWords(section, status) {
@@ -465,11 +465,53 @@ function nativeTextToSpeech() {
   return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
-function hasNativeAndroidBridge() {
-  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
-}
 
+
+// Native Android bridge with async callback support
+function speakWithNativeBridge(text, lang, rate) {
+  return new Promise((resolve) => {
+    if (!hasNativeAndroidBridge()) {
+      resolve(false);
+      return;
+    }
+
+    try {
+      if (typeof window.VocabNative.speakWithCallback === 'function') {
+        const callbackId = String(++ttsCallbackId);
+        const timeout = setTimeout(() => {
+          ttsCallbacks.delete(callbackId);
+          resolve(false);
+        }, 30000);
+
+        ttsCallbacks.set(callbackId, (result) => {
+          clearTimeout(timeout);
+          if (result === 'error' || result === 'NO_TTS_ENGINE') {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        });
+
+        window.VocabNative.speakWithCallback(String(text || ''), lang, String(rate), callbackId);
+      } else {
+        const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
+        if (result === 'OK') {
+          const estimatedMs = Math.min(15000, Math.max(1000, text.length * 150 + 500));
+          setTimeout(() => resolve(true), estimatedMs);
+        } else if (result === 'NO_TTS_ENGINE') {
+          resolve(false);
+        } else {
+          resolve(false);
+        }
+      }
+    } catch (err) {
+      console.warn('Native bridge speak error:', err);
+      resolve(false);
+    }
+  });
+}
 function canSpeakText() {
+
   // Check if ANY speech mechanism is available
   if (hasNativeAndroidBridge()) return true;
   if (Boolean(nativeTextToSpeech()?.speak)) return true;
@@ -512,7 +554,7 @@ async function checkForServerRevisionChange({ force = false } = {}) {
 
     if (previous > 0 && revision > previous && !pendingMutationCount()) {
       await refreshAll({ quiet: true });
-      showToast('检测到电脑数据已更新，界面已刷新');
+      showToast('妫€娴嬪埌鐢佃剳鏁版嵁宸叉洿鏂帮紝鐣岄潰宸插埛鏂?);
     }
   } catch (error) {
     console.warn('Revision polling failed', error);
@@ -540,7 +582,7 @@ async function checkForServerRevisionChange({ force = false } = {}) {
 
     if (previous > 0 && revision > previous && !pendingMutationCount()) {
       await refreshAll({ quiet: true });
-      showToast('检测到电脑数据已更新，界面已刷新');
+      showToast('妫€娴嬪埌鐢佃剳鏁版嵁宸叉洿鏂帮紝鐣岄潰宸插埛鏂?);
     }
   } catch (error) {
     console.warn('Revision polling failed', error);
@@ -568,7 +610,7 @@ async function checkForServerRevisionChange({ force = false } = {}) {
 
     if (previous > 0 && revision > previous && !pendingMutationCount()) {
       await refreshAll({ quiet: true });
-      showToast('检测到电脑数据已更新，界面已刷新');
+      showToast('妫€娴嬪埌鐢佃剳鏁版嵁宸叉洿鏂帮紝鐣岄潰宸插埛鏂?);
     }
   } catch (error) {
     console.warn('Revision polling failed', error);
@@ -605,13 +647,13 @@ function switchPage(page) {
 function populateSectionSelects() {
   const options = Object.entries(state.sections)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([letter, values]) => `<option value="${escapeHtml(letter)}">${escapeHtml(letter)}（${values.total}）</option>`)
+    .map(([letter, values]) => `<option value="${escapeHtml(letter)}">${escapeHtml(letter)}锛?{values.total}锛?/option>`)
     .join('');
   for (const id of ['studySection', 'spellSection', 'wordSection']) {
     const select = $(`#${id}`);
     if (!select) continue;
     const current = select.value;
-    select.innerHTML = `<option value="">全部字母</option>${options}`;
+    select.innerHTML = `<option value="">鍏ㄩ儴瀛楁瘝</option>${options}`;
     if ([...select.options].some((option) => option.value === current)) select.value = current;
   }
 }
@@ -619,19 +661,19 @@ function populateSectionSelects() {
 function renderHome() {
   if (!state.stats) return;
   const s = state.stats;
-  $('#heroCopy').textContent = `词库共 ${s.total} 词，已掌握 ${s.known} 词。今天先完成新词，再处理 ${s.due} 个到期复习词。`;
+  $('#heroCopy').textContent = `璇嶅簱鍏?${s.total} 璇嶏紝宸叉帉鎻?${s.known} 璇嶃€備粖澶╁厛瀹屾垚鏂拌瘝锛屽啀澶勭悊 ${s.due} 涓埌鏈熷涔犺瘝銆俙;
   $('#metricGrid').innerHTML = [
-    ['词库总量', s.total, '完整可检索'],
-    ['未背过', s.new, '优先学习'],
-    ['待巩固', s.learning, '模糊/还需复习'],
-    ['到期复习', s.due, `错题 ${s.wrong} 个`]
+    ['璇嶅簱鎬婚噺', s.total, '瀹屾暣鍙绱?],
+    ['鏈儗杩?, s.new, '浼樺厛瀛︿範'],
+    ['寰呭珐鍥?, s.learning, '妯＄硦/杩橀渶澶嶄範'],
+    ['鍒版湡澶嶄範', s.due, `閿欓 ${s.wrong} 涓猔]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
   const goal = Math.max(1, Number(s.dailyGoal || 45));
   const studied = Number(s.studiedToday || 0);
   const limited = s.dailyGoalEnabled === true;
   const pct = limited ? Math.min(100, Math.round((studied / goal) * 100)) : 0;
-  $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 不限`;
+  $('#goalText').textContent = limited ? `${studied} / ${goal}` : `${studied} / 涓嶉檺`;
   $('#goalPercent').textContent = `${pct}%`;
   $('#goalRing').style.setProperty('--pct', pct);
   $('#streakCount').textContent = s.streak || 0;
@@ -639,20 +681,20 @@ function renderHome() {
   const dailyGoalEnabled = $('#dailyGoalEnabled');
   if (dailyGoalEnabled) dailyGoalEnabled.checked = limited;
 
-  const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+  const dayNames = ['鏃?, '涓€', '浜?, '涓?, '鍥?, '浜?, '鍏?];
   const days = state.daily?.days || {};
   const max = Math.max(1, ...Object.values(days).map((item) => Number(item.studied || 0)));
   $('#weekChart').innerHTML = Object.entries(days).map(([day, item]) => {
     const height = Math.max(5, Math.round((Number(item.studied || 0) / max) * 100));
     const isToday = day === state.daily.today;
-    return `<div class="week-day ${isToday ? 'today' : ''}"><span>${item.studied || 0}</span><div class="bar-track"><i class="bar" style="height:${height}%"></i></div><small>周${dayNames[new Date(`${day}T00:00:00`).getDay()]}</small></div>`;
+    return `<div class="week-day ${isToday ? 'today' : ''}"><span>${item.studied || 0}</span><div class="bar-track"><i class="bar" style="height:${height}%"></i></div><small>鍛?{dayNames[new Date(`${day}T00:00:00`).getDay()]}</small></div>`;
   }).join('');
 
   $('#sectionGrid').innerHTML = Object.entries(state.sections)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([letter, values]) => {
       const progress = values.total ? Math.round((values.known / values.total) * 100) : 0;
-      return `<button class="section-button" type="button" data-study-section="${escapeHtml(letter)}"><strong>${escapeHtml(letter)}</strong><small>${values.total} 词</small><span class="mini-progress"><i style="width:${progress}%"></i></span></button>`;
+      return `<button class="section-button" type="button" data-study-section="${escapeHtml(letter)}"><strong>${escapeHtml(letter)}</strong><small>${values.total} 璇?/small><span class="mini-progress"><i style="width:${progress}%"></i></span></button>`;
     }).join('');
 
   $$('[data-study-section]').forEach((button) => button.addEventListener('click', () => {
@@ -673,7 +715,7 @@ function filteredWords(section, status) {
 
 
 const POS_PATTERN = String.raw`(?:modal\s+v|aux\.?\s*v|v\.?&n\.?|n\.?&v\.?|adj\.?&n\.?|adv\.?|adj\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|vt\.?|vi\.?|v\.?|n\.?)`;
-const POS_SPLIT_RE = new RegExp(`(^|[\\s；;，,])(${POS_PATTERN})\\s*`, 'gi');
+const POS_SPLIT_RE = new RegExp(`(^|[\\s锛?锛?])(${POS_PATTERN})\\s*`, 'gi');
 
 function normalizePos(pos) {
   return String(pos || '').replace(/\s+/g, ' ').trim();
@@ -695,7 +737,7 @@ function derivedSenses(word) {
     const next = matches[i + 1];
     const start = match.index + match[0].length;
     const end = next ? next.index : text.length;
-    const meaning = text.slice(start, end).replace(/^[\s；;，,。.]+|[\s；;，,。.]+$/g, '');
+    const meaning = text.slice(start, end).replace(/^[\s锛?锛?銆?]+|[\s锛?锛?銆?]+$/g, '');
     if (meaning) senses.push({ pos: normalizePos(match[2]), meaning });
   }
   return senses.length > 1 ? senses : (existing.length ? existing : [{ pos: normalizePos(word.pos), meaning: text }]);
@@ -740,21 +782,21 @@ function prepareStudyQueue(force = true) {
 function wordDetailsHtml(word) {
   const groups = [];
   const senses = derivedSenses(word);
-  if (senses.length > 1) groups.push(['词性释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
-  if (word.synonyms.length) groups.push(['近义词', word.synonyms]);
-  if (word.antonyms.length) groups.push(['反义词', word.antonyms]);
-  if (word.proverbs.length) groups.push(['谚语', word.proverbs]);
-  if (word.forms.length) groups.push(['词形与语法', word.forms]);
-  if (word.collocations.length) groups.push(['常用搭配', word.collocations]);
-  if (word.examples.length) groups.push(['例句', word.examples]);
+  if (senses.length > 1) groups.push(['璇嶆€ч噴涔?, senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
+  if (word.synonyms.length) groups.push(['杩戜箟璇?, word.synonyms]);
+  if (word.antonyms.length) groups.push(['鍙嶄箟璇?, word.antonyms]);
+  if (word.proverbs.length) groups.push(['璋氳', word.proverbs]);
+  if (word.forms.length) groups.push(['璇嶅舰涓庤娉?, word.forms]);
+  if (word.collocations.length) groups.push(['甯哥敤鎼厤', word.collocations]);
+  if (word.examples.length) groups.push(['渚嬪彞', word.examples]);
   return groups.map(([title, values]) => `<section class="detail-group"><strong>${title}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul></section>`).join('');
 }
 
 function renderStudyCard() {
   const card = $('#studyCard');
-  $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
+  $('#studyQueueCount').textContent = `${state.studyQueue.length} 璇峘;
   if (!state.studyQueue.length || state.studyIndex >= state.studyQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去到期复习巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
+    card.innerHTML = `<div class="empty-state"><span>馃帀</span><p>鏈疆瀛︿範瀹屾垚銆傞噸鏂扮敓鎴愰槦鍒楋紝鎴栧幓鍒版湡澶嶄範宸╁浐銆?/p><button class="primary-btn" type="button" data-restart-study>鍐嶆潵涓€杞?/button></div>`;
     $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true));
     refreshStatsOnly();
     return;
@@ -798,7 +840,7 @@ function remoteTtsUrl(text, lang) {
 function renderReviewCard() {
   const card = $('#reviewCard');
   if (state.reviewIndex >= state.reviewQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎯</span><p>本轮复习完成。</p><button class="primary-btn" type="button" data-review-finish>返回到期复习</button></div>`;
+    card.innerHTML = `<div class="empty-state"><span>馃幆</span><p>鏈疆澶嶄範瀹屾垚銆?/p><button class="primary-btn" type="button" data-review-finish>杩斿洖鍒版湡澶嶄範</button></div>`;
     $('[data-review-finish]')?.addEventListener('click', () => loadReviewCenter());
     refreshAll({ quiet: true });
     return;
@@ -808,14 +850,14 @@ function renderReviewCard() {
     <div class="review-front">
       <div>
         <h2>${escapeHtml(word.word)}</h2>
-        <p>${escapeHtml(word.phonetic || word.pos || '先回忆中文释义')}</p>
-        <button class="speak-btn" type="button" data-speak-review aria-label="朗读单词">🔊</button>
+        <p>${escapeHtml(word.phonetic || word.pos || '鍏堝洖蹇嗕腑鏂囬噴涔?)}</p>
+        <button class="speak-btn" type="button" data-speak-review aria-label="鏈楄鍗曡瘝">馃攰</button>
       </div>
     </div>
     ${state.reviewRevealed
-      ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
-      : '<button class="primary-btn" style="width:100%" type="button" data-reveal-review>显示答案</button>'}
-    <div class="card-footer"><span>${state.reviewIndex + 1} / ${state.reviewQueue.length}</span><span class="progress-track"><i style="width:${Math.round(((state.reviewIndex + 1) / state.reviewQueue.length) * 100)}%"></i></span><span>${state.reviewMode === 'wrong' ? '错题专练' : '间隔复习'}</span></div>`;
+      ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">閲嶆潵<br><small>10 鍒嗛挓</small></button><button class="rating-hard" data-rating="hard">鍥伴毦<br><small>1 澶?/small></button><button class="rating-good" data-rating="good">璁板緱<br><small>闂撮殧澧炲姞</small></button><button class="rating-easy" data-rating="easy">寰堢啛<br><small>鏇撮暱闂撮殧</small></button></div>`
+      : '<button class="primary-btn" style="width:100%" type="button" data-reveal-review>鏄剧ず绛旀</button>'}
+    <div class="card-footer"><span>${state.reviewIndex + 1} / ${state.reviewQueue.length}</span><span class="progress-track"><i style="width:${Math.round(((state.reviewIndex + 1) / state.reviewQueue.length) * 100)}%"></i></span><span>${state.reviewMode === 'wrong' ? '閿欓涓撶粌' : '闂撮殧澶嶄範'}</span></div>`;
   $('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
   $('[data-reveal-review]')?.addEventListener('click', () => { state.reviewRevealed = true; renderReviewCard(); });
   $$('[data-rating]').forEach((button) => button.addEventListener('click', () => rateReview(button.dataset.rating)));
@@ -849,10 +891,10 @@ function renderWordList() {
   state.wordPage = Math.min(pages, Math.max(1, state.wordPage));
   const start = (state.wordPage - 1) * state.wordPageSize;
   const pageWords = words.slice(start, start + state.wordPageSize);
-  $('#wordCount').textContent = `${words.length} 词`;
+  $('#wordCount').textContent = `${words.length} 璇峘;
   $('#wordTable').innerHTML = pageWords.length
-    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="待巩固">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
-    : '<div class="empty-state"><span>⌕</span><p>没有找到匹配单词。</p></div>';
+    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' 路 '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="鏈儗杩?>?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="寰呭珐鍥?>~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="宸叉帉鎻?>鉁?/button></div></article>`).join('')
+    : '<div class="empty-state"><span>鈱?/span><p>娌℃湁鎵惧埌鍖归厤鍗曡瘝銆?/p></div>';
 
   $$('[data-word-detail]').forEach((row) => row.addEventListener('click', () => showWordDialog(row.dataset.wordDetail)));
   $$('[data-quick-status]').forEach((button) => button.addEventListener('click', (event) => {
@@ -867,7 +909,7 @@ function renderPagination(pages) {
   if (pages <= 1) { container.innerHTML = ''; return; }
   const numbers = [];
   for (let page = Math.max(1, state.wordPage - 2); page <= Math.min(pages, state.wordPage + 2); page += 1) numbers.push(page);
-  container.innerHTML = `<button type="button" data-page-number="${Math.max(1, state.wordPage - 1)}">‹</button>${numbers.map((page) => `<button type="button" class="${page === state.wordPage ? 'active' : ''}" data-page-number="${page}">${page}</button>`).join('')}<button type="button" data-page-number="${Math.min(pages, state.wordPage + 1)}">›</button>`;
+  container.innerHTML = `<button type="button" data-page-number="${Math.max(1, state.wordPage - 1)}">鈥?/button>${numbers.map((page) => `<button type="button" class="${page === state.wordPage ? 'active' : ''}" data-page-number="${page}">${page}</button>`).join('')}<button type="button" data-page-number="${Math.min(pages, state.wordPage + 1)}">鈥?/button>`;
   $$('[data-page-number]').forEach((button) => button.addEventListener('click', () => {
     state.wordPage = Number(button.dataset.pageNumber);
     renderWordList();
@@ -911,12 +953,12 @@ async function renderDataPage() {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
     state.serverRevision = Number(summary.revision || state.serverRevision || 0);
     const pending = pendingMutationCount();
-    const remoteHint = STANDALONE_MODE ? `<br>电脑同步地址：${escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '未设置')}` : '';
-    $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条${remoteHint}<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
+    const remoteHint = STANDALONE_MODE ? `<br>鐢佃剳鍚屾鍦板潃锛?{escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '鏈缃?)}` : '';
+    $('#syncSummary').innerHTML = `鏈嶅姟鍣ㄤ慨璁㈢増锛?{summary.revision}<br>宸茶褰曪細${summary.progressCount} 璇?路 閿欓锛?{summary.wrongCount} 涓?br>鎵嬫満寰呬笂浼狅細${pending} 鏉?{remoteHint}<br>鏈€鍚庡悓姝ワ細${formatDate(summary.updatedAt)}<br>鏈€杩戣嚜鍔ㄥ浠斤細${formatDate(summary.latestBackupAt)}`;
     $('#syncStatusDot').classList.add('ok');
     $('#lanUrls').innerHTML = (ip.ips || []).map((address) => `<code>http://${escapeHtml(address)}:${ip.port}</code>`).join('');
   } catch {
-    $('#syncSummary').textContent = `当前处于离线模式，记录会先保存在手机本地；待上传 ${pendingMutationCount()} 条，恢复连接后会自动同步。`;
+    $('#syncSummary').textContent = `褰撳墠澶勪簬绂荤嚎妯″紡锛岃褰曚細鍏堜繚瀛樺湪鎵嬫満鏈湴锛涘緟涓婁紶 ${pendingMutationCount()} 鏉★紝鎭㈠杩炴帴鍚庝細鑷姩鍚屾銆俙;
     $('#syncStatusDot').classList.remove('ok');
   }
   $('#installSettingsButton').disabled = !state.deferredInstallPrompt;
@@ -942,7 +984,7 @@ async function renderDataPage() {
       resolve(false);
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
-    if (!response.ok) throw new Error('导出失败');
+    if (!response.ok) throw new Error('瀵煎嚭澶辫触');
     const payload = await response.json();
     await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
   } catch (error) {
@@ -964,12 +1006,12 @@ async function saveJsonFile(filename, payload) {
     try {
       const result = window.VocabNative.saveJson(filename, content);
       if (result === 'OPENED') {
-        showToast('请选择保存目录并确认文件名');
+        showToast('璇烽€夋嫨淇濆瓨鐩綍骞剁‘璁ゆ枃浠跺悕');
         return;
       }
       if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
         const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
-        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
+        showToast(savedPath ? `宸插鍑哄埌锛?{savedPath}` : `宸插鍑哄埌涓嬭浇鐩綍锛?{filename}`);
         return;
       }
     } catch (error) {
@@ -987,25 +1029,25 @@ async function saveJsonFile(filename, payload) {
     });
     if (share?.share) {
       await share.share({
-        title: '导出学习数据',
-        text: '请选择保存位置或发送到微信/文件管理器。',
+        title: '瀵煎嚭瀛︿範鏁版嵁',
+        text: '璇烽€夋嫨淇濆瓨浣嶇疆鎴栧彂閫佸埌寰俊/鏂囦欢绠＄悊鍣ㄣ€?,
         url: result.uri,
-        dialogTitle: '保存学习数据备份'
+        dialogTitle: '淇濆瓨瀛︿範鏁版嵁澶囦唤'
       }).catch(() => {});
     }
 
   if (isNativeApp()) {
-    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    showToast('瀵煎嚭澶辫触锛欰PK 鍘熺敓淇濆瓨妯″潡鏈姞杞斤紝璇峰叧闂噸寮€搴旂敤鍚庨噸璇?);
     return;
   }
 
   if (isNativeApp()) {
-    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    showToast('瀵煎嚭澶辫触锛欰PK 鍘熺敓淇濆瓨妯″潡鏈姞杞斤紝璇峰叧闂噸寮€搴旂敤鍚庨噸璇?);
     return;
   }
 
   if (isNativeApp()) {
-    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    showToast('瀵煎嚭澶辫触锛欰PK 鍘熺敓淇濆瓨妯″潡鏈姞杞斤紝璇峰叧闂噸寮€搴旂敤鍚庨噸璇?);
     return;
   }
 
@@ -1021,7 +1063,7 @@ async function saveJsonFile(filename, payload) {
     URL.revokeObjectURL(url);
     link.remove();
   }, 1000);
-  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
+  showToast(`宸茶Е鍙戞祻瑙堝櫒涓嬭浇锛?{filename}锛岃鍦ㄦ祻瑙堝櫒涓嬭浇璁板綍涓煡鐪媊);
 }
 
 // Main TTS function - tries multiple strategies in order
@@ -1041,11 +1083,53 @@ function nativeTextToSpeech() {
   return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
-function hasNativeAndroidBridge() {
-  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
-}
 
+
+// Native Android bridge with async callback support
+function speakWithNativeBridge(text, lang, rate) {
+  return new Promise((resolve) => {
+    if (!hasNativeAndroidBridge()) {
+      resolve(false);
+      return;
+    }
+
+    try {
+      if (typeof window.VocabNative.speakWithCallback === 'function') {
+        const callbackId = String(++ttsCallbackId);
+        const timeout = setTimeout(() => {
+          ttsCallbacks.delete(callbackId);
+          resolve(false);
+        }, 30000);
+
+        ttsCallbacks.set(callbackId, (result) => {
+          clearTimeout(timeout);
+          if (result === 'error' || result === 'NO_TTS_ENGINE') {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        });
+
+        window.VocabNative.speakWithCallback(String(text || ''), lang, String(rate), callbackId);
+      } else {
+        const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
+        if (result === 'OK') {
+          const estimatedMs = Math.min(15000, Math.max(1000, text.length * 150 + 500));
+          setTimeout(() => resolve(true), estimatedMs);
+        } else if (result === 'NO_TTS_ENGINE') {
+          resolve(false);
+        } else {
+          resolve(false);
+        }
+      }
+    } catch (err) {
+      console.warn('Native bridge speak error:', err);
+      resolve(false);
+    }
+  });
+}
 function canSpeakText() {
+
   return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
 }
 
@@ -1116,7 +1200,7 @@ function speakText(text, lang, rate = 0.82) {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
       if (!('speechSynthesis' in window)) {
-        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+        showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
         resolve();
         return;
       }
@@ -1133,7 +1217,7 @@ function speakText(text, lang, rate = 0.82) {
 }
 
 async function speakWord(word) {
-  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+  if (!canSpeakText()) return showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
   await stopSpeaking();
   await speakText(word, 'en-US', 0.82);
 }
@@ -1142,26 +1226,26 @@ function posToChinese(pos) {
   const normalized = String(pos || '').toLowerCase();
   const tokens = normalized.match(/modal\s*v|aux\.?\s*v|adj\.?|adv\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|vt\.?|vi\.?|v\.?|n\.?/g) || [];
   const labels = tokens.map((token) => {
-    if (/modal|aux/.test(token)) return '助动词';
-    if (/^n/.test(token)) return '名词';
-    if (/^adj/.test(token)) return '形容词';
-    if (/^adv/.test(token)) return '副词';
-    if (/^prep/.test(token)) return '介词';
-    if (/^conj/.test(token)) return '连词';
-    if (/^pron/.test(token)) return '代词';
-    if (/^num/.test(token)) return '数词';
-    if (/^art/.test(token)) return '冠词';
-    if (/^int/.test(token)) return '感叹词';
-    if (/^vt/.test(token)) return '及物动词';
-    if (/^vi/.test(token)) return '不及物动词';
-    if (/^v/.test(token)) return '动词';
+    if (/modal|aux/.test(token)) return '鍔╁姩璇?;
+    if (/^n/.test(token)) return '鍚嶈瘝';
+    if (/^adj/.test(token)) return '褰㈠璇?;
+    if (/^adv/.test(token)) return '鍓瘝';
+    if (/^prep/.test(token)) return '浠嬭瘝';
+    if (/^conj/.test(token)) return '杩炶瘝';
+    if (/^pron/.test(token)) return '浠ｈ瘝';
+    if (/^num/.test(token)) return '鏁拌瘝';
+    if (/^art/.test(token)) return '鍐犺瘝';
+    if (/^int/.test(token)) return '鎰熷徆璇?;
+    if (/^vt/.test(token)) return '鍙婄墿鍔ㄨ瘝';
+    if (/^vi/.test(token)) return '涓嶅強鐗╁姩璇?;
+    if (/^v/.test(token)) return '鍔ㄨ瘝';
     return '';
   }).filter(Boolean);
-  return [...new Set(labels)].join('、') || String(pos || '').trim();
+  return [...new Set(labels)].join('銆?) || String(pos || '').trim();
 }
 
 function spokenMeaning(word) {
-  return derivedSenses(word).map((sense) => `${sense.pos ? `${posToChinese(sense.pos)}，` : ''}${sense.meaning}`).join('；') || word.meaning || '';
+  return derivedSenses(word).map((sense) => `${sense.pos ? `${posToChinese(sense.pos)}锛宍 : ''}${sense.meaning}`).join('锛?) || word.meaning || '';
 }
 
 function firstEnglishExample(word) {
@@ -1200,23 +1284,23 @@ async function toggleAutoReadUnknown() {
     state.autoReadActive = false;
     await stopSpeaking();
     const btn = $('#autoReadUnknown');
-    if (btn) btn.textContent = '连续朗读未掌握的单词';
+    if (btn) btn.textContent = '杩炵画鏈楄鏈帉鎻＄殑鍗曡瘝';
     return;
   }
   if (!canSpeakText()) {
-    showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+    showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
     return;
   }
-  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+  if (!canSpeakText()) return showToast('褰撳墠璁惧鏆傛椂鏃犳硶鏈楄锛氳纭鎵嬫満绯荤粺宸插畨瑁呭苟鍚敤鏂囧瓧杞闊冲紩鎿?);
   state.autoReadActive = true;
   const btn = $('#autoReadUnknown');
-  if (btn) btn.textContent = '停止朗读';
+  if (btn) btn.textContent = '鍋滄鏈楄';
   const section = $('#studySection')?.value || '';
   const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
   if (!words.length) {
     state.autoReadActive = false;
-    if (btn) btn.textContent = '连续朗读不认识';
-    showToast('当前没有不认识或模糊的单词');
+    if (btn) btn.textContent = '杩炵画鏈楄涓嶈璇?;
+    showToast('褰撳墠娌℃湁涓嶈璇嗘垨妯＄硦鐨勫崟璇?);
     return;
   }
   state.studyQueue = words;
@@ -1230,13 +1314,13 @@ async function toggleAutoReadUnknown() {
     if (state.autoReadActive) await delay(1500);
   }
   state.autoReadActive = false;
-  if (btn) btn.textContent = '连续朗读未掌握的单词';
+  if (btn) btn.textContent = '杩炵画鏈楄鏈帉鎻＄殑鍗曡瘝';
 }
 
 
 async function installApp() {
   if (!state.deferredInstallPrompt) {
-    showToast('请使用浏览器菜单中的"安装应用/添加到主屏幕"');
+    showToast('璇蜂娇鐢ㄦ祻瑙堝櫒鑿滃崟涓殑"瀹夎搴旂敤/娣诲姞鍒颁富灞忓箷"');
     return;
   }
   state.deferredInstallPrompt.prompt();
@@ -1350,12 +1434,12 @@ function renderHome() {
   if (!grid) return;
   const stats = state.stats;
   const items = [
-    { label: '总词汇', value: stats.total, icon: '📚' },
-    { label: '已掌握', value: stats.known, icon: '✅', color: '#4caf50' },
-    { label: '学习中', value: stats.learning, icon: '📖', color: '#ff9800' },
-    { label: '待学习', value: stats.new, icon: '🆕', color: '#2196f3' },
-    { label: '待复习', value: stats.due, icon: '🔄', color: '#9c27b0' },
-    { label: '易错词', value: stats.wrong, icon: '⚠️', color: '#f44336' }
+    { label: '鎬昏瘝姹?, value: stats.total, icon: '馃摎' },
+    { label: '宸叉帉鎻?, value: stats.known, icon: '鉁?, color: '#4caf50' },
+    { label: '瀛︿範涓?, value: stats.learning, icon: '馃摉', color: '#ff9800' },
+    { label: '寰呭涔?, value: stats.new, icon: '馃啎', color: '#2196f3' },
+    { label: '寰呭涔?, value: stats.due, icon: '馃攧', color: '#9c27b0' },
+    { label: '鏄撻敊璇?, value: stats.wrong, icon: '鈿狅笍', color: '#f44336' }
   ];
   grid.innerHTML = items.map((item) => `
     <div class="metric-card">
@@ -1396,7 +1480,7 @@ function renderStudyCard() {
   if (!card) return;
   const word = state.studyQueue[state.studyIndex];
   if (!word) {
-    card.innerHTML = '<div class="empty-state"><span>🎉</span><p>本组单词已学习完毕！</p></div>';
+    card.innerHTML = '<div class="empty-state"><span>馃帀</span><p>鏈粍鍗曡瘝宸插涔犲畬姣曪紒</p></div>';
     return;
   }
   const showMeaning = state.studyRevealed || state.alwaysShowMeaning;
@@ -1408,17 +1492,17 @@ function renderStudyCard() {
     <div class="word-display">
       <div class="word-text">${escapeHtml(word.word)}</div>
       ${word.phonetic ? `<div class="word-phonetic">/${escapeHtml(word.phonetic)}/</div>` : ''}
-      <button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>
+      <button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="鏈楄鍗曡瘝">馃攰</button>
     </div>
     ${showMeaning ? `
       <div class="word-meaning">${escapeHtml(word.meaning || '')}</div>
       ${word.senses?.length ? `<div class="word-senses">${word.senses.map((sense) => `<div class="sense"><span class="sense-pos">${escapeHtml(sense.pos || '')}</span><span class="sense-meaning">${escapeHtml(sense.meaning || '')}</span></div>`).join('')}</div>` : ''}
       ${word.examples?.length ? `<div class="word-examples">${word.examples.map((ex) => `<div class="example">${escapeHtml(ex)}</div>`).join('')}</div>` : ''}
-    ` : '<div class="word-hint">点击卡片查看释义</div>'}
+    ` : '<div class="word-hint">鐐瑰嚮鍗＄墖鏌ョ湅閲婁箟</div>'}
     <div class="card-actions">
-      <button class="action-btn btn-notknown" data-action="notknown">不认识</button>
-      <button class="action-btn btn-fuzzy" data-action="fuzzy">模糊</button>
-      <button class="action-btn btn-known" data-action="known">认识</button>
+      <button class="action-btn btn-notknown" data-action="notknown">涓嶈璇?/button>
+      <button class="action-btn btn-fuzzy" data-action="fuzzy">妯＄硦</button>
+      <button class="action-btn btn-known" data-action="known">璁よ瘑</button>
     </div>
   `;
   card.querySelector('[data-action="notknown"]')?.addEventListener('click', () => markStudyWord('learning'));
@@ -1494,7 +1578,7 @@ function renderReviewCard() {
   if (!card) return;
   const word = state.reviewQueue[state.reviewIndex];
   if (!word) {
-    card.innerHTML = '<div class="empty-state"><span>🎉</span><p>复习完成！</p></div>';
+    card.innerHTML = '<div class="empty-state"><span>馃帀</span><p>澶嶄範瀹屾垚锛?/p></div>';
     if (summary) summary.textContent = '0';
     return;
   }
@@ -1508,13 +1592,13 @@ function renderReviewCard() {
     <div class="word-display">
       <div class="word-text">${escapeHtml(word.word)}</div>
       ${word.phonetic ? `<div class="word-phonetic">/${escapeHtml(word.phonetic)}/</div>` : ''}
-      <button class="speak-btn" type="button" data-speak-review aria-label="朗读单词">🔊</button>
+      <button class="speak-btn" type="button" data-speak-review aria-label="鏈楄鍗曡瘝">馃攰</button>
     </div>
     <div class="word-meaning hidden" id="reviewMeaning">${escapeHtml(word.meaning || '')}</div>
     <div class="card-actions">
-      <button class="action-btn btn-again" data-rating="again">再来</button>
-      <button class="action-btn btn-hard" data-rating="hard">困难</button>
-      <button class="action-btn btn-easy" data-rating="easy">简单</button>
+      <button class="action-btn btn-again" data-rating="again">鍐嶆潵</button>
+      <button class="action-btn btn-hard" data-rating="hard">鍥伴毦</button>
+      <button class="action-btn btn-easy" data-rating="easy">绠€鍗?/button>
     </div>
   `;
   card.querySelector('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
@@ -1551,7 +1635,7 @@ async function loadWrongReview() {
     state.reviewIndex = 0;
     renderReviewCard();
   } catch (error) {
-    showToast('加载错词失败');
+    showToast('鍔犺浇閿欒瘝澶辫触');
   }
 }
 
@@ -1576,15 +1660,15 @@ function renderSpellCard() {
   if (!card) return;
   const word = state.spellQueue[state.spellIndex];
   if (!word) {
-    card.innerHTML = '<div class="empty-state"><span>🎉</span><p>拼写练习完成！</p></div>';
+    card.innerHTML = '<div class="empty-state"><span>馃帀</span><p>鎷煎啓缁冧範瀹屾垚锛?/p></div>';
     return;
   }
   const counter = $('#spellCounter');
   if (counter) counter.textContent = `${state.spellIndex + 1} / ${state.spellQueue.length}`;
   card.innerHTML = `
     <div class="spell-meaning">${escapeHtml(word.meaning || '')}</div>
-    <input type="text" class="spell-input" id="spellInput" placeholder="输入单词拼写" autocomplete="off" autocapitalize="none" spellcheck="false">
-    <button class="primary-btn" id="spellSubmit">确认</button>
+    <input type="text" class="spell-input" id="spellInput" placeholder="杈撳叆鍗曡瘝鎷煎啓" autocomplete="off" autocapitalize="none" spellcheck="false">
+    <button class="primary-btn" id="spellSubmit">纭</button>
     <div class="spell-result hidden" id="spellResult"></div>
   `;
   const input = $('#spellInput');
@@ -1596,10 +1680,10 @@ function renderSpellCard() {
     const answer = input.value.trim().toLowerCase();
     const correct = word.word.toLowerCase();
     if (answer === correct) {
-      result.textContent = `✅ 正确！${escapeHtml(word.word)}`;
+      result.textContent = `鉁?姝ｇ‘锛?{escapeHtml(word.word)}`;
       result.className = 'spell-result correct';
     } else {
-      result.textContent = `❌ 错误！正确答案：${escapeHtml(word.word)}`;
+      result.textContent = `鉂?閿欒锛佹纭瓟妗堬細${escapeHtml(word.word)}`;
       result.className = 'spell-result wrong';
     }
     result.classList.remove('hidden');
@@ -1635,7 +1719,7 @@ function renderWordTable() {
   table.innerHTML = `
     <table>
       <thead>
-        <tr><th>#</th><th>单词</th><th>释义</th><th>状态</th><th></th></tr>
+        <tr><th>#</th><th>鍗曡瘝</th><th>閲婁箟</th><th>鐘舵€?/th><th></th></tr>
       </thead>
       <tbody>
         ${pageWords.map((word, i) => `
@@ -1647,7 +1731,7 @@ function renderWordTable() {
             </td>
             <td class="meaning-col">${escapeHtml(word.meaning || '')}</td>
             <td><span class="tag tag-${word.status || 'new'}">${statusLabel(word.status)}</span></td>
-            <td><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读">🔊</button></td>
+            <td><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="鏈楄">馃攰</button></td>
           </tr>
         `).join('')}
       </tbody>
@@ -1662,7 +1746,7 @@ function renderWordTable() {
       btn.addEventListener('click', () => { state.wordPage = Number(btn.dataset.page); renderWordTable(); });
     });
   }
-  $('#wordCount').textContent = `${words.length} 词`;
+  $('#wordCount').textContent = `${words.length} 璇峘;
 }
 
 function openWordDialog(wordText) {
@@ -1678,7 +1762,7 @@ function openWordDialog(wordText) {
         ${word.phonetic ? `<div class="dialog-phonetic">/${escapeHtml(word.phonetic)}/</div>` : ''}
       </div>
       <span class="tag tag-${word.status || 'new'}">${statusLabel(word.status)}</span>
-      <button class="speak-btn" type="button" data-dialog-speak aria-label="朗读单词">🔊</button>
+      <button class="speak-btn" type="button" data-dialog-speak aria-label="鏈楄鍗曡瘝">馃攰</button>
     </div>
     <div class="dialog-meaning">${escapeHtml(word.meaning || '')}</div>
     ${word.senses?.length ? `<div class="dialog-senses">${word.senses.map((s) => `<div class="sense"><span class="sense-pos">${escapeHtml(s.pos || '')}</span><span class="sense-meaning">${escapeHtml(s.meaning || '')}</span></div>`).join('')}</div>` : ''}
@@ -1693,31 +1777,31 @@ function renderDataPage() {
   if (!summary) return;
   apiFetch('/sync/summary').then((data) => {
     summary.innerHTML = `
-      <div class="sync-row">同步码：<strong>${escapeHtml(data.syncCode || state.syncCode)}</strong></div>
-      <div class="sync-row">版本：<strong>${data.revision || 0}</strong></div>
-      <div class="sync-row">最后更新：<strong>${data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-CN') : '从未'}</strong></div>
-      <div class="sync-row">已记录进度：<strong>${data.progressCount || 0} 词</strong></div>
-      <div class="sync-row">错词本：<strong>${data.wrongCount || 0} 词</strong></div>
+      <div class="sync-row">鍚屾鐮侊細<strong>${escapeHtml(data.syncCode || state.syncCode)}</strong></div>
+      <div class="sync-row">鐗堟湰锛?strong>${data.revision || 0}</strong></div>
+      <div class="sync-row">鏈€鍚庢洿鏂帮細<strong>${data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-CN') : '浠庢湭'}</strong></div>
+      <div class="sync-row">宸茶褰曡繘搴︼細<strong>${data.progressCount || 0} 璇?/strong></div>
+      <div class="sync-row">閿欒瘝鏈細<strong>${data.wrongCount || 0} 璇?/strong></div>
     `;
   }).catch(() => {
-    summary.innerHTML = '<div class="sync-row muted">无法获取同步信息</div>';
+    summary.innerHTML = '<div class="sync-row muted">鏃犳硶鑾峰彇鍚屾淇℃伅</div>';
   });
 }
 
 async function applySyncCode() {
   const input = $('#syncCodeInput');
   const code = normalizeSyncCode(input?.value);
-  if (!code) return showToast('请输入有效的同步码');
+  if (!code) return showToast('璇疯緭鍏ユ湁鏁堢殑鍚屾鐮?);
   state.syncCode = code;
   writeJsonStorage(STORAGE.syncCode, code);
   await loadData();
-  showToast('同步码已应用');
+  showToast('鍚屾鐮佸凡搴旂敤');
 }
 
 function copySyncCode() {
   const code = state.syncCode;
   if (!code) return;
-  navigator.clipboard?.writeText(code).then(() => showToast('已复制同步码')).catch(() => {});
+  navigator.clipboard?.writeText(code).then(() => showToast('宸插鍒跺悓姝ョ爜')).catch(() => {});
 }
 
 function generateNewSyncCode() {
@@ -1725,12 +1809,12 @@ function generateNewSyncCode() {
   state.syncCode = code;
   writeJsonStorage(STORAGE.syncCode, code);
   $('#syncCodeInput').value = code;
-  showToast('已生成新同步码');
+  showToast('宸茬敓鎴愭柊鍚屾鐮?);
 }
 
 async function syncNow() {
-  if (!state.syncCode) return showToast('请先设置同步码');
-  showToast('同步中...');
+  if (!state.syncCode) return showToast('璇峰厛璁剧疆鍚屾鐮?);
+  showToast('鍚屾涓?..');
   try {
     const profile = readStandaloneProfile();
     await apiFetch('/sync/push', { method: 'POST', body: { profile } });
@@ -1739,10 +1823,10 @@ async function syncNow() {
       const merged = mergeStandaloneProfile(readStandaloneProfile(), coerceStandaloneProfile(pullData.profile));
       writeStandaloneProfile(merged);
     }
-    showToast('同步完成');
+    showToast('鍚屾瀹屾垚');
     await loadData();
   } catch (error) {
-    showToast('同步失败：' + error.message);
+    showToast('鍚屾澶辫触锛? + error.message);
   }
 }
 
@@ -1751,7 +1835,7 @@ function saveRemoteServer() {
   const value = normalizeRemoteServer(input?.value);
   state.remoteServer = value;
   writeJsonStorage(STORAGE.remoteServer, value);
-  showToast('服务器地址已保存');
+  showToast('鏈嶅姟鍣ㄥ湴鍧€宸蹭繚瀛?);
 }
 
 function saveDailyGoal(changes) {
@@ -1760,7 +1844,7 @@ function saveDailyGoal(changes) {
   if (changes.enabled !== undefined) profile.settings.dailyGoalEnabled = changes.enabled;
   if (changes.goal !== undefined) profile.settings.dailyGoal = changes.goal;
   writeStandaloneProfile(profile);
-  showToast('目标已保存');
+  showToast('鐩爣宸蹭繚瀛?);
 }
 
 async function exportData() {
@@ -1769,9 +1853,9 @@ async function exportData() {
   const json = JSON.stringify(data, null, 2);
   if (window.VocabNative?.saveJson) {
     const result = window.VocabNative.saveJson(`vocab-backup-${Date.now()}.json`, json);
-    if (result === 'OPENED') showToast('请选择保存目录并确认文件名');
-    else if (result?.startsWith?.('SAVED_DOWNLOADS')) showToast('数据已导出');
-    else showToast('导出失败');
+    if (result === 'OPENED') showToast('璇烽€夋嫨淇濆瓨鐩綍骞剁‘璁ゆ枃浠跺悕');
+    else if (result?.startsWith?.('SAVED_DOWNLOADS')) showToast('鏁版嵁宸插鍑?);
+    else showToast('瀵煎嚭澶辫触');
   } else {
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1780,7 +1864,7 @@ async function exportData() {
     a.download = `vocab-backup-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('数据已导出');
+    showToast('鏁版嵁宸插鍑?);
   }
 }
 
@@ -1794,24 +1878,24 @@ function importData(event) {
       if (data.profile) {
         const merged = mergeStandaloneProfile(readStandaloneProfile(), coerceStandaloneProfile(data.profile));
         writeStandaloneProfile(merged);
-        showToast('数据已导入');
+        showToast('鏁版嵁宸插鍏?);
         loadData();
       } else {
-        showToast('文件格式不正确');
+        showToast('鏂囦欢鏍煎紡涓嶆纭?);
       }
     } catch (error) {
-      showToast('导入失败：' + error.message);
+      showToast('瀵煎叆澶辫触锛? + error.message);
     }
   };
   reader.readAsText(file);
 }
 
 function resetData() {
-  if (!confirm('确定要重置所有学习数据吗？此操作不可撤销。')) return;
+  if (!confirm('纭畾瑕侀噸缃墍鏈夊涔犳暟鎹悧锛熸鎿嶄綔涓嶅彲鎾ら攢銆?)) return;
   const key = standaloneProfileKey();
   localStorage.removeItem(key);
   localStorage.removeItem(STORAGE.standaloneWords);
-  showToast('数据已重置');
+  showToast('鏁版嵁宸查噸缃?);
   loadData();
 }
 
@@ -1844,7 +1928,7 @@ async function loadData() {
     }
     populateSectionSelects();
   } catch (error) {
-    showToast('加载数据失败：' + error.message);
+    showToast('鍔犺浇鏁版嵁澶辫触锛? + error.message);
   }
 }
 
@@ -1854,7 +1938,7 @@ function populateSectionSelects() {
   for (const select of selects) {
     if (!select) continue;
     const current = select.value;
-    select.innerHTML = '<option value="">全部章节</option>' + sections.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+    select.innerHTML = '<option value="">鍏ㄩ儴绔犺妭</option>' + sections.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
     select.value = current;
   }
 }
