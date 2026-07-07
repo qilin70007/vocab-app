@@ -1,13 +1,17 @@
 'use strict';
 
 const API_ROOT = '/api';
-const ANDROID_WEBVIEW_HOST = location.hostname === 'localhost' && /Android/i.test(navigator.userAgent || '');
+const IS_ANDROID = /Android/i.test(navigator.userAgent || '');
+const APK_WEBVIEW_MODE = IS_ANDROID && (
+  /; wv\)/i.test(navigator.userAgent || '')
+  || ['localhost', 'appassets.androidplatform.net'].includes(location.hostname)
+  || location.protocol === 'file:'
+  || location.protocol === 'capacitor:'
+);
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
   || globalThis.Capacitor?.isNativePlatform?.() === true
-  || ANDROID_WEBVIEW_HOST;
-const REMOTE_REVISION_POLL_MS = 15_000;
-
+  || APK_WEBVIEW_MODE;
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
   pending: 'vocab.v2.pendingMutations',
@@ -1860,12 +1864,11 @@ async function init() {
   state.remoteServer = readJsonStorage(STORAGE.remoteServer, '');
   state.alwaysShowMeaning = readJsonStorage(STORAGE.alwaysShowMeaning, false);
 
-  if (state.syncCode) {
-    $('#syncCodeInput').value = state.syncCode;
-  }
-  if (state.remoteServer) {
-    const input = $('#remoteServerInput');
-    if (input) input.value = state.remoteServer;
+  if ('serviceWorker' in navigator && STANDALONE_MODE) {
+    navigator.serviceWorker.getRegistrations?.().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
+    globalThis.caches?.keys?.().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))).catch(() => {});
+  } else if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error));
   }
 
   await refreshAll();
