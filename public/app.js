@@ -46,7 +46,10 @@ const state = {
   online: navigator.onLine,
   autoReadActive: false,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
-  remoteServer: ''
+  remoteServer: '',
+  serverRevision: null,
+  revisionPollTimer: null,
+  revisionPollInFlight: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -62,7 +65,7 @@ function escapeHtml(value) {
 }
 
 function generateSyncCode() {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789';
   const bytes = new Uint8Array(8);
   if (globalThis.crypto?.getRandomValues) globalThis.crypto.getRandomValues(bytes);
   else for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
@@ -104,7 +107,7 @@ function setConnectionStatus(online, label) {
   if (!pill) return;
   pill.classList.toggle('online', online && count === 0);
   pill.classList.toggle('offline', !online || count > 0);
-  const text = label || (online ? '已同步' : '离线模式');
+  const text = label || (online ? '已连接' : '离线模式');
   pill.querySelector('span').textContent = count ? `${text} · 待同步 ${count}` : text;
 }
 
@@ -118,14 +121,14 @@ function enqueueMutation(path, options) {
     createdAt: new Date().toISOString()
   });
   writeJsonStorage(STORAGE.pending, queue.slice(-2000));
-  setConnectionStatus(false, '已离线保存');
+  setConnectionStatus(false, '离线已保存');
 }
 
 
 async function loadStandaloneWords() {
   const cached = readJsonStorage(STORAGE.standaloneWords, null);
   if (cached?.length) return cached;
-  const response = await fetch('/words.json');
+  const response = await fetch('words.json', { cache: 'no-store' });
   if (!response.ok) throw new Error('无法读取手机内置词库');
   const words = await response.json();
   writeJsonStorage(STORAGE.standaloneWords, words);
@@ -339,7 +342,7 @@ async function standaloneApi(path, options = {}) {
     return sections;
   }
   if (method === 'GET' && url.pathname === '/daily-stats') {
-    const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days') || 30)));
+    const days = Math.min(365, Math.max(1, Number(url.searchParams.get('days')) || 30));
     const result = {};
     for (let i = days - 1; i >= 0; i -= 1) {
       const key = standaloneDayKey(standaloneAddDays(new Date(), -i));
@@ -350,207 +353,79 @@ async function standaloneApi(path, options = {}) {
   if (method === 'GET' && url.pathname === '/sync/summary') return { syncCode: state.syncCode, revision: profile.revision, updatedAt: profile.updatedAt, progressCount: Object.keys(profile.progress).length, wrongCount: Object.keys(profile.wrongWords).length, latestBackupAt: null };
   if (method === 'GET' && url.pathname === '/ip') return { ips: [], port: 0 };
   if (method === 'GET' && url.pathname === '/review-queue') {
-    const decorated = words.map((word) => decorateStandaloneWord(profile, word));
-    const due = decorated.filter((word) => word.isWrong || word.isDue).sort((a, b) => (b.isWrong - a.isWrong) || Date.parse(a.nextReviewAt || 0) - Date.parse(b.nextReviewAt || 0));
-    return { total: due.length, words: due.slice(0, Number(url.searchParams.get('limit') || 40)) };
+    const section = url.searchParams.get('section') || '';
+    const filtered = words.filter((word) => !section || word.section === section);
+    const due = filtered.map((word) => decorateStandaloneWord(profile, word)).filter((word) => word.isDue);
+    due.sort((a, b) => Date.parse(a.nextReviewAt) - Date.parse(b.nextReviewAt));
+    return { words: due, total: due.length };
   }
-  if (method === 'GET' && url.pathname === '/wrong-words') return { total: Object.keys(profile.wrongWords).length, words: words.map((word) => decorateStandaloneWord(profile, word)).filter((word) => word.isWrong) };
-  if (method === 'PUT' && /\/words\/[^/]+\/status$/.test(url.pathname)) {
-    const body = JSON.parse(options.body || '{}');
-    const word = decodeURIComponent(url.pathname.split('/')[2]).toLowerCase();
-    const progress = setStandaloneStatus(profile, word, body.status);
-    writeStandaloneProfile(profile);
-    return { word, progress };
+  if (method === 'GET' && url.pathname === '/wrong-words') {
+    const wrongKeys = Object.keys(profile.wrongWords);
+    return { words: words.filter((word) => wrongKeys.includes(String(word.word).toLowerCase())), total: wrongKeys.length };
+  }
+  if (method === 'POST' && url.pathname === '/progress') {
+    const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+    if (body?.word && body?.status) setStandaloneStatus(profile, body.word, body.status);
+    return { ok: true };
   }
   if (method === 'POST' && url.pathname === '/review') {
-    const body = JSON.parse(options.body || '{}');
-    const progress = reviewStandaloneWord(profile, body.word, body.rating);
+    const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+    if (body?.word && body?.rating) reviewStandaloneWord(profile, body.word, body.rating);
+    return { ok: true };
+  }
+  if (method === 'POST' && url.pathname === '/sync/push') {
+    const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+    if (body?.profile) mergeStandaloneProfile(profile, coerceStandaloneProfile(body.profile));
     writeStandaloneProfile(profile);
-    return { word: body.word, rating: body.rating, progress };
+    return { ok: true, revision: profile.revision };
   }
-  if (method === 'PUT' && url.pathname === '/settings') {
-    const body = JSON.parse(options.body || '{}');
-    profile.settings.dailyGoal = Math.min(500, Math.max(1, Number(body.dailyGoal || 45)));
-    if (Object.prototype.hasOwnProperty.call(body, 'dailyGoalEnabled')) profile.settings.dailyGoalEnabled = body.dailyGoalEnabled === true;
-    writeStandaloneProfile(profile);
-    return profile.settings;
+  if (method === 'POST' && url.pathname === '/sync/pull') {
+    return { profile: readStandaloneProfile() };
   }
-  if (method === 'POST' && url.pathname === '/progress/import') {
-    const incoming = coerceStandaloneProfile(JSON.parse(options.body || '{}'));
-    const merged = mergeStandaloneProfile(profile, incoming);
-    writeStandaloneProfile(merged);
-    return { message: 'Imported', revision: merged.revision, words: Object.keys(merged.progress).length };
-  }
-  if (method === 'POST' && url.pathname === '/reset') {
-    writeJsonStorage(standaloneProfileKey(), blankStandaloneProfile());
-    return { message: 'Progress reset', syncCode: state.syncCode };
-  }
-  throw new Error(`手机离线版暂不支持此操作：${method} ${url.pathname}`);
+  return null;
 }
 
-async function api(path, options = {}, config = {}) {
-  if (STANDALONE_MODE) {
-    setConnectionStatus(true, '手机离线版');
-    return standaloneApi(path, options);
-  }
-  const method = options.method || 'GET';
-  const headers = new Headers(options.headers || {});
-  headers.set('X-Sync-Code', state.syncCode);
-  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  try {
-    const response = await fetch(`${API_ROOT}${path}`, { ...options, headers });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || `请求失败：${response.status}`);
-    }
-    const payload = await response.json();
-    setConnectionStatus(true, '已同步');
-    if (method === 'GET') writeJsonStorage(cacheKey(path), payload);
-    return payload;
-  } catch (error) {
-    setConnectionStatus(false, '离线模式');
-    if (method === 'GET') {
-      const cached = readJsonStorage(cacheKey(path), null);
-      if (cached) return cached;
-    }
-    if (config.queueable) {
-      enqueueMutation(path, options);
-      return { queued: true };
-    }
-    throw error;
-  }
+function isStandaloneMode() {
+  return STANDALONE_MODE;
 }
 
-async function flushPendingMutations() {
-  if (!navigator.onLine) return;
-  const queue = readJsonStorage(STORAGE.pending, []);
-  if (!queue.length) return;
-  const remaining = [];
-
-  for (const item of queue) {
-    try {
-      const headers = { 'X-Sync-Code': item.syncCode };
-      if (item.body) headers['Content-Type'] = 'application/json';
-      const response = await fetch(`${API_ROOT}${item.path}`, {
-        method: item.method,
-        headers,
-        body: item.body
-      });
-      if (!response.ok) remaining.push(item);
-    } catch {
-      remaining.push(item);
-    }
-  }
-
-  writeJsonStorage(STORAGE.pending, remaining);
-  if (!remaining.length) {
-    clearOfflineDailyStats();
-    showToast('离线记录已同步');
-    await refreshAll({ quiet: true });
-  } else {
-    setConnectionStatus(false, `仍有 ${remaining.length} 条待同步`);
-  }
+function remoteApiBase() {
+  if (state.remoteServer) return state.remoteServer.replace(/\/+$/, '');
+  return state.online ? API_ROOT : '';
 }
 
-
-function todayKey() {
-  const now = new Date();
-  const offset = now.getTimezoneOffset() * 60_000;
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+async function apiFetch(path, options = {}) {
+  if (isStandaloneMode()) return standaloneApi(path, options);
+  const base = remoteApiBase();
+  if (!base) throw new Error('离线模式：无法连接服务器');
+  const url = new URL(path, base);
+  const response = await fetch(url, {
+    method: options.method || 'GET',
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    body: options.body ? JSON.stringify(options.body) : null
+  });
+  if (!response.ok) throw new Error(`API ${response.status}: ${response.statusText}`);
+  return response.json();
 }
 
-function offlineDailyKey() {
-  return `${STORAGE.offlineDailyPrefix}${state.syncCode}`;
+function statusLabel(status) {
+  return { new: '生词', learning: '模糊', known: '掌握', notknown: '不认识' }[status] || status || '';
 }
 
-function readOfflineDailyStats() {
-  return readJsonStorage(offlineDailyKey(), {});
+function filteredWords(section, status) {
+  return state.words.filter((word) => {
+    if (section && word.section !== section) return false;
+    if (status === 'all') return true;
+    if (status === 'notknown') return word.status === 'new' || word.status === 'learning';
+    return word.status === status;
+  });
 }
 
-function writeOfflineDailyStats(value) {
-  writeJsonStorage(offlineDailyKey(), value);
+function derivedSenses(word) {
+  return word.senses || [{ pos: word.pos, meaning: word.meaning }];
 }
 
-function clearOfflineDailyStats() {
-  try { localStorage.removeItem(offlineDailyKey()); } catch {}
-}
-
-function touchOfflineDaily(changes) {
-  const daily = readOfflineDailyStats();
-  const day = todayKey();
-  const current = { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0, ...(daily[day] || {}) };
-  for (const [key, value] of Object.entries(changes)) current[key] = Number(current[key] || 0) + Number(value || 0);
-  daily[day] = current;
-  writeOfflineDailyStats(daily);
-  if (state.daily?.days) {
-    state.daily.days[day] ||= { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0 };
-    for (const [key, value] of Object.entries(changes)) state.daily.days[day][key] = Number(state.daily.days[day][key] || 0) + Number(value || 0);
-  }
-  if (state.stats && changes.studied) state.stats.studiedToday = Number(state.stats.studiedToday || 0) + Number(changes.studied || 0);
-  persistCurrentCache();
-}
-
-function applyDailyOverlay() {
-  const overlay = readOfflineDailyStats();
-  if (!state.daily?.days) return;
-  for (const [day, values] of Object.entries(overlay)) {
-    state.daily.days[day] ||= { studied: 0, new: 0, learning: 0, known: 0, reviewed: 0, quizCorrect: 0, quizWrong: 0 };
-    for (const key of Object.keys(values || {})) state.daily.days[day][key] = Number(state.daily.days[day][key] || 0) + Number(values[key] || 0);
-  }
-}
-
-function recomputeLocalStats() {
-  const counts = { total: state.words.length, new: 0, learning: 0, known: 0, due: 0, wrong: 0 };
-  const now = Date.now();
-  for (const word of state.words) {
-    counts[word.status || 'new'] = Number(counts[word.status || 'new'] || 0) + 1;
-    if (word.isWrong) counts.wrong += 1;
-    if ((word.status || 'new') !== 'new' && (!word.nextReviewAt || Date.parse(word.nextReviewAt) <= now)) counts.due += 1;
-  }
-  const today = todayKey();
-  state.stats = {
-    ...(state.stats || {}),
-    ...counts,
-    progress: counts.total ? Math.round((counts.known / counts.total) * 100) : 0,
-    studiedToday: Number(state.daily?.days?.[today]?.studied ?? state.stats?.studiedToday ?? 0)
-  };
-}
-
-function recomputeLocalSections() {
-  const sections = {};
-  for (const word of state.words) {
-    const section = word.section || '#';
-    sections[section] ||= { total: 0, new: 0, learning: 0, known: 0, due: 0 };
-    sections[section].total += 1;
-    sections[section][word.status || 'new'] += 1;
-    if ((word.status || 'new') !== 'new' && (!word.nextReviewAt || Date.parse(word.nextReviewAt) <= Date.now())) sections[section].due += 1;
-  }
-  state.sections = sections;
-}
-
-function persistCurrentCache() {
-  if (!state.syncCode || !state.words.length) return;
-  writeJsonStorage(cacheKey('/words?status=all&limit=5000'), { total: state.words.length, offset: 0, limit: 5000, words: state.words });
-  if (state.stats) writeJsonStorage(cacheKey('/stats'), state.stats);
-  if (state.sections) writeJsonStorage(cacheKey('/sections'), state.sections);
-  if (state.daily) writeJsonStorage(cacheKey('/daily-stats?days=7'), state.daily);
-}
-
-function updateLocalProgress(wordText, patch) {
-  const word = state.words.find((item) => item.word.toLowerCase() === String(wordText || '').toLowerCase());
-  if (!word) return null;
-  Object.assign(word, patch, { updatedAt: new Date().toISOString() });
-  recomputeLocalStats();
-  recomputeLocalSections();
-  persistCurrentCache();
-  renderHome();
-  return word;
-}
-
-let toastTimer = null;
+let toastTimer;
 function showToast(message) {
   const toast = $('#toast');
   toast.textContent = message;
@@ -561,155 +436,154 @@ function showToast(message) {
 
 
 function normalizeRemoteServer(value) {
-  return String(value || '').trim().replace(/\/+$/g, '');
+  return String(value || '').trim().replace(/\/+$/, '');
 }
 
-
-function validateRemoteServer(remote) {
-  if (!/^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(remote)) {
-    throw new Error('电脑同步地址必须以 http:// 或 https:// 开头，例如 http://192.168.1.8:3000');
-  }
+function capacitorPlugin(name) {
+  return globalThis.Capacitor?.Plugins?.[name] || null;
 }
 
-async function fetchDesktopServer(url, options = {}) {
-  if (STANDALONE_MODE && window.VocabNative?.request) {
-    return nativeHttpRequest(url, options);
-  }
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-  try {
-    return await fetch(url, { ...options, mode: 'cors', signal: controller.signal });
-  } catch (error) {
-    throw new Error(`无法连接电脑同步地址：${error?.message || '网络请求失败'}。请确认电脑已运行 npm start、手机和电脑在同一网络、地址类似 http://192.168.x.x:3000，且 Windows 防火墙允许 Node.js 访问。`);
-  } finally {
-    clearTimeout(timeout);
-  }
+function isNativeApp() {
+  return globalThis.Capacitor?.isNativePlatform?.() === true || Boolean(window.VocabNative);
 }
 
-function nativeHttpRequest(url, options = {}) {
-  return new Promise((resolve, reject) => {
-    const callbackId = `cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    window.__vocabNativeCallbacks = window.__vocabNativeCallbacks || {};
-    const timer = setTimeout(() => {
-      delete window.__vocabNativeCallbacks[callbackId];
-      reject(new Error('原生网络请求超时'));
-    }, 10000);
-    window.__vocabNativeCallbacks[callbackId] = (payload) => {
-      clearTimeout(timer);
-      delete window.__vocabNativeCallbacks[callbackId];
-      if (!payload || payload.error) {
-        reject(new Error(payload?.error || '原生网络请求失败'));
-        return;
-      }
-      resolve({
-        ok: payload.status >= 200 && payload.status < 300,
-        status: payload.status,
-        text: async () => payload.body || '',
-        json: async () => JSON.parse(payload.body || '{}')
-      });
-    };
+// ===== TTS / Speech Synthesis =====
+// Callback registry for native TTS completion callbacks
+let ttsCallbackId = 0;
+const ttsCallbacks = new Map();
+
+// Set up global callback handler for native TTS
+window.__ttsCallback = function(callbackId, result) {
+  const resolver = ttsCallbacks.get(callbackId);
+  if (resolver) {
+    ttsCallbacks.delete(callbackId);
+    resolver(result || 'done');
+  }
+};
+
+function nativeTextToSpeech() {
+  return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
+}
+
+function hasNativeAndroidBridge() {
+  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
+}
+
+function canSpeakText() {
+  // Check if ANY speech mechanism is available
+  if (hasNativeAndroidBridge()) return true;
+  if (Boolean(nativeTextToSpeech()?.speak)) return true;
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) return true;
+  // In native app, always return true - we'll try remote TTS as fallback
+  if (isNativeApp()) return true;
+  return false;
+}
+
+// Warm up TTS engine on app start
+async function initTts() {
+  if (state.ttsReady || state.ttsInitializing) return;
+  state.ttsInitializing = true;
+
+  if (hasNativeAndroidBridge() && typeof window.VocabNative.initTts === 'function') {
     try {
-      window.VocabNative.request(
-        options.method || 'GET',
-        url,
-        JSON.stringify(options.headers || {}),
-        options.body || '',
-        callbackId
-      );
-    } catch (error) {
-      clearTimeout(timer);
-      delete window.__vocabNativeCallbacks[callbackId];
-      reject(error);
+      window.VocabNative.initTts();
+    } catch (e) {
+      console.warn('Native TTS init failed:', e);
     }
-  });
+  }
 }
 
-async function syncStandaloneRemote() {
-  const remote = normalizeRemoteServer($('#remoteServerInput')?.value || state.remoteServer || localStorage.getItem(STORAGE.remoteServer));
-  if (!remote) {
-    showToast('请先填写电脑同步地址，例如 http://192.168.1.8:3000');
-    return;
-  }
-  validateRemoteServer(remote);
-  state.remoteServer = remote;
-  localStorage.setItem(STORAGE.remoteServer, remote);
-  setConnectionStatus(false, '正在连接电脑');
 
-  const syncQuery = `syncCode=${encodeURIComponent(state.syncCode)}`;
-  const current = readStandaloneProfile();
-  let merged = current;
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
 
-  const download = await fetchDesktopServer(`${remote}/api/progress/download?${syncQuery}`);
-  if (download.ok) {
-    const remotePayload = await download.json();
-    merged = mergeStandaloneProfile(current, coerceStandaloneProfile(remotePayload));
-    writeStandaloneProfile(merged);
-  } else if (download.status !== 404) {
-    throw new Error(`读取电脑进度失败：${download.status}`);
-  }
-
-  const upload = await fetchDesktopServer(`${remote}/api/progress/import?${syncQuery}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-    body: JSON.stringify({ profile: merged })
-  });
-  if (!upload.ok) {
-    const payload = await upload.json().catch(() => ({}));
-    throw new Error(payload.error || `上传到电脑失败：${upload.status}`);
-  }
-  setConnectionStatus(true, '已同步到电脑');
-  showToast('手机和电脑进度已同步');
-  await refreshAll({ quiet: true });
-  await renderDataPage();
-}
-
-function statusLabel(status) {
-  return status === 'known' ? '已掌握' : status === 'learning' ? '模糊' : '不认识';
-}
-
-function formatDate(value) {
-  if (!value) return '尚未同步';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '尚未同步';
-  return new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
-}
-
-function ensureWordArrays(word) {
-  for (const key of ['forms', 'collocations', 'examples', 'synonyms', 'antonyms', 'proverbs']) {
-    if (!Array.isArray(word[key])) word[key] = word[key] ? [String(word[key])] : [];
-  }
-  for (const key of ['definitions', 'senses']) {
-    if (!Array.isArray(word[key])) word[key] = [];
-  }
-  return word;
-}
-
-async function refreshAll({ quiet = false } = {}) {
-  if (!quiet) setConnectionStatus(navigator.onLine, '连接中');
+  state.revisionPollInFlight = true;
   try {
-    const [wordsPayload, stats, sections, daily] = await Promise.all([
-      api('/words?status=all&limit=5000'),
-      api('/stats'),
-      api('/sections'),
-      api('/daily-stats?days=7')
-    ]);
-    state.words = (wordsPayload.words || []).map(ensureWordArrays);
-    state.stats = stats;
-    state.sections = sections;
-    state.daily = daily;
-    applyDailyOverlay();
-    if (pendingMutationCount()) {
-      recomputeLocalStats();
-      recomputeLocalSections();
-      persistCurrentCache();
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
     }
-    populateSectionSelects();
-    renderHome();
-    renderCurrentPage();
   } catch (error) {
-    console.error(error);
-    showToast('无法读取词库，请启动服务器');
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
   }
+}
+
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
+    }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
+
+async function checkForServerRevisionChange({ force = false } = {}) {
+  if (STANDALONE_MODE || !state.syncCode || state.revisionPollInFlight) return;
+  if (!force && (document.hidden || !navigator.onLine)) return;
+
+  state.revisionPollInFlight = true;
+  try {
+    const response = await fetch(`${API_ROOT}/sync/summary`, {
+      headers: { 'X-Sync-Code': state.syncCode },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const summary = await response.json();
+    const revision = Number(summary.revision || 0);
+    const previous = Number(state.serverRevision || 0);
+    state.serverRevision = revision;
+
+    if (previous > 0 && revision > previous && !pendingMutationCount()) {
+      await refreshAll({ quiet: true });
+      showToast('检测到电脑数据已更新，界面已刷新');
+    }
+  } catch (error) {
+    console.warn('Revision polling failed', error);
+  } finally {
+    state.revisionPollInFlight = false;
+  }
+}
+
+function startServerRevisionPolling() {
+  if (STANDALONE_MODE || state.revisionPollTimer) return;
+  state.revisionPollTimer = setInterval(() => checkForServerRevisionChange(), REMOTE_REVISION_POLL_MS);
+  window.addEventListener('focus', () => checkForServerRevisionChange({ force: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkForServerRevisionChange({ force: true });
+  });
 }
 
 function renderCurrentPage() {
@@ -749,7 +623,7 @@ function renderHome() {
   $('#metricGrid').innerHTML = [
     ['词库总量', s.total, '完整可检索'],
     ['未背过', s.new, '优先学习'],
-    ['学习中', s.learning, '需要巩固'],
+    ['待巩固', s.learning, '模糊/还需复习'],
     ['到期复习', s.due, `错题 ${s.wrong} 个`]
   ].map(([label, value, hint]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><em>${hint}</em></article>`).join('');
 
@@ -880,125 +754,51 @@ function renderStudyCard() {
   const card = $('#studyCard');
   $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
   if (!state.studyQueue.length || state.studyIndex >= state.studyQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去复习中心巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
+    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去到期复习巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
     $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true));
     refreshStatsOnly();
     return;
   }
 
-  const word = state.studyQueue[state.studyIndex];
-  const position = state.studyIndex + 1;
-  const pct = Math.round((position / state.studyQueue.length) * 100);
-  card.innerHTML = `
-    <div class="flashcard-head">
-      <div><h2 class="word-title">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span></div></div>
-      <button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>
-    </div>
-    <div class="reveal-zone">
-      ${state.alwaysShowMeaning || state.studyRevealed
-        ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
-        : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
-    </div>
-    <div class="study-actions">
-      <button class="action-again" type="button" data-study-status="new">😕 不认识</button>
-      <button class="action-hard" type="button" data-study-status="learning">🤔 模糊</button>
-      <button class="action-good" type="button" data-study-status="known">😊 认识</button>
-    </div>
-    <div class="card-footer"><span>${position} / ${state.studyQueue.length}</span><span class="progress-track"><i style="width:${pct}%"></i></span><span>${word.sourcePage ? `书第 ${word.sourcePage} 页` : ''}</span></div>`;
-
-  $('[data-reveal-study]')?.addEventListener('click', revealStudy);
-  $$('[data-study-status]').forEach((button) => button.addEventListener('click', () => markStudyWord(button.dataset.studyStatus)));
-  $('[data-speak]')?.addEventListener('click', () => speakWord(word.word));
+  state.ttsReady = true;
+  state.ttsInitializing = false;
 }
 
-function revealStudy() {
-  state.studyRevealed = true;
-  renderStudyCard();
-}
-
-async function markStudyWord(status) {
-  const word = state.studyQueue[state.studyIndex];
-  if (!word) return;
-  word.status = status;
-  const sourceWord = updateLocalProgress(word.word, { status, lastReview: new Date().toISOString(), firstSeenAt: word.firstSeenAt || new Date().toISOString() });
-  if (sourceWord) Object.assign(word, sourceWord);
-  state.studyIndex += 1;
-  state.studyRevealed = state.alwaysShowMeaning;
-  renderStudyCard();
+async function stopSpeaking() {
+  // Stop Web Speech API
   try {
-    const payload = await api(`/words/${encodeURIComponent(word.word)}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status })
-    }, { queueable: true });
-    if (payload.queued) touchOfflineDaily({ studied: 1, [status]: 1 });
-    await refreshStatsOnly();
-  } catch (error) {
-    showToast(error.message);
-  }
-}
+    window.speechSynthesis?.cancel?.();
+  } catch (e) { /* ignore */ }
 
-async function refreshStatsOnly() {
+  // Stop native Android bridge
   try {
-    state.stats = await api('/stats');
-    renderHome();
-  } catch {
-    // Offline optimistic mode keeps the current card usable.
-  }
-}
+    if (window.VocabNative?.stopTts) window.VocabNative.stopTts();
+  } catch (e) { /* ignore */ }
 
-async function loadReviewCenter() {
+  // Stop Capacitor plugin
   try {
-    const payload = await api('/review-queue?limit=40');
-    state.reviewQueue = (payload.words || []).map(ensureWordArrays);
-    state.reviewIndex = 0;
-    state.reviewRevealed = false;
-    state.reviewMode = 'due';
-    $('#reviewDueCount').textContent = `${payload.total || 0} 到期`;
-    $('#reviewSummaryNumber').textContent = payload.total || 0;
-    renderReviewPreview();
-  } catch (error) {
-    showToast(error.message);
+    const nativeTts = nativeTextToSpeech();
+    if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
+  } catch (e) { /* ignore */ }
+
+  // Cancel any pending callbacks
+  for (const [id, resolver] of ttsCallbacks) {
+    resolver('cancelled');
   }
+  ttsCallbacks.clear();
 }
 
-function renderReviewPreview() {
-  const list = $('#reviewPreview');
-  const preview = state.reviewQueue.slice(0, 12);
-  list.innerHTML = preview.length
-    ? preview.map((word) => `<div class="compact-word"><div><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml(word.meaning)}</small></div><em>${word.isWrong ? '错题' : '到期'}</em></div>`).join('')
-    : '<div class="empty-state"><span>✅</span><p>当前没有需要复习的单词。</p></div>';
-  $('#reviewPreviewPanel').classList.remove('hidden');
-  $('#reviewCard').classList.add('hidden');
-}
-
-async function loadWrongReview() {
-  try {
-    const payload = await api('/wrong-words');
-    state.reviewQueue = (payload.words || []).map(ensureWordArrays);
-    state.reviewIndex = 0;
-    state.reviewRevealed = false;
-    state.reviewMode = 'wrong';
-    $('#reviewSummaryNumber').textContent = state.reviewQueue.length;
-    startReview();
-  } catch (error) {
-    showToast(error.message);
-  }
-}
-
-function startReview() {
-  if (!state.reviewQueue.length) {
-    showToast('当前没有待复习单词');
-    return;
-  }
-  $('#reviewPreviewPanel').classList.add('hidden');
-  $('#reviewCard').classList.remove('hidden');
-  renderReviewCard();
+function remoteTtsUrl(text, lang) {
+  const encoded = encodeURIComponent(String(text || '').trim());
+  const language = encodeURIComponent(lang || 'en-US');
+  // Use Google Translate TTS - works in most contexts
+  return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
 }
 
 function renderReviewCard() {
   const card = $('#reviewCard');
   if (state.reviewIndex >= state.reviewQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎯</span><p>本轮复习完成。</p><button class="primary-btn" type="button" data-review-finish>返回复习中心</button></div>`;
+    card.innerHTML = `<div class="empty-state"><span>🎯</span><p>本轮复习完成。</p><button class="primary-btn" type="button" data-review-finish>返回到期复习</button></div>`;
     $('[data-review-finish]')?.addEventListener('click', () => loadReviewCenter());
     refreshAll({ quiet: true });
     return;
@@ -1040,95 +840,6 @@ async function rateReview(rating) {
       const sourceWord = state.words.find((item) => item.word === word.word);
       if (sourceWord) Object.assign(sourceWord, payload.progress);
     }
-    await refreshStatsOnly();
-  } catch (error) {
-    showToast(error.message);
-  }
-}
-
-function prepareSpellQueue(force = true) {
-  if (!force && state.spellQueue.length) {
-    renderSpellCard();
-    return;
-  }
-  const section = $('#spellSection')?.value || '';
-  const status = $('#spellStatus')?.value || 'notknown';
-  const queue = filteredWords(section, status).sort(() => Math.random() - 0.5);
-  state.spellQueue = queue.slice(0, 40);
-  state.spellIndex = 0;
-  state.spellAnswered = false;
-  renderSpellCard();
-}
-
-function renderSpellCard() {
-  const card = $('#spellCard');
-  $('#spellCounter').textContent = `${Math.min(state.spellIndex + 1, state.spellQueue.length)} / ${state.spellQueue.length}`;
-  if (!state.spellQueue.length || state.spellIndex >= state.spellQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🏁</span><p>本轮拼写练习完成。</p><button class="primary-btn" type="button" data-restart-spell>再来一轮</button></div>`;
-    $('[data-restart-spell]')?.addEventListener('click', () => prepareSpellQueue(true));
-    return;
-  }
-  const word = state.spellQueue[state.spellIndex];
-  card.innerHTML = `
-    <div class="spell-prompt"><div class="meaning">${escapeHtml(word.meaning)}</div><div class="hint">${escapeHtml(word.pos || '')} · 首字母 ${escapeHtml(word.word.slice(0, 1).toUpperCase())}</div></div>
-    <form class="spell-form" id="spellForm"><input id="spellInput" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" ${state.spellAnswered ? 'disabled' : ''} placeholder="输入英文单词"><button class="primary-btn" type="submit">提交</button></form>
-    <div id="spellFeedback"></div>
-    <div class="spell-actions"><button class="ghost-btn" type="button" data-reveal-spell>看答案</button><button class="secondary-btn" type="button" data-next-spell>下一个</button></div>`;
-  $('#spellForm').addEventListener('submit', (event) => { event.preventDefault(); checkSpelling(); });
-  $('[data-reveal-spell]').addEventListener('click', () => revealSpelling());
-  $('[data-next-spell]').addEventListener('click', nextSpellWord);
-  if (!state.spellAnswered) setTimeout(() => $('#spellInput')?.focus(), 0);
-}
-
-async function submitSpellResult(word, correct) {
-  updateLocalProgress(word.word, { status: correct ? 'known' : 'learning', isWrong: !correct, lastReview: new Date().toISOString() });
-  const payload = await api('/review', {
-    method: 'POST',
-    body: JSON.stringify({ word: word.word, rating: correct ? 'good' : 'again' })
-  }, { queueable: true });
-  if (payload.queued) touchOfflineDaily({ studied: 1, reviewed: 1, [correct ? 'quizCorrect' : 'quizWrong']: 1, [correct ? 'known' : 'learning']: 1 });
-}
-
-async function checkSpelling() {
-  if (state.spellAnswered) return;
-  const word = state.spellQueue[state.spellIndex];
-  const answer = $('#spellInput').value.trim().toLowerCase();
-  if (!answer) return showToast('请先输入单词');
-  const correct = answer === word.word.toLowerCase();
-  state.spellAnswered = true;
-  $('#spellInput').disabled = true;
-  const feedback = $('#spellFeedback');
-  feedback.className = `spell-feedback ${correct ? 'correct' : 'wrong'}`;
-  feedback.innerHTML = correct ? '✓ 拼写正确' : `✕ 正确答案：<strong>${escapeHtml(word.word)}</strong>`;
-  await submitSpellResult(word, correct).catch((error) => showToast(error.message));
-}
-
-async function revealSpelling() {
-  if (state.spellAnswered) return;
-  const word = state.spellQueue[state.spellIndex];
-  state.spellAnswered = true;
-  $('#spellInput').value = word.word;
-  $('#spellInput').disabled = true;
-  const feedback = $('#spellFeedback');
-  feedback.className = 'spell-feedback wrong';
-  feedback.innerHTML = `答案：<strong>${escapeHtml(word.word)}</strong>`;
-  await submitSpellResult(word, false).catch((error) => showToast(error.message));
-}
-
-function nextSpellWord() {
-  state.spellIndex += 1;
-  state.spellAnswered = false;
-  renderSpellCard();
-}
-
-function getWordListFiltered() {
-  const query = ($('#wordSearch')?.value || '').trim().toLowerCase();
-  const section = $('#wordSection')?.value || '';
-  const status = $('#wordStatus')?.value || 'all';
-  return filteredWords(section, status).filter((word) => {
-    if (!query) return true;
-    return [word.word, word.meaning, word.pos, ...derivedSenses(word).map((sense) => `${sense.pos || ''} ${sense.meaning || ''}`), ...word.synonyms, ...word.antonyms, ...word.proverbs, ...word.forms, ...word.collocations, ...word.examples]
-      .join(' ').toLowerCase().includes(query);
   });
 }
 
@@ -1140,7 +851,7 @@ function renderWordList() {
   const pageWords = words.slice(start, start + state.wordPageSize);
   $('#wordCount').textContent = `${words.length} 词`;
   $('#wordTable').innerHTML = pageWords.length
-    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="学习中">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
+    ? pageWords.map((word) => `<article class="word-row" data-word-detail="${escapeHtml(word.word)}"><div class="word-main"><strong>${escapeHtml(word.word)}</strong><small>${escapeHtml([`#${wordOrderValue(word)}`, word.phonetic, word.pos].filter(Boolean).join(' · '))}</small></div><div class="word-meaning">${escapeHtml(word.meaning)}</div><div class="word-actions"><button class="status-btn new ${word.status === 'new' ? 'active' : ''}" type="button" data-quick-status="new" data-word="${escapeHtml(word.word)}" title="未背过">?</button><button class="status-btn learning ${word.status === 'learning' ? 'active' : ''}" type="button" data-quick-status="learning" data-word="${escapeHtml(word.word)}" title="待巩固">~</button><button class="status-btn known ${word.status === 'known' ? 'active' : ''}" type="button" data-quick-status="known" data-word="${escapeHtml(word.word)}" title="已掌握">✓</button></div></article>`).join('')
     : '<div class="empty-state"><span>⌕</span><p>没有找到匹配单词。</p></div>';
 
   $$('[data-word-detail]').forEach((row) => row.addEventListener('click', () => showWordDialog(row.dataset.wordDetail)));
@@ -1178,13 +889,19 @@ async function quickSetStatus(wordText, status) {
   }
 }
 
-function showWordDialog(wordText) {
-  const word = state.words.find((item) => item.word === wordText);
-  if (!word) return;
-  $('#wordDialogBody').innerHTML = `<h2 class="dialog-word">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-dialog-speak>🔊</button></div><div class="dialog-meaning">${wordMeaningHtml(word)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div>`;
-  $('[data-dialog-speak]')?.addEventListener('click', () => speakWord(word.word));
-  $('#wordDialog').showModal();
-}
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = rate;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      // Try to find a suitable voice
+      const voices = window.speechSynthesis.getVoices?.() || [];
+      const lowerLang = String(lang).toLowerCase();
+      const voice = voices.find((v) => v.lang?.toLowerCase() === lowerLang)
+        || voices.find((v) => v.lang?.toLowerCase().startsWith(lowerLang.slice(0, 2)))
+        || null;
+      if (voice) utterance.voice = voice;
 
 async function renderDataPage() {
   $('#syncCodeInput').value = state.syncCode;
@@ -1192,6 +909,7 @@ async function renderDataPage() {
   if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
   try {
     const [summary, ip] = await Promise.all([api('/sync/summary'), api('/ip')]);
+    state.serverRevision = Number(summary.revision || state.serverRevision || 0);
     const pending = pendingMutationCount();
     const remoteHint = STANDALONE_MODE ? `<br>电脑同步地址：${escapeHtml(state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '未设置')}` : '';
     $('#syncSummary').innerHTML = `服务器修订版：${summary.revision}<br>已记录：${summary.progressCount} 词 · 错题：${summary.wrongCount} 个<br>手机待上传：${pending} 条${remoteHint}<br>最后同步：${formatDate(summary.updatedAt)}<br>最近自动备份：${formatDate(summary.latestBackupAt)}`;
@@ -1204,65 +922,36 @@ async function renderDataPage() {
   $('#installSettingsButton').disabled = !state.deferredInstallPrompt;
 }
 
-async function applySyncCode() {
-  const code = normalizeSyncCode($('#syncCodeInput').value);
-  if (code.length < 6) return showToast('同步码至少需要 6 位字母或数字');
-  state.syncCode = code;
-  localStorage.setItem(STORAGE.syncCode, code);
-  state.studyQueue = [];
-  state.reviewQueue = [];
-  state.spellQueue = [];
-  showToast(`已切换到同步码 ${code}`);
-  await refreshAll();
-  renderDataPage();
-}
+      utterance.onend = () => finish(true);
+      utterance.onerror = (e) => {
+        console.warn('Web Speech error:', e);
+        finish(false);
+      };
 
-async function copySyncCode() {
-  try {
-    await navigator.clipboard.writeText(state.syncCode);
-    showToast('同步码已复制');
-  } catch {
-    $('#syncCodeInput').select();
-    document.execCommand('copy');
-    showToast('同步码已复制');
-  }
-}
+      // Timeout - some WebView implementations never fire onend
+      setTimeout(() => finish(false), 10000);
 
-async function saveDailyGoal() {
-  const dailyGoal = Math.min(500, Math.max(1, Number($('#dailyGoalInput').value || 45)));
-  const dailyGoalEnabled = $('#dailyGoalEnabled')?.checked === true;
-  try {
-    await api('/settings', { method: 'PUT', body: JSON.stringify({ dailyGoal, dailyGoalEnabled }) }, { queueable: true });
-    if (state.stats) {
-      state.stats.dailyGoal = dailyGoal;
-      state.stats.dailyGoalEnabled = dailyGoalEnabled;
-    }
-    renderHome();
-    showToast('每日目标已保存');
-  } catch (error) {
-    showToast(error.message);
-  }
-}
+      window.speechSynthesis.speak(utterance);
 
-async function exportData() {
-  try {
-    if (STANDALONE_MODE) {
-      const payload = { app: 'vocab-master-mobile', syncCode: state.syncCode, exportDate: new Date().toISOString(), profile: readStandaloneProfile() };
-      await saveJsonFile(`vocab-mobile-backup-${state.syncCode}.json`, payload);
-      return;
+      // Some WebView need a resume after cancel
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch (err) {
+      console.warn('Web Speech exception:', err);
+      resolve(false);
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
     if (!response.ok) throw new Error('导出失败');
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `vocab-backup-${state.syncCode}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const payload = await response.json();
+    await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
   } catch (error) {
     showToast(error.message);
   }
+}
+
+function isNativeApp() {
+  return globalThis.Capacitor?.isNativePlatform?.() === true || Boolean(window.VocabNative);
 }
 
 function capacitorPlugin(name) {
@@ -1272,10 +961,19 @@ function capacitorPlugin(name) {
 async function saveJsonFile(filename, payload) {
   const content = JSON.stringify(payload, null, 2);
   if (window.VocabNative?.saveJson) {
-    const result = window.VocabNative.saveJson(filename, content);
-    if (result === 'OPENED') {
-      showToast('请选择保存目录并确认文件名');
-      return;
+    try {
+      const result = window.VocabNative.saveJson(filename, content);
+      if (result === 'OPENED') {
+        showToast('请选择保存目录并确认文件名');
+        return;
+      }
+      if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
+        const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
+        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
+        return;
+      }
+    } catch (error) {
+      console.warn('Native export failed, falling back to web download', error);
     }
   }
   const filesystem = capacitorPlugin('Filesystem');
@@ -1295,7 +993,19 @@ async function saveJsonFile(filename, payload) {
         dialogTitle: '保存学习数据备份'
       }).catch(() => {});
     }
-    showToast(`已导出到文档目录：${filename}`);
+
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
+
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    return;
+  }
+
+  if (isNativeApp()) {
+    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
     return;
   }
 
@@ -1311,37 +1021,19 @@ async function saveJsonFile(filename, payload) {
     URL.revokeObjectURL(url);
     link.remove();
   }, 1000);
-  showToast('已开始导出学习数据');
+  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
 }
 
-async function importData(file) {
-  if (!file) return;
-  try {
-    const payload = JSON.parse(await file.text());
-    await api('/progress/import', { method: 'POST', body: JSON.stringify(payload) });
-    showToast('学习数据已合并');
-    await refreshAll();
-  } catch (error) {
-    showToast(`导入失败：${error.message}`);
-  } finally {
-    $('#importData').value = '';
-  }
-}
+// Main TTS function - tries multiple strategies in order
+async function speakText(text, lang, rate = 0.82) {
+  const cleanText = String(text || '').trim();
+  if (!cleanText) return;
 
-async function resetData() {
-  const confirmation = prompt('此操作会清除当前同步码下的全部进度。请输入 RESET 确认：');
-  if (confirmation !== 'RESET') return;
-  try {
-    await api('/reset', { method: 'POST', body: JSON.stringify({ confirm: 'RESET' }) });
-    state.studyQueue = [];
-    state.reviewQueue = [];
-    state.spellQueue = [];
-    showToast('学习记录已清除');
-    await refreshAll();
-  } catch (error) {
-    showToast(error.message);
+  // Strategy 1: Native Android bridge (VocabNative)
+  if (hasNativeAndroidBridge()) {
+    const nativeOk = await speakWithNativeBridge(cleanText, lang, rate);
+    if (nativeOk) return;
   }
-}
 
 
 
@@ -1349,8 +1041,12 @@ function nativeTextToSpeech() {
   return capacitorPlugin('TextToSpeech') || capacitorPlugin('TextToSpeechPlugin') || null;
 }
 
+function hasNativeAndroidBridge() {
+  return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
+}
+
 function canSpeakText() {
-  return Boolean(window.VocabNative?.speak) || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window;
+  return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
 }
 
 async function stopSpeaking() {
@@ -1360,13 +1056,40 @@ async function stopSpeaking() {
   if (nativeTts?.stop) await nativeTts.stop().catch(() => {});
 }
 
+
+function remoteTtsUrl(text, lang) {
+  const encoded = encodeURIComponent(String(text || '').trim());
+  const language = encodeURIComponent(lang || 'en-US');
+  return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
+}
+
+function playRemoteTtsAudio(text, lang) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(remoteTtsUrl(text, lang));
+    audio.preload = 'auto';
+    audio.onended = resolve;
+    audio.onerror = reject;
+    audio.play().catch(reject);
+  });
+}
+
 async function speakTextNative(text, lang, rate = 0.82) {
-  if (window.VocabNative?.speak) {
+  if (hasNativeAndroidBridge()) {
     const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
     if (result === 'OK') return true;
+    if (result === 'NO_TTS_ENGINE') {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
   }
   const nativeTts = nativeTextToSpeech();
-  if (!nativeTts?.speak) return false;
+  if (!nativeTts?.speak) {
+    if (isNativeApp()) {
+      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      if (played) return true;
+    }
+    return false;
+  }
   await nativeTts.speak({
     text: String(text || ''),
     lang,
@@ -1378,21 +1101,22 @@ async function speakTextNative(text, lang, rate = 0.82) {
   return true;
 }
 
-function preferredVoice(lang) {
-  const voices = window.speechSynthesis?.getVoices?.() || [];
-  const lowerLang = String(lang).toLowerCase();
-  return voices.find((voice) => voice.lang?.toLowerCase() === lowerLang && /mandarin|普通话|国语|xiaoxiao|tingting|mei-jia/i.test(voice.name))
-    || voices.find((voice) => voice.lang?.toLowerCase() === lowerLang)
-    || voices.find((voice) => voice.lang?.toLowerCase().startsWith(lowerLang.slice(0, 2)))
-    || null;
-}
+  // Strategy 3: Remote TTS audio (Google Translate)
+  if (isNativeApp() || state.online) {
+    try {
+      await playRemoteTtsAudio(cleanText, lang);
+      return;
+    } catch (err) {
+      console.warn('Remote TTS failed:', err);
+    }
+  }
 
 function speakText(text, lang, rate = 0.82) {
   return new Promise((resolve) => {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
       if (!('speechSynthesis' in window)) {
-        showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
         resolve();
         return;
       }
@@ -1409,9 +1133,9 @@ function speakText(text, lang, rate = 0.82) {
 }
 
 async function speakWord(word) {
-  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   await stopSpeaking();
-  speakText(word, 'en-US', 0.82);
+  await speakText(word, 'en-US', 0.82);
 }
 
 function posToChinese(pos) {
@@ -1454,28 +1178,44 @@ function delay(ms) {
 }
 
 async function speakWordDetails(word) {
+  // Speak the English word first
   await speakText(word.word, 'en-US', 0.82);
+  // Brief pause between segments
+  await delay(300);
+  // Speak the Chinese meaning
   const meaning = spokenMeaning(word);
-  if (meaning) await speakText(meaning, 'zh-CN', 0.88);
+  if (meaning) {
+    await speakText(meaning, 'zh-CN', 0.88);
+    await delay(300);
+  }
+  // Speak the English example sentence
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', 0.82);
+  if (example) {
+    await speakText(example, 'en-US', 0.82);
+  }
 }
 
 async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
-    stopSpeaking();
-    $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
+    await stopSpeaking();
+    const btn = $('#autoReadUnknown');
+    if (btn) btn.textContent = '连续朗读未掌握的单词';
     return;
   }
-  if (!canSpeakText()) return showToast('当前设备不支持朗读，请确认 APK 已包含文字转语音插件');
+  if (!canSpeakText()) {
+    showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+    return;
+  }
+  if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
-  $('#autoReadUnknown').textContent = '停止朗读';
+  const btn = $('#autoReadUnknown');
+  if (btn) btn.textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
   const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
   if (!words.length) {
     state.autoReadActive = false;
-    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    if (btn) btn.textContent = '连续朗读不认识';
     showToast('当前没有不认识或模糊的单词');
     return;
   }
@@ -1487,16 +1227,16 @@ async function toggleAutoReadUnknown() {
     state.studyRevealed = true;
     renderStudyCard();
     await speakWordDetails(words[index]);
-    if (state.autoReadActive) await delay(2000);
+    if (state.autoReadActive) await delay(1500);
   }
   state.autoReadActive = false;
-  $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
+  if (btn) btn.textContent = '连续朗读未掌握的单词';
 }
 
 
 async function installApp() {
   if (!state.deferredInstallPrompt) {
-    showToast('请使用浏览器菜单中的“安装应用/添加到主屏幕”');
+    showToast('请使用浏览器菜单中的"安装应用/添加到主屏幕"');
     return;
   }
   state.deferredInstallPrompt.prompt();
@@ -1528,75 +1268,601 @@ function bindEvents() {
   $('#spellStatus').addEventListener('change', () => prepareSpellQueue(true));
   $('#reloadSpell').addEventListener('click', () => prepareSpellQueue(true));
 
-  $('#wordSearch').addEventListener('input', () => { state.wordPage = 1; renderWordList(); });
-  $('#wordSection').addEventListener('change', () => { state.wordPage = 1; renderWordList(); });
-  $('#wordStatus').addEventListener('change', () => { state.wordPage = 1; renderWordList(); });
-  $('#dialogClose').addEventListener('click', () => $('#wordDialog').close());
-  $('#wordDialog').addEventListener('click', (event) => {
-    if (event.target === $('#wordDialog')) $('#wordDialog').close();
-  });
+  $('#wordSearch').addEventListener('input', () => renderWordTable());
+  $('#wordSection').addEventListener('change', () => renderWordTable());
+  $('#wordStatus').addEventListener('change', () => renderWordTable());
 
   $('#applySyncCode').addEventListener('click', applySyncCode);
   $('#copySyncCode').addEventListener('click', copySyncCode);
-  $('#newSyncCode').addEventListener('click', () => { $('#syncCodeInput').value = generateSyncCode(); });
-  $('#syncNow').addEventListener('click', async () => {
-    try {
-      if (STANDALONE_MODE) await syncStandaloneRemote();
-      else { await flushPendingMutations(); await renderDataPage(); }
-    } catch (error) {
-      setConnectionStatus(false, '同步失败');
-      showToast(error.message);
-    }
-  });
-  $('#saveRemoteServer')?.addEventListener('click', () => {
-    state.remoteServer = normalizeRemoteServer($('#remoteServerInput')?.value);
-    localStorage.setItem(STORAGE.remoteServer, state.remoteServer);
-    showToast('电脑同步地址已保存');
-    renderDataPage();
-  });
-  $('#saveGoal').addEventListener('click', saveDailyGoal);
+  $('#newSyncCode').addEventListener('click', generateNewSyncCode);
+  $('#syncNow').addEventListener('click', syncNow);
+  $('#saveRemoteServer').addEventListener('click', saveRemoteServer);
   $('#exportData').addEventListener('click', exportData);
-  $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
+  $('#importData').addEventListener('change', importData);
   $('#resetData').addEventListener('click', resetData);
-  $('#installButton').addEventListener('click', installApp);
   $('#installSettingsButton').addEventListener('click', installApp);
+  $('#dailyGoalEnabled').addEventListener('change', (event) => saveDailyGoal({ enabled: event.target.checked }));
+  $('#dailyGoalInput').addEventListener('change', (event) => saveDailyGoal({ goal: Number(event.target.value) }));
+  $('#saveGoal').addEventListener('click', () => saveDailyGoal({}));
 
-  document.addEventListener('keydown', (event) => {
-    if (event.target.matches('input, select, textarea')) return;
-    if (state.page === 'study' && state.studyQueue.length) {
-      if (event.code === 'Space') { event.preventDefault(); revealStudy(); }
-      if (event.key === 'ArrowLeft') markStudyWord('new');
-      if (event.key === '1') markStudyWord('learning');
-      if (event.key === 'ArrowRight') markStudyWord('known');
-    }
-    if (state.page === 'review' && !$('#reviewCard').classList.contains('hidden')) {
-      if (event.code === 'Space') { event.preventDefault(); state.reviewRevealed = true; renderReviewCard(); }
-      if (state.reviewRevealed && ['1', '2', '3', '4'].includes(event.key)) {
-        rateReview({ 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' }[event.key]);
-      }
-    }
+  document.querySelectorAll('[data-speak]').forEach((btn) => {
+    btn.addEventListener('click', () => speakWord(btn.dataset.speak));
   });
 
-  window.addEventListener('online', () => {
-    setConnectionStatus(true, '正在同步');
-    flushPendingMutations();
+  document.querySelectorAll('[data-dialog-speak]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const wordEl = document.querySelector('#wordDialog [data-word]');
+      if (wordEl) speakWord(wordEl.dataset.word);
+    });
   });
-  window.addEventListener('offline', () => setConnectionStatus(false, '离线模式'));
+
+  window.addEventListener('online', () => setConnectionStatus(true));
+  window.addEventListener('offline', () => setConnectionStatus(false));
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     state.deferredInstallPrompt = event;
-    $('#installButton').classList.remove('hidden');
+    $('#installButton')?.classList.remove('hidden');
     $('#installSettingsButton').disabled = false;
+  });
+
+  document.addEventListener('click', (event) => {
+    const speakBtn = event.target.closest('[data-speak]');
+    if (speakBtn) {
+      event.stopPropagation();
+      speakWord(speakBtn.dataset.speak);
+      return;
+    }
+    const dialogSpeakBtn = event.target.closest('[data-dialog-speak]');
+    if (dialogSpeakBtn) {
+      event.stopPropagation();
+      const wordEl = document.querySelector('#wordDialogBody [data-word]');
+      if (wordEl) speakWord(wordEl.dataset.word);
+      return;
+    }
+    const wordRow = event.target.closest('[data-word-row]');
+    if (wordRow) {
+      openWordDialog(wordRow.dataset.wordRow);
+    }
   });
 }
 
+// ===== Rendering functions =====
+
+function switchPage(page) {
+  state.page = page;
+  $$('.page').forEach((section) => section.classList.remove('active'));
+  $$('.nav-item').forEach((button) => button.classList.remove('active'));
+  const target = $(`#page-${page}`);
+  if (target) target.classList.add('active');
+  const navBtn = document.querySelector(`[data-page="${page}"]`);
+  if (navBtn) navBtn.classList.add('active');
+  if (page === 'home') renderHome();
+  if (page === 'study') prepareStudyQueue(false);
+  if (page === 'review') prepareReviewQueue();
+  if (page === 'spell') prepareSpellQueue(false);
+  if (page === 'words') renderWordTable();
+  if (page === 'data') renderDataPage();
+}
+
+function renderHome() {
+  if (!state.stats) return;
+  const grid = $('#metricGrid');
+  if (!grid) return;
+  const stats = state.stats;
+  const items = [
+    { label: '总词汇', value: stats.total, icon: '📚' },
+    { label: '已掌握', value: stats.known, icon: '✅', color: '#4caf50' },
+    { label: '学习中', value: stats.learning, icon: '📖', color: '#ff9800' },
+    { label: '待学习', value: stats.new, icon: '🆕', color: '#2196f3' },
+    { label: '待复习', value: stats.due, icon: '🔄', color: '#9c27b0' },
+    { label: '易错词', value: stats.wrong, icon: '⚠️', color: '#f44336' }
+  ];
+  grid.innerHTML = items.map((item) => `
+    <div class="metric-card">
+      <div class="metric-icon">${item.icon}</div>
+      <div class="metric-value" style="${item.color ? `color:${item.color}` : ''}">${item.value}</div>
+      <div class="metric-label">${item.label}</div>
+    </div>
+  `).join('');
+
+  const goalRing = $('#goalRing');
+  if (goalRing) {
+    const percent = stats.dailyGoalEnabled ? Math.min(100, Math.round((stats.studiedToday / Math.max(1, stats.dailyGoal)) * 100)) : 0;
+    $('#goalPercent').textContent = `${percent}%`;
+    $('#goalText').textContent = `${stats.studiedToday} / ${stats.dailyGoal}`;
+    const circumference = 2 * Math.PI * 52;
+    goalRing.style.strokeDasharray = circumference;
+    goalRing.style.strokeDashoffset = circumference * (1 - percent / 100);
+  }
+
+  const sectionGrid = $('#sectionGrid');
+  if (sectionGrid && state.sections) {
+    sectionGrid.innerHTML = Object.entries(state.sections).map(([section, data]) => `
+      <div class="section-card">
+        <div class="section-name">${escapeHtml(section)}</div>
+        <div class="section-stats">
+          <span class="badge badge-new">${data.new}</span>
+          <span class="badge badge-learning">${data.learning}</span>
+          <span class="badge badge-known">${data.known}</span>
+          <span class="badge badge-due">${data.due}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function renderStudyCard() {
+  const card = $('#studyCard');
+  if (!card) return;
+  const word = state.studyQueue[state.studyIndex];
+  if (!word) {
+    card.innerHTML = '<div class="empty-state"><span>🎉</span><p>本组单词已学习完毕！</p></div>';
+    return;
+  }
+  const showMeaning = state.studyRevealed || state.alwaysShowMeaning;
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="word-number">${state.studyIndex + 1} / ${state.studyQueue.length}</span>
+      <span class="word-section">${escapeHtml(word.section || '')}</span>
+    </div>
+    <div class="word-display">
+      <div class="word-text">${escapeHtml(word.word)}</div>
+      ${word.phonetic ? `<div class="word-phonetic">/${escapeHtml(word.phonetic)}/</div>` : ''}
+      <button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>
+    </div>
+    ${showMeaning ? `
+      <div class="word-meaning">${escapeHtml(word.meaning || '')}</div>
+      ${word.senses?.length ? `<div class="word-senses">${word.senses.map((sense) => `<div class="sense"><span class="sense-pos">${escapeHtml(sense.pos || '')}</span><span class="sense-meaning">${escapeHtml(sense.meaning || '')}</span></div>`).join('')}</div>` : ''}
+      ${word.examples?.length ? `<div class="word-examples">${word.examples.map((ex) => `<div class="example">${escapeHtml(ex)}</div>`).join('')}</div>` : ''}
+    ` : '<div class="word-hint">点击卡片查看释义</div>'}
+    <div class="card-actions">
+      <button class="action-btn btn-notknown" data-action="notknown">不认识</button>
+      <button class="action-btn btn-fuzzy" data-action="fuzzy">模糊</button>
+      <button class="action-btn btn-known" data-action="known">认识</button>
+    </div>
+  `;
+  card.querySelector('[data-action="notknown"]')?.addEventListener('click', () => markStudyWord('learning'));
+  card.querySelector('[data-action="fuzzy"]')?.addEventListener('click', () => markStudyWord('learning'));
+  card.querySelector('[data-action="known"]')?.addEventListener('click', () => markStudyWord('known'));
+  card.querySelector('[data-speak]')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    speakWord(word.word);
+  });
+  card.addEventListener('click', () => {
+    if (!state.studyRevealed) {
+      state.studyRevealed = true;
+      renderStudyCard();
+    }
+  }, { once: true });
+}
+
+async function prepareStudyQueue(reload) {
+  if (reload || !state.studyQueue.length) {
+    const section = $('#studySection')?.value || '';
+    const status = $('#studyStatus')?.value || 'notknown';
+    const order = $('#studyOrder')?.value || 'sequence';
+    let words = filteredWords(section, status);
+    if (order === 'random') words = [...words].sort(() => Math.random() - 0.5);
+    state.studyQueue = words;
+    state.studyIndex = 0;
+    state.studyRevealed = state.alwaysShowMeaning;
+  }
+  renderStudyCard();
+}
+
+async function markStudyWord(status) {
+  const word = state.studyQueue[state.studyIndex];
+  if (!word) return;
+  try {
+    if (isStandaloneMode()) {
+      const profile = readStandaloneProfile();
+      setStandaloneStatus(profile, word.word, status);
+      writeStandaloneProfile(profile);
+    } else {
+      await apiFetch('/progress', { method: 'POST', body: { word: word.word, status } });
+    }
+    if (state.stats) {
+      state.stats[word.status] = (state.stats[word.status] || 0) - 1;
+      state.stats[status] = (state.stats[status] || 0) + 1;
+    }
+  } catch (error) {
+    enqueueMutation('/progress', { method: 'POST', body: { word: word.word, status } });
+  }
+  state.studyIndex += 1;
+  state.studyRevealed = state.alwaysShowMeaning;
+  renderStudyCard();
+}
+
+function prepareReviewQueue() {
+  // Load review queue
+  if (state.reviewQueue.length) return;
+  apiFetch('/review-queue').then((data) => {
+    state.reviewQueue = data.words || [];
+    state.reviewIndex = 0;
+    renderReviewCard();
+  }).catch(() => {
+    // Fallback: use local words
+    state.reviewQueue = state.words.filter((w) => w.isDue);
+    state.reviewIndex = 0;
+    renderReviewCard();
+  });
+}
+
+function renderReviewCard() {
+  const card = $('#reviewCard');
+  const summary = $('#reviewSummaryNumber');
+  if (!card) return;
+  const word = state.reviewQueue[state.reviewIndex];
+  if (!word) {
+    card.innerHTML = '<div class="empty-state"><span>🎉</span><p>复习完成！</p></div>';
+    if (summary) summary.textContent = '0';
+    return;
+  }
+  if (summary) summary.textContent = String(state.reviewQueue.length - state.reviewIndex);
+  state.reviewRevealed = false;
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="word-number">${state.reviewIndex + 1} / ${state.reviewQueue.length}</span>
+      <span class="word-section">${escapeHtml(word.section || '')}</span>
+    </div>
+    <div class="word-display">
+      <div class="word-text">${escapeHtml(word.word)}</div>
+      ${word.phonetic ? `<div class="word-phonetic">/${escapeHtml(word.phonetic)}/</div>` : ''}
+      <button class="speak-btn" type="button" data-speak-review aria-label="朗读单词">🔊</button>
+    </div>
+    <div class="word-meaning hidden" id="reviewMeaning">${escapeHtml(word.meaning || '')}</div>
+    <div class="card-actions">
+      <button class="action-btn btn-again" data-rating="again">再来</button>
+      <button class="action-btn btn-hard" data-rating="hard">困难</button>
+      <button class="action-btn btn-easy" data-rating="easy">简单</button>
+    </div>
+  `;
+  card.querySelector('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
+  card.querySelector('[data-rating="again"]')?.addEventListener('click', () => reviewWord('again'));
+  card.querySelector('[data-rating="hard"]')?.addEventListener('click', () => reviewWord('hard'));
+  card.querySelector('[data-rating="easy"]')?.addEventListener('click', () => reviewWord('easy'));
+  card.addEventListener('click', () => {
+    $('#reviewMeaning')?.classList.toggle('hidden');
+  }, { once: true });
+}
+
+async function reviewWord(rating) {
+  const word = state.reviewQueue[state.reviewIndex];
+  if (!word) return;
+  try {
+    if (isStandaloneMode()) {
+      const profile = readStandaloneProfile();
+      reviewStandaloneWord(profile, word.word, rating);
+      writeStandaloneProfile(profile);
+    } else {
+      await apiFetch('/review', { method: 'POST', body: { word: word.word, rating } });
+    }
+  } catch (error) {
+    enqueueMutation('/review', { method: 'POST', body: { word: word.word, rating } });
+  }
+  state.reviewIndex += 1;
+  renderReviewCard();
+}
+
+async function loadWrongReview() {
+  try {
+    const data = await apiFetch('/wrong-words');
+    state.reviewQueue = data.words || [];
+    state.reviewIndex = 0;
+    renderReviewCard();
+  } catch (error) {
+    showToast('加载错词失败');
+  }
+}
+
+function startReview() {
+  prepareReviewQueue();
+}
+
+function prepareSpellQueue(reload) {
+  if (reload || !state.spellQueue.length) {
+    const section = $('#spellSection')?.value || '';
+    const status = $('#spellStatus')?.value || 'notknown';
+    let words = filteredWords(section, status);
+    state.spellQueue = [...words].sort(() => Math.random() - 0.5);
+    state.spellIndex = 0;
+    state.spellAnswered = false;
+  }
+  renderSpellCard();
+}
+
+function renderSpellCard() {
+  const card = $('#spellCard');
+  if (!card) return;
+  const word = state.spellQueue[state.spellIndex];
+  if (!word) {
+    card.innerHTML = '<div class="empty-state"><span>🎉</span><p>拼写练习完成！</p></div>';
+    return;
+  }
+  const counter = $('#spellCounter');
+  if (counter) counter.textContent = `${state.spellIndex + 1} / ${state.spellQueue.length}`;
+  card.innerHTML = `
+    <div class="spell-meaning">${escapeHtml(word.meaning || '')}</div>
+    <input type="text" class="spell-input" id="spellInput" placeholder="输入单词拼写" autocomplete="off" autocapitalize="none" spellcheck="false">
+    <button class="primary-btn" id="spellSubmit">确认</button>
+    <div class="spell-result hidden" id="spellResult"></div>
+  `;
+  const input = $('#spellInput');
+  const submit = $('#spellSubmit');
+  const result = $('#spellResult');
+  const check = () => {
+    if (state.spellAnswered) return;
+    state.spellAnswered = true;
+    const answer = input.value.trim().toLowerCase();
+    const correct = word.word.toLowerCase();
+    if (answer === correct) {
+      result.textContent = `✅ 正确！${escapeHtml(word.word)}`;
+      result.className = 'spell-result correct';
+    } else {
+      result.textContent = `❌ 错误！正确答案：${escapeHtml(word.word)}`;
+      result.className = 'spell-result wrong';
+    }
+    result.classList.remove('hidden');
+    speakWord(word.word);
+    setTimeout(() => {
+      state.spellIndex += 1;
+      state.spellAnswered = false;
+      renderSpellCard();
+    }, 2500);
+  };
+  submit.addEventListener('click', check);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
+  input.focus();
+}
+
+function renderWordTable() {
+  const table = $('#wordTable');
+  if (!table) return;
+  const search = $('#wordSearch')?.value.toLowerCase() || '';
+  const section = $('#wordSection')?.value || '';
+  const status = $('#wordStatus')?.value || 'all';
+  let words = state.words;
+  if (search) words = words.filter((w) => w.word.toLowerCase().includes(search) || (w.meaning || '').toLowerCase().includes(search));
+  if (section) words = words.filter((w) => w.section === section);
+  if (status !== 'all') {
+    if (status === 'notknown') words = words.filter((w) => w.status === 'new' || w.status === 'learning');
+    else words = words.filter((w) => w.status === status);
+  }
+  const totalPages = Math.ceil(words.length / state.wordPageSize);
+  if (state.wordPage > totalPages) state.wordPage = 1;
+  const start = (state.wordPage - 1) * state.wordPageSize;
+  const pageWords = words.slice(start, start + state.wordPageSize);
+  table.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>#</th><th>单词</th><th>释义</th><th>状态</th><th></th></tr>
+      </thead>
+      <tbody>
+        ${pageWords.map((word, i) => `
+          <tr data-word-row="${escapeHtml(word.word)}">
+            <td>${start + i + 1}</td>
+            <td class="word-col">
+              <span class="word-cell">${escapeHtml(word.word)}</span>
+              ${word.phonetic ? `<span class="phonetic-cell">/${escapeHtml(word.phonetic)}/</span>` : ''}
+            </td>
+            <td class="meaning-col">${escapeHtml(word.meaning || '')}</td>
+            <td><span class="tag tag-${word.status || 'new'}">${statusLabel(word.status)}</span></td>
+            <td><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读">🔊</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  const pagination = $('#wordPagination');
+  if (pagination) {
+    pagination.innerHTML = totalPages > 1 ? Array.from({ length: totalPages }, (_, i) => `
+      <button class="page-btn ${i + 1 === state.wordPage ? 'active' : ''}" data-page="${i + 1}">${i + 1}</button>
+    `).join('') : '';
+    pagination.querySelectorAll('[data-page]').forEach((btn) => {
+      btn.addEventListener('click', () => { state.wordPage = Number(btn.dataset.page); renderWordTable(); });
+    });
+  }
+  $('#wordCount').textContent = `${words.length} 词`;
+}
+
+function openWordDialog(wordText) {
+  const word = state.words.find((w) => w.word === wordText);
+  if (!word) return;
+  const dialog = $('#wordDialog');
+  const body = $('#wordDialogBody');
+  if (!dialog || !body) return;
+  body.innerHTML = `
+    <div class="dialog-header">
+      <div>
+        <div class="dialog-word" data-word="${escapeHtml(word.word)}">${escapeHtml(word.word)}</div>
+        ${word.phonetic ? `<div class="dialog-phonetic">/${escapeHtml(word.phonetic)}/</div>` : ''}
+      </div>
+      <span class="tag tag-${word.status || 'new'}">${statusLabel(word.status)}</span>
+      <button class="speak-btn" type="button" data-dialog-speak aria-label="朗读单词">🔊</button>
+    </div>
+    <div class="dialog-meaning">${escapeHtml(word.meaning || '')}</div>
+    ${word.senses?.length ? `<div class="dialog-senses">${word.senses.map((s) => `<div class="sense"><span class="sense-pos">${escapeHtml(s.pos || '')}</span><span class="sense-meaning">${escapeHtml(s.meaning || '')}</span></div>`).join('')}</div>` : ''}
+    ${word.examples?.length ? `<div class="dialog-examples">${word.examples.map((ex) => `<div class="example">${escapeHtml(ex)}</div>`).join('')}</div>` : ''}
+  `;
+  dialog.showModal?.() || dialog.classList.add('show');
+  body.querySelector('[data-dialog-speak]')?.addEventListener('click', () => speakWord(word.word));
+}
+
+function renderDataPage() {
+  const summary = $('#syncSummary');
+  if (!summary) return;
+  apiFetch('/sync/summary').then((data) => {
+    summary.innerHTML = `
+      <div class="sync-row">同步码：<strong>${escapeHtml(data.syncCode || state.syncCode)}</strong></div>
+      <div class="sync-row">版本：<strong>${data.revision || 0}</strong></div>
+      <div class="sync-row">最后更新：<strong>${data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-CN') : '从未'}</strong></div>
+      <div class="sync-row">已记录进度：<strong>${data.progressCount || 0} 词</strong></div>
+      <div class="sync-row">错词本：<strong>${data.wrongCount || 0} 词</strong></div>
+    `;
+  }).catch(() => {
+    summary.innerHTML = '<div class="sync-row muted">无法获取同步信息</div>';
+  });
+}
+
+async function applySyncCode() {
+  const input = $('#syncCodeInput');
+  const code = normalizeSyncCode(input?.value);
+  if (!code) return showToast('请输入有效的同步码');
+  state.syncCode = code;
+  writeJsonStorage(STORAGE.syncCode, code);
+  await loadData();
+  showToast('同步码已应用');
+}
+
+function copySyncCode() {
+  const code = state.syncCode;
+  if (!code) return;
+  navigator.clipboard?.writeText(code).then(() => showToast('已复制同步码')).catch(() => {});
+}
+
+function generateNewSyncCode() {
+  const code = generateSyncCode();
+  state.syncCode = code;
+  writeJsonStorage(STORAGE.syncCode, code);
+  $('#syncCodeInput').value = code;
+  showToast('已生成新同步码');
+}
+
+async function syncNow() {
+  if (!state.syncCode) return showToast('请先设置同步码');
+  showToast('同步中...');
+  try {
+    const profile = readStandaloneProfile();
+    await apiFetch('/sync/push', { method: 'POST', body: { profile } });
+    const pullData = await apiFetch('/sync/pull', { method: 'POST' });
+    if (pullData?.profile) {
+      const merged = mergeStandaloneProfile(readStandaloneProfile(), coerceStandaloneProfile(pullData.profile));
+      writeStandaloneProfile(merged);
+    }
+    showToast('同步完成');
+    await loadData();
+  } catch (error) {
+    showToast('同步失败：' + error.message);
+  }
+}
+
+function saveRemoteServer() {
+  const input = $('#remoteServerInput');
+  const value = normalizeRemoteServer(input?.value);
+  state.remoteServer = value;
+  writeJsonStorage(STORAGE.remoteServer, value);
+  showToast('服务器地址已保存');
+}
+
+function saveDailyGoal(changes) {
+  const profile = readStandaloneProfile();
+  if (!profile.settings) profile.settings = { dailyGoal: 45, dailyGoalEnabled: false };
+  if (changes.enabled !== undefined) profile.settings.dailyGoalEnabled = changes.enabled;
+  if (changes.goal !== undefined) profile.settings.dailyGoal = changes.goal;
+  writeStandaloneProfile(profile);
+  showToast('目标已保存');
+}
+
+async function exportData() {
+  const profile = readStandaloneProfile();
+  const data = { profile, words: state.words, exportedAt: new Date().toISOString() };
+  const json = JSON.stringify(data, null, 2);
+  if (window.VocabNative?.saveJson) {
+    const result = window.VocabNative.saveJson(`vocab-backup-${Date.now()}.json`, json);
+    if (result === 'OPENED') showToast('请选择保存目录并确认文件名');
+    else if (result?.startsWith?.('SAVED_DOWNLOADS')) showToast('数据已导出');
+    else showToast('导出失败');
+  } else {
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vocab-backup-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('数据已导出');
+  }
+}
+
+function importData(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.profile) {
+        const merged = mergeStandaloneProfile(readStandaloneProfile(), coerceStandaloneProfile(data.profile));
+        writeStandaloneProfile(merged);
+        showToast('数据已导入');
+        loadData();
+      } else {
+        showToast('文件格式不正确');
+      }
+    } catch (error) {
+      showToast('导入失败：' + error.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() {
+  if (!confirm('确定要重置所有学习数据吗？此操作不可撤销。')) return;
+  const key = standaloneProfileKey();
+  localStorage.removeItem(key);
+  localStorage.removeItem(STORAGE.standaloneWords);
+  showToast('数据已重置');
+  loadData();
+}
+
+async function loadData() {
+  try {
+    if (isStandaloneMode()) {
+      const words = await loadStandaloneWords();
+      const profile = readStandaloneProfile();
+      state.words = words.map((word) => decorateStandaloneWord(profile, word));
+      state.stats = calculateStandaloneStats(profile, words);
+      const sections = {};
+      for (const word of state.words) {
+        sections[word.section] ||= { total: 0, new: 0, learning: 0, known: 0, due: 0 };
+        sections[word.section].total += 1;
+        sections[word.section][word.status] += 1;
+        if (word.isDue) sections[word.section].due += 1;
+      }
+      state.sections = sections;
+      renderHome();
+    } else {
+      const [wordsData, statsData, sectionsData] = await Promise.all([
+        apiFetch('/words'),
+        apiFetch('/stats'),
+        apiFetch('/sections')
+      ]);
+      state.words = wordsData.words || [];
+      state.stats = statsData;
+      state.sections = sectionsData;
+      renderHome();
+    }
+    populateSectionSelects();
+  } catch (error) {
+    showToast('加载数据失败：' + error.message);
+  }
+}
+
+function populateSectionSelects() {
+  const sections = Object.keys(state.sections || {}).sort();
+  const selects = [$('#studySection'), $('#spellSection'), $('#wordSection')];
+  for (const select of selects) {
+    if (!select) continue;
+    const current = select.value;
+    select.innerHTML = '<option value="">全部章节</option>' + sections.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+    select.value = current;
+  }
+}
+
 async function init() {
-  const storedCode = normalizeSyncCode(localStorage.getItem(STORAGE.syncCode));
-  state.syncCode = storedCode.length >= 6 ? storedCode : generateSyncCode();
-  state.remoteServer = normalizeRemoteServer(localStorage.getItem(STORAGE.remoteServer));
-  localStorage.setItem(STORAGE.syncCode, state.syncCode);
-  bindEvents();
-  setConnectionStatus(navigator.onLine, '连接中');
+  state.syncCode = readJsonStorage(STORAGE.syncCode, '');
+  state.remoteServer = readJsonStorage(STORAGE.remoteServer, '');
+  state.alwaysShowMeaning = readJsonStorage(STORAGE.alwaysShowMeaning, false);
 
   if ('serviceWorker' in navigator && STANDALONE_MODE) {
     navigator.serviceWorker.getRegistrations?.().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
@@ -1607,6 +1873,12 @@ async function init() {
 
   await refreshAll();
   await flushPendingMutations();
+  await checkForServerRevisionChange({ force: true });
+  startServerRevisionPolling();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

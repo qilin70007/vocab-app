@@ -79,7 +79,7 @@
           <label>状态<select id="studyStatus">
             <option value="notknown">不认识＋模糊</option>
             <option value="new">不认识</option>
-            <option value="learning">学习中</option>
+            <option value="learning">待巩固</option>
             <option value="known">已掌握</option>
             <option value="all">全部</option>
           </select></label>
@@ -99,19 +99,19 @@
 
       <section class="page" id="page-review" aria-labelledby="reviewTitle">
         <div class="page-heading">
-          <div><p class="eyebrow">间隔复习</p><h1 id="reviewTitle">复习中心</h1></div>
+          <div><p class="eyebrow">间隔复习</p><h1 id="reviewTitle">到期复习</h1></div>
           <span class="queue-count" id="reviewDueCount">0 到期</span>
         </div>
         <div class="review-layout">
           <article class="panel review-summary">
             <div class="review-summary-number" id="reviewSummaryNumber">0</div>
-            <p>个单词需要复习</p>
+            <p>个到期或错题需要复习</p>
             <button class="primary-btn" id="startReviewButton" type="button">开始复习</button>
             <button class="ghost-btn" id="startWrongButton" type="button">只练错题</button>
           </article>
           <article class="review-card hidden" id="reviewCard"></article>
           <article class="panel" id="reviewPreviewPanel">
-            <div class="panel-heading"><div><p class="eyebrow">优先队列</p><h2>待复习词</h2></div></div>
+            <div class="panel-heading"><div><p class="eyebrow">优先队列</p><h2>先复习到期词和错题</h2></div></div>
             <div class="compact-word-list" id="reviewPreview"></div>
           </article>
         </div>
@@ -124,7 +124,7 @@
         </div>
         <div class="control-bar">
           <label>范围<select id="spellSection"><option value="">全部字母</option></select></label>
-          <label>状态<select id="spellStatus"><option value="notknown">不认识＋模糊</option><option value="learning">学习中</option><option value="new">未背过</option><option value="known">已掌握</option><option value="all">全部</option></select></label>
+          <label>状态<select id="spellStatus"><option value="notknown">不认识＋模糊</option><option value="learning">待巩固</option><option value="new">未背过</option><option value="known">已掌握</option><option value="all">全部</option></select></label>
           <button class="secondary-btn compact" id="reloadSpell" type="button">重新生成</button>
         </div>
         <article class="spell-card" id="spellCard">
@@ -140,7 +140,7 @@
         <div class="word-toolbar">
           <label class="search-box"><span>⌕</span><input id="wordSearch" type="search" placeholder="搜索英文、中文、搭配或例句"></label>
           <select id="wordSection"><option value="">全部字母</option></select>
-          <select id="wordStatus"><option value="all">全部状态</option><option value="new">未背过</option><option value="learning">学习中</option><option value="known">已掌握</option><option value="notknown">不认识＋模糊</option></select>
+          <select id="wordStatus"><option value="all">全部状态</option><option value="new">未背过</option><option value="learning">待巩固</option><option value="known">已掌握</option><option value="notknown">不认识＋模糊</option></select>
         </div>
         <div class="word-table" id="wordTable"></div>
         <div class="pagination" id="wordPagination"></div>
@@ -198,12 +198,12 @@
           </article>
 
           <article class="panel">
-            <div class="panel-heading"><div><p class="eyebrow">访问方式</p><h2>手机与 Windows</h2></div></div>
-            <p class="muted">仅访问下面的局域网网址不需要安装，但它依赖电脑在身边当服务器；电脑不在同一网络或服务没开时，普通网址就打不开。</p>
+            <div class="panel-heading"><div><p class="eyebrow">访问方式</p><h2>手机怎么连电脑</h2></div></div>
+            <p class="muted">这里分两种方式：手机浏览器临时访问电脑网页，或安装 APK 后用“APK 电脑同步地址”同步。</p>
             <ol class="setup-steps">
-              <li><strong>添加到主屏幕：</strong>安卓 Chrome/Edge 打开下面的网址后，点右上角 ⋮，选择“添加到主屏幕”或“安装应用”。这不是 APK，只是把已缓存的网页应用放到桌面。</li>
-              <li><strong>彻底脱离电脑：</strong>如果希望手机首次打开、词库、进度保存都不依赖电脑服务器，需要把应用做成真正的手机端版本（APK/Capacitor/TWA）或部署到 HTTPS 云端。</li>
-              <li><strong>同步电脑进度：</strong>手机离线产生的记录会先存在手机本地；重新连回同一个服务器后，点“立即同步”上传。</li>
+              <li><strong>手机浏览器：</strong>打开下面的局域网地址；电脑必须正在运行服务器，且手机和电脑在同一网络。</li>
+              <li><strong>安装 APK：</strong>APK 可离线学习；要同步电脑时，在上方填写电脑地址，点“保存地址”后再点“立即同步”。</li>
+              <li><strong>添加到主屏幕：</strong>只是把浏览器网页放到桌面，仍依赖电脑服务器；它不是 APK。</li>
             </ol>
             <button class="secondary-btn" id="installSettingsButton" type="button">添加到主屏幕/安装</button>
             <div class="lan-urls" id="lanUrls"></div>

@@ -16,8 +16,8 @@ echo "==> Preparing bundled mobile word list"
 npm run mobile:prepare
 
 echo "==> Ensuring Capacitor packages are installed"
-if [ ! -d node_modules/@capacitor/android ] || [ ! -d node_modules/@capacitor-community/text-to-speech ] || [ ! -d node_modules/@capacitor/filesystem ] || [ ! -d node_modules/@capacitor/share ]; then
-  npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor-community/text-to-speech @capacitor/filesystem@7 @capacitor/share@7
+if [ ! -d node_modules/@capacitor/core ] || [ ! -d node_modules/@capacitor/cli ] || [ ! -d node_modules/@capacitor/android ]; then
+  npm install -D --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 fi
 
 echo "==> Creating Android project if needed"
