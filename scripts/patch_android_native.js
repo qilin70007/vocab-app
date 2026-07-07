@@ -14,8 +14,10 @@ if (!fs.existsSync(mainActivity)) {
 
 const source = `package com.vocabmaster.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
 
@@ -49,7 +51,6 @@ public class MainActivity extends BridgeActivity {
       ttsReady = status == TextToSpeech.SUCCESS;
       ttsInitFailed = !ttsReady;
       if (!ttsReady) {
-        showToast("当前设备没有可用的系统文字转语音引擎");
         return;
       }
       if (pendingTtsText != null) {
@@ -120,6 +121,23 @@ public class MainActivity extends BridgeActivity {
     @JavascriptInterface
     public void stopTts() {
       if (textToSpeech != null) textToSpeech.stop();
+    }
+
+    @JavascriptInterface
+    public void openTtsSettings() {
+      runOnUiThread(() -> {
+        try {
+          Intent installIntent = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+          startActivity(installIntent);
+        } catch (Exception installError) {
+          try {
+            Intent settingsIntent = new Intent(Settings.ACTION_SETTINGS);
+            startActivity(settingsIntent);
+          } catch (Exception settingsError) {
+            showToast("请在小米系统设置中搜索“文字转语音输出”，安装或启用英文语音引擎");
+          }
+        }
+      });
     }
 
     @JavascriptInterface

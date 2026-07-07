@@ -1401,6 +1401,14 @@ function hasNativeAndroidBridge() {
   return Boolean(window.VocabNative && typeof window.VocabNative.speak === 'function');
 }
 
+function openNativeTtsSettings() {
+  if (window.VocabNative && typeof window.VocabNative.openTtsSettings === 'function') {
+    window.VocabNative.openTtsSettings();
+    return true;
+  }
+  return false;
+}
+
 function canSpeakText() {
   return hasNativeAndroidBridge() || Boolean(nativeTextToSpeech()?.speak) || 'speechSynthesis' in window || isNativeApp();
 }
@@ -1436,6 +1444,7 @@ async function speakTextNative(text, lang, rate = 0.82) {
     if (result === 'NO_TTS_ENGINE') {
       const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
       if (played) return true;
+      return false;
     }
   }
   const nativeTts = nativeTextToSpeech();
@@ -1471,7 +1480,8 @@ function speakText(text, lang, rate = 0.82) {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
       if (!('speechSynthesis' in window)) {
-        showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
+        const opened = openNativeTtsSettings();
+        showToast(opened ? '请在打开的文字转语音设置中启用/安装英文语音引擎后重试' : '当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
         resolve();
         return;
       }
@@ -1483,7 +1493,11 @@ function speakText(text, lang, rate = 0.82) {
       utterance.onend = resolve;
       utterance.onerror = resolve;
       window.speechSynthesis.speak(utterance);
-    }).catch(() => resolve());
+    }).catch(() => {
+      const opened = openNativeTtsSettings();
+      showToast(opened ? '请在打开的文字转语音设置中启用/安装英文语音引擎后重试' : '朗读失败：请启用系统文字转语音引擎或检查网络后重试');
+      resolve();
+    });
   });
 }
 
