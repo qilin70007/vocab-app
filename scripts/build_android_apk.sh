@@ -4,14 +4,6 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-ORIGINAL_INDEX="$(mktemp)"
-cp public/index.html "$ORIGINAL_INDEX"
-restore_desktop_index() {
-  cp "$ORIGINAL_INDEX" public/index.html
-  rm -f "$ORIGINAL_INDEX"
-}
-trap restore_desktop_index EXIT
-
 echo "==> Preparing bundled mobile word list"
 npm run mobile:prepare
 
@@ -24,9 +16,6 @@ echo "==> Creating Android project if needed"
 if [ ! -d android ]; then
   npx cap add android
 fi
-
-echo "==> Using mobile standalone entrypoint for Android"
-cp public/mobile.html public/index.html
 
 echo "==> Syncing web assets into Android project"
 npx cap sync android

@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手（手机离线版）</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.1.7">
+  <link rel="stylesheet" href="/style.css?v=2.1.5">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -99,19 +99,19 @@
 
       <section class="page" id="page-review" aria-labelledby="reviewTitle">
         <div class="page-heading">
-          <div><p class="eyebrow">间隔复习</p><h1 id="reviewTitle">到期复习</h1></div>
+          <div><p class="eyebrow">间隔复习</p><h1 id="reviewTitle">复习中心</h1></div>
           <span class="queue-count" id="reviewDueCount">0 到期</span>
         </div>
         <div class="review-layout">
           <article class="panel review-summary">
             <div class="review-summary-number" id="reviewSummaryNumber">0</div>
-            <p>个到期或错题需要复习</p>
+            <p>个单词需要复习</p>
             <button class="primary-btn" id="startReviewButton" type="button">开始复习</button>
             <button class="ghost-btn" id="startWrongButton" type="button">只练错题</button>
           </article>
           <article class="review-card hidden" id="reviewCard"></article>
           <article class="panel" id="reviewPreviewPanel">
-            <div class="panel-heading"><div><p class="eyebrow">优先队列</p><h2>先复习到期词和错题</h2></div></div>
+            <div class="panel-heading"><div><p class="eyebrow">优先队列</p><h2>待复习词</h2></div></div>
             <div class="compact-word-list" id="reviewPreview"></div>
           </article>
         </div>
@@ -229,6 +229,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>window.VOCAB_STANDALONE = true;</script>
-  <script src="/app.js?v=2.1.7" defer></script>
+  <script src="/app.js?v=2.1.5" defer></script>
 </body>
 </html>
