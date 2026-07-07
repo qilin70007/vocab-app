@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.1.5">
+  <link rel="stylesheet" href="/style.css?v=2.1.6">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -228,6 +228,9 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/app.js?v=2.1.5" defer></script>
+  <script>
+    window.VOCAB_STANDALONE = window.VOCAB_STANDALONE || (location.hostname === 'localhost' && /Android/i.test(navigator.userAgent || ''));
+  </script>
+  <script src="/app.js?v=2.1.6" defer></script>
 </body>
 </html>
