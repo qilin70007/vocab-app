@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test",
-    "check": "node --check server.js && node --check public/app.js && node --test",
+    "check": "node --check server.js && node --check public/app.js && node --check scripts/patch_android_native.js && node --test",
     "import:ocr": "node scripts/import_ocr_data.js",
     "sync:words": "node parse_800words.js && node sync_handbook_words.js",
     "check:legacy": "node -c parse_800words.js && node -c sync_handbook_words.js",
