@@ -67,13 +67,13 @@ public class MainActivity extends BridgeActivity {
   }
 
   @Override
-  protected void onResume() {
+  public void onResume() {
     super.onResume();
     if (ttsInitFailed && !ttsInitializing) initializePreferredTts();
   }
 
   @Override
-  protected void onDestroy() {
+  public void onDestroy() {
     synchronized (this) {
       ttsGeneration += 1;
       if (textToSpeech != null) {
