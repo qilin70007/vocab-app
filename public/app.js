@@ -1486,7 +1486,7 @@ function isWindowsPlatform() {
 
 function speechRate(lang) {
   const isChinese = String(lang).toLowerCase().startsWith('zh');
-  if (hasNativeAndroidBridge()) return isChinese ? 0.76 : 0.68;
+  if (hasNativeAndroidBridge()) return isChinese ? 0.61 : 0.54;
   if (isWindowsPlatform()) return 0.8;
   return isChinese ? 0.86 : 0.8;
 }
@@ -1498,8 +1498,8 @@ function estimatedSpeechMs(text, lang, rate = 1) {
   const units = isChinese
     ? (normalized.match(/[\u4e00-\u9fff]/g) || []).length + normalized.replace(/[\u4e00-\u9fff\s，。；、：,.!?]/g, '').length * 0.5
     : Math.max(1, normalized.split(/\s+/).length);
-  const baseMs = isChinese ? 280 : 430;
-  return Math.min(12000, Math.max(650, Math.round((units * baseMs) / Math.max(0.45, rate)))) + 220;
+  const baseMs = isChinese ? 360 : 620;
+  return Math.min(22000, Math.max(1000, Math.round((units * baseMs) / Math.max(0.35, rate)))) + 650;
 }
 
 function speakText(text, lang, rate = speechRate(lang)) {
@@ -1579,7 +1579,7 @@ async function speakWordDetails(word) {
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', Math.min(0.78, speechRate('en-US') + 0.04));
+  if (example) await speakText(example, 'en-US', hasNativeAndroidBridge() ? 0.58 : Math.min(0.78, speechRate('en-US') + 0.04));
 }
 
 async function toggleAutoReadUnknown() {
@@ -1608,7 +1608,7 @@ async function toggleAutoReadUnknown() {
     state.studyRevealed = true;
     renderStudyCard();
     await speakWordDetails(words[index]);
-    if (state.autoReadActive) await delay(2000);
+    if (state.autoReadActive) await delay(hasNativeAndroidBridge() ? 2800 : 2000);
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
