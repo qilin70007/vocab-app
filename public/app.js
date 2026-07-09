@@ -11,6 +11,7 @@ const STORAGE = {
   pending: 'vocab.v2.pendingMutations',
   cachePrefix: 'vocab.v2.3.1.cache.',
   alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
+  autoReadPauseSeconds: 'vocab.v2.autoReadPauseSeconds',
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
   standaloneWords: 'vocab.v2.standalone.words',
@@ -40,6 +41,7 @@ const state = {
   online: navigator.onLine,
   autoReadActive: false,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
+  autoReadPauseSeconds: Number(readJsonStorage(STORAGE.autoReadPauseSeconds, 3)) || 3,
   remoteServer: '',
   serverRevision: null,
   revisionPollTimer: null,
@@ -942,7 +944,7 @@ function renderStudyCard() {
 
   $('[data-reveal-study]')?.addEventListener('click', revealStudy);
   $$('[data-study-status]').forEach((button) => button.addEventListener('click', () => markStudyWord(button.dataset.studyStatus)));
-  $('[data-speak]')?.addEventListener('click', () => speakWord(word.word));
+  $('[data-speak]')?.addEventListener('click', () => speakWord(word));
 }
 
 function revealStudy() {
@@ -1050,7 +1052,7 @@ function renderReviewCard() {
       ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div><div class="review-rating"><button class="rating-again" data-rating="again">重来<br><small>10 分钟</small></button><button class="rating-hard" data-rating="hard">困难<br><small>1 天</small></button><button class="rating-good" data-rating="good">记得<br><small>间隔增加</small></button><button class="rating-easy" data-rating="easy">很熟<br><small>更长间隔</small></button></div>`
       : '<button class="primary-btn" style="width:100%" type="button" data-reveal-review>显示答案</button>'}
     <div class="card-footer"><span>${state.reviewIndex + 1} / ${state.reviewQueue.length}</span><span class="progress-track"><i style="width:${Math.round(((state.reviewIndex + 1) / state.reviewQueue.length) * 100)}%"></i></span><span>${state.reviewMode === 'wrong' ? '错题专练' : '间隔复习'}</span></div>`;
-  $('[data-speak-review]')?.addEventListener('click', () => speakWord(word.word));
+  $('[data-speak-review]')?.addEventListener('click', () => speakWord(word));
   $('[data-reveal-review]')?.addEventListener('click', () => { state.reviewRevealed = true; renderReviewCard(); });
   $$('[data-rating]').forEach((button) => button.addEventListener('click', () => rateReview(button.dataset.rating)));
 }
@@ -1216,7 +1218,7 @@ function showWordDialog(wordText) {
   const word = state.words.find((item) => item.word === wordText);
   if (!word) return;
   $('#wordDialogBody').innerHTML = `<h2 class="dialog-word">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-dialog-speak>🔊</button></div><div class="dialog-meaning">${wordMeaningHtml(word)}</div><div class="detail-groups">${wordDetailsHtml(word)}</div>`;
-  $('[data-dialog-speak]')?.addEventListener('click', () => speakWord(word.word));
+  $('[data-dialog-speak]')?.addEventListener('click', () => speakWord(word));
   $('#wordDialog').showModal();
 }
 
@@ -1439,8 +1441,12 @@ function playRemoteTtsAudio(text, lang) {
 
 async function speakTextNative(text, lang, rate = 0.82) {
   if (hasNativeAndroidBridge()) {
-    const result = window.VocabNative.speak(String(text || ''), lang, String(rate));
-    if (result === 'OK') return true;
+    const spokenText = String(text || '');
+    const result = window.VocabNative.speak(spokenText, lang, String(rate));
+    if (result === 'OK') {
+      await delay(estimatedSpeechMs(spokenText, lang, rate));
+      return true;
+    }
     if (result === 'NO_TTS_ENGINE') {
       const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
       if (played) return true;
@@ -1475,7 +1481,30 @@ function preferredVoice(lang) {
     || null;
 }
 
-function speakText(text, lang, rate = 0.82) {
+function isWindowsPlatform() {
+  const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || '';
+  return /win/i.test(platform);
+}
+
+function speechRate(lang) {
+  const isChinese = String(lang).toLowerCase().startsWith('zh');
+  if (hasNativeAndroidBridge()) return isChinese ? 0.61 : 0.54;
+  if (isWindowsPlatform()) return 0.8;
+  return isChinese ? 0.86 : 0.8;
+}
+
+function estimatedSpeechMs(text, lang, rate = 1) {
+  const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return 180;
+  const isChinese = String(lang).toLowerCase().startsWith('zh');
+  const units = isChinese
+    ? (normalized.match(/[\u4e00-\u9fff]/g) || []).length + normalized.replace(/[\u4e00-\u9fff\s，。；、：,.!?]/g, '').length * 0.5
+    : Math.max(1, normalized.split(/\s+/).length);
+  const baseMs = isChinese ? 360 : 620;
+  return Math.min(22000, Math.max(1000, Math.round((units * baseMs) / Math.max(0.35, rate)))) + 650;
+}
+
+function speakText(text, lang, rate = speechRate(lang)) {
   return new Promise((resolve) => {
     speakTextNative(text, lang, rate).then((handled) => {
       if (handled) { resolve(); return; }
@@ -1504,7 +1533,8 @@ function speakText(text, lang, rate = 0.82) {
 async function speakWord(word) {
   if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   await stopSpeaking();
-  speakText(word, 'en-US', 0.82);
+  const entry = typeof word === 'string' ? state.currentWord || state.reviewCurrent || { word } : word;
+  await speakWordDetails(entry);
 }
 
 function posToChinese(pos) {
@@ -1546,12 +1576,17 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function autoReadPauseMs() {
+  const seconds = Math.min(10, Math.max(0.5, Number(state.autoReadPauseSeconds || 3)));
+  return Math.round(seconds * 1000);
+}
+
 async function speakWordDetails(word) {
-  await speakText(word.word, 'en-US', 0.82);
+  await speakText(word.word, 'en-US', speechRate('en-US'));
   const meaning = spokenMeaning(word);
-  if (meaning) await speakText(meaning, 'zh-CN', 0.88);
+  if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', 0.82);
+  if (example) await speakText(example, 'en-US', hasNativeAndroidBridge() ? 0.58 : Math.min(0.78, speechRate('en-US') + 0.04));
 }
 
 async function toggleAutoReadUnknown() {
@@ -1580,7 +1615,7 @@ async function toggleAutoReadUnknown() {
     state.studyRevealed = true;
     renderStudyCard();
     await speakWordDetails(words[index]);
-    if (state.autoReadActive) await delay(2000);
+    if (state.autoReadActive) await delay(autoReadPauseMs());
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
@@ -1608,6 +1643,15 @@ function bindEvents() {
   $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
   $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
   $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
+  const autoReadPauseInput = $('#autoReadPauseSeconds');
+  if (autoReadPauseInput) {
+    autoReadPauseInput.value = String(state.autoReadPauseSeconds);
+    autoReadPauseInput.addEventListener('change', (event) => {
+      state.autoReadPauseSeconds = Math.min(10, Math.max(0.5, Number(event.target.value || 3)));
+      event.target.value = String(state.autoReadPauseSeconds);
+      writeJsonStorage(STORAGE.autoReadPauseSeconds, state.autoReadPauseSeconds);
+    });
+  }
   $('#alwaysShowMeaning').checked = state.alwaysShowMeaning;
   $('#alwaysShowMeaning').addEventListener('change', (event) => {
     state.alwaysShowMeaning = event.target.checked;
