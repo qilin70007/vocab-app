@@ -115,7 +115,7 @@ select, input[type="text"], input[type="search"], input[type="number"] { min-hei
 .toggle-control { min-height: 42px; display: inline-flex !important; grid-auto-flow: column; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink) !important; }
 .toggle-control input { width: 18px; height: 18px; accent-color: var(--brand); }
 
-.flashcard-wrap { max-width: 980px; margin: 0 auto; }
+.flashcard-wrap { max-width: 980px; margin: 0 auto; scroll-margin-top: 88px; }
 .flashcard { min-height: 620px; padding: clamp(28px, 5.6vw, 54px); border: 1px solid rgba(218, 225, 238, .9); border-radius: 30px; background: linear-gradient(155deg, #fff, #fbfcff 72%, #edf2ff); box-shadow: var(--shadow); }
 .flashcard-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .word-title { margin: 0; font-size: clamp(46px, 8vw, 80px); letter-spacing: -.045em; line-height: 1.05; overflow-wrap: anywhere; }
