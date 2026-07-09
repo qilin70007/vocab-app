@@ -268,7 +268,9 @@ public class MainActivity extends BridgeActivity {
     Bundle speakParams = new Bundle();
     speakParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f);
     speakParams.putString(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(android.media.AudioManager.STREAM_MUSIC));
-    int speakStatus = engine.speak(text, TextToSpeech.QUEUE_FLUSH, speakParams, "vocab-" + System.currentTimeMillis());
+    String utteranceId = "vocab-" + System.currentTimeMillis();
+    engine.playSilentUtterance(120, TextToSpeech.QUEUE_FLUSH, utteranceId + "-warmup");
+    int speakStatus = engine.speak(text, TextToSpeech.QUEUE_ADD, speakParams, utteranceId);
     if (speakStatus == TextToSpeech.SUCCESS) return true;
     return queueSpeechAndTryNextEngine(text, lang, rate);
   }

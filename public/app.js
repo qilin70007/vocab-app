@@ -11,6 +11,7 @@ const STORAGE = {
   pending: 'vocab.v2.pendingMutations',
   cachePrefix: 'vocab.v2.3.1.cache.',
   alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
+  autoReadPauseSeconds: 'vocab.v2.autoReadPauseSeconds',
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
   standaloneWords: 'vocab.v2.standalone.words',
@@ -40,6 +41,7 @@ const state = {
   online: navigator.onLine,
   autoReadActive: false,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
+  autoReadPauseSeconds: Number(readJsonStorage(STORAGE.autoReadPauseSeconds, 3)) || 3,
   remoteServer: '',
   serverRevision: null,
   revisionPollTimer: null,
@@ -1574,6 +1576,11 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function autoReadPauseMs() {
+  const seconds = Math.min(10, Math.max(0.5, Number(state.autoReadPauseSeconds || 3)));
+  return Math.round(seconds * 1000);
+}
+
 async function speakWordDetails(word) {
   await speakText(word.word, 'en-US', speechRate('en-US'));
   const meaning = spokenMeaning(word);
@@ -1608,7 +1615,7 @@ async function toggleAutoReadUnknown() {
     state.studyRevealed = true;
     renderStudyCard();
     await speakWordDetails(words[index]);
-    if (state.autoReadActive) await delay(hasNativeAndroidBridge() ? 2800 : 2000);
+    if (state.autoReadActive) await delay(autoReadPauseMs());
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
@@ -1636,6 +1643,15 @@ function bindEvents() {
   $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
   $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
   $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
+  const autoReadPauseInput = $('#autoReadPauseSeconds');
+  if (autoReadPauseInput) {
+    autoReadPauseInput.value = String(state.autoReadPauseSeconds);
+    autoReadPauseInput.addEventListener('change', (event) => {
+      state.autoReadPauseSeconds = Math.min(10, Math.max(0.5, Number(event.target.value || 3)));
+      event.target.value = String(state.autoReadPauseSeconds);
+      writeJsonStorage(STORAGE.autoReadPauseSeconds, state.autoReadPauseSeconds);
+    });
+  }
   $('#alwaysShowMeaning').checked = state.alwaysShowMeaning;
   $('#alwaysShowMeaning').addEventListener('change', (event) => {
     state.alwaysShowMeaning = event.target.checked;
