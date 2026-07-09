@@ -901,8 +901,6 @@ function prepareStudyQueue(force = true) {
 
 function wordDetailsHtml(word) {
   const groups = [];
-  const senses = derivedSenses(word);
-  if (senses.length > 1) groups.push(['词性释义', senses.map((sense) => `${sense.pos ? `${sense.pos} ` : ''}${sense.meaning}`)]);
   if (word.synonyms.length) groups.push(['近义词', word.synonyms]);
   if (word.antonyms.length) groups.push(['反义词', word.antonyms]);
   if (word.proverbs.length) groups.push(['谚语', word.proverbs]);
@@ -952,6 +950,10 @@ function revealStudy() {
   renderStudyCard();
 }
 
+function scrollStudyCardIntoView() {
+  requestAnimationFrame(() => $('.flashcard-wrap')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+}
+
 async function markStudyWord(status) {
   const word = state.studyQueue[state.studyIndex];
   if (!word) return;
@@ -961,6 +963,7 @@ async function markStudyWord(status) {
   state.studyIndex += 1;
   state.studyRevealed = state.alwaysShowMeaning;
   renderStudyCard();
+  scrollStudyCardIntoView();
   try {
     const payload = await api(`/words/${encodeURIComponent(word.word)}/status`, {
       method: 'PUT',
@@ -1614,8 +1617,9 @@ async function toggleAutoReadUnknown() {
     state.studyIndex = index;
     state.studyRevealed = true;
     renderStudyCard();
+    scrollStudyCardIntoView();
     await speakWordDetails(words[index]);
-    if (state.autoReadActive) await delay(autoReadPauseMs());
+    if (state.autoReadActive) await delay(3000);
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
