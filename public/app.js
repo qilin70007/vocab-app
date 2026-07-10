@@ -1503,8 +1503,11 @@ function estimatedSpeechMs(text, lang, rate = 1) {
   const units = isChinese
     ? (normalized.match(/[\u4e00-\u9fff]/g) || []).length + normalized.replace(/[\u4e00-\u9fff\s，。；、：,.!?]/g, '').length * 0.5
     : Math.max(1, normalized.split(/\s+/).length);
-  const baseMs = isChinese ? 360 : 620;
-  return Math.min(22000, Math.max(1000, Math.round((units * baseMs) / Math.max(0.35, rate)))) + 650;
+  const nativeBridge = hasNativeAndroidBridge();
+  const baseMs = nativeBridge ? (isChinese ? 260 : 300) : (isChinese ? 360 : 620);
+  const tailMs = nativeBridge ? 250 : 650;
+  const maxMs = nativeBridge ? 12000 : 22000;
+  return Math.min(maxMs, Math.max(700, Math.round((units * baseMs) / Math.max(0.35, rate)))) + tailMs;
 }
 
 function speakText(text, lang, rate = speechRate(lang)) {
@@ -1619,7 +1622,7 @@ async function toggleAutoReadUnknown() {
     renderStudyCard();
     scrollStudyCardIntoView();
     await speakWordDetails(words[index]);
-    if (state.autoReadActive) await delay(3000);
+    if (state.autoReadActive) await delay(autoReadPauseMs());
   }
   state.autoReadActive = false;
   $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
