@@ -15,13 +15,18 @@ if (!fs.existsSync(mainActivity)) {
 
 const source = `package com.vocabmaster.app;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
@@ -36,10 +41,12 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends BridgeActivity {
@@ -57,6 +64,8 @@ public class MainActivity extends BridgeActivity {
   private String pendingTtsText = null;
   private String pendingTtsLang = "en-US";
   private float pendingTtsRate = 0.82f;
+  private String pendingTtsCallbackId = null;
+  private final Map<String, String> ttsCallbacks = new HashMap<>();
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -151,6 +160,7 @@ public class MainActivity extends BridgeActivity {
   private synchronized void startTtsCandidate(int candidateIndex) {
     if (candidateIndex >= ttsEngineCandidates.size()) {
       boolean hadPendingSpeech = pendingTtsText != null;
+      pendingTtsCallbackId = null;
       pendingTtsText = null;
       ttsReady = false;
       ttsInitializing = false;
@@ -195,6 +205,7 @@ public class MainActivity extends BridgeActivity {
     String queuedText = null;
     String queuedLang = "en-US";
     float queuedRate = 0.82f;
+    String queuedCallbackId = null;
     int nextCandidate = -1;
 
     synchronized (this) {
@@ -208,6 +219,8 @@ public class MainActivity extends BridgeActivity {
           queuedText = pendingTtsText;
           queuedLang = pendingTtsLang;
           queuedRate = pendingTtsRate;
+          queuedCallbackId = pendingTtsCallbackId;
+          pendingTtsCallbackId = null;
           pendingTtsText = null;
         }
       } else {
@@ -219,7 +232,7 @@ public class MainActivity extends BridgeActivity {
     if (nextCandidate >= 0) {
       startTtsCandidate(nextCandidate);
     } else if (queuedText != null) {
-      speakNow(queuedText, queuedLang, queuedRate);
+      speakNow(queuedText, queuedLang, queuedRate, queuedCallbackId);
     }
   }
 
@@ -233,12 +246,14 @@ public class MainActivity extends BridgeActivity {
     }
   }
 
-  private synchronized boolean queueSpeechAndTryNextEngine(String text, String lang, float rate) {
+  private synchronized boolean queueSpeechAndTryNextEngine(String text, String lang, float rate, String callbackId) {
     pendingTtsText = text;
     pendingTtsLang = lang;
     pendingTtsRate = rate;
+    pendingTtsCallbackId = callbackId;
     int nextCandidate = ttsEngineIndex + 1;
     if (nextCandidate >= ttsEngineCandidates.size()) {
+      pendingTtsCallbackId = null;
       pendingTtsText = null;
       ttsReady = false;
       ttsInitFailed = true;
@@ -249,7 +264,7 @@ public class MainActivity extends BridgeActivity {
     return true;
   }
 
-  private boolean speakNow(String text, String lang, float rate) {
+  private boolean speakNow(String text, String lang, float rate, String callbackId) {
     TextToSpeech engine;
     synchronized (this) {
       if (textToSpeech == null || !ttsReady) return false;
@@ -259,7 +274,7 @@ public class MainActivity extends BridgeActivity {
     Locale locale = String.valueOf(lang).toLowerCase(Locale.ROOT).startsWith("zh") ? Locale.CHINA : Locale.US;
     int languageStatus = engine.setLanguage(locale);
     if (languageStatus == TextToSpeech.LANG_MISSING_DATA || languageStatus == TextToSpeech.LANG_NOT_SUPPORTED) {
-      if (queueSpeechAndTryNextEngine(text, lang, rate)) return true;
+      if (queueSpeechAndTryNextEngine(text, lang, rate, callbackId)) return true;
       showToast("Google TTS、讯飞语音和系统默认引擎均不支持该语言，请安装对应语音包");
       return false;
     }
@@ -269,27 +284,89 @@ public class MainActivity extends BridgeActivity {
     speakParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f);
     speakParams.putString(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(android.media.AudioManager.STREAM_MUSIC));
     String utteranceId = "vocab-" + System.currentTimeMillis();
+    if (callbackId != null && !callbackId.isEmpty()) {
+      synchronized (this) { ttsCallbacks.put(utteranceId, callbackId); }
+      engine.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+        @Override public void onStart(String id) {}
+        @Override public void onDone(String id) { notifyTtsFinished(id, "OK"); }
+        @Override public void onError(String id) { notifyTtsFinished(id, "OK"); }
+        @Override public void onError(String id, int errorCode) { notifyTtsFinished(id, "OK"); }
+      });
+    }
     engine.playSilentUtterance(120, TextToSpeech.QUEUE_FLUSH, utteranceId + "-warmup");
     int speakStatus = engine.speak(text, TextToSpeech.QUEUE_ADD, speakParams, utteranceId);
     if (speakStatus == TextToSpeech.SUCCESS) return true;
-    return queueSpeechAndTryNextEngine(text, lang, rate);
+    return queueSpeechAndTryNextEngine(text, lang, rate, callbackId);
+  }
+
+
+  private void notifyTtsFinished(String utteranceId, String result) {
+    String callbackId = null;
+    synchronized (this) {
+      callbackId = ttsCallbacks.remove(utteranceId);
+    }
+    if (callbackId == null || callbackId.isEmpty()) return;
+    try {
+      JSONObject payload = new JSONObject();
+      payload.put("result", result);
+      callback(callbackId, payload);
+    } catch (Exception ignored) {}
   }
 
   public class VocabNativeBridge {
-    @JavascriptInterface
-    public String saveJson(String filename, String content) {
-      File downloads = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-      if (downloads == null) downloads = getFilesDir();
-      if (!downloads.exists()) downloads.mkdirs();
-      File outputFile = new File(downloads, filename);
+    private String saveJsonInternal(String filename, String content, boolean quiet) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
+        values.put(MediaStore.Downloads.MIME_TYPE, "application/json");
+        values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/VocabMaster");
+        Uri item = null;
+        try {
+          item = getContentResolver().insert(collection, values);
+          if (item != null) {
+            try (OutputStream output = getContentResolver().openOutputStream(item, "wt")) {
+              if (output == null) throw new java.io.IOException("无法打开备份文件");
+              output.write(content.getBytes(StandardCharsets.UTF_8));
+            }
+            String location = "Download/VocabMaster/" + filename;
+            if (!quiet) showToast("学习数据已导出到：" + location);
+            return "SAVED_DOWNLOADS:" + location;
+          }
+        } catch (Exception mediaError) {
+          if (item != null) {
+            try { getContentResolver().delete(item, null, null); } catch (Exception ignored) {}
+          }
+        }
+      }
+
+      File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+      File outputDir = new File(downloads, "VocabMaster");
+      if (!outputDir.exists()) outputDir.mkdirs();
+      if (!outputDir.exists() || !outputDir.canWrite()) {
+        outputDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (outputDir == null) outputDir = getFilesDir();
+        if (!outputDir.exists()) outputDir.mkdirs();
+      }
+      File outputFile = new File(outputDir, filename);
       try (OutputStream output = new FileOutputStream(outputFile)) {
         output.write(content.getBytes(StandardCharsets.UTF_8));
-        showToast("学习数据已导出到：" + outputFile.getAbsolutePath());
+        if (!quiet) showToast("学习数据已导出到：" + outputFile.getAbsolutePath());
         return "SAVED_DOWNLOADS:" + outputFile.getAbsolutePath();
       } catch (Exception writeError) {
-        showToast("导出失败：" + writeError.getMessage());
+        if (!quiet) showToast("导出失败：" + writeError.getMessage());
         return "ERROR";
       }
+    }
+
+    @JavascriptInterface
+    public String saveJson(String filename, String content) {
+      return saveJsonInternal(filename, content, false);
+    }
+
+    @JavascriptInterface
+    public String saveJsonQuiet(String filename, String content) {
+      return saveJsonInternal(filename, content, true);
     }
 
     @JavascriptInterface
@@ -305,11 +382,35 @@ public class MainActivity extends BridgeActivity {
           pendingTtsText = text;
           pendingTtsLang = lang;
           pendingTtsRate = rate;
+          pendingTtsCallbackId = null;
           if (!ttsInitializing) initializePreferredTts();
           return "OK";
         }
       }
-      return speakNow(text, lang, rate) ? "OK" : "NO_TTS_ENGINE";
+      return speakNow(text, lang, rate, null) ? "OK" : "NO_TTS_ENGINE";
+    }
+
+
+
+    @JavascriptInterface
+    public String speakWithCallback(String text, String lang, String rateText, String callbackId) {
+      float rate = 0.82f;
+      try {
+        rate = Float.parseFloat(rateText);
+      } catch (Exception ignored) {}
+
+      synchronized (MainActivity.this) {
+        if (ttsInitFailed && !ttsInitializing) return "NO_TTS_ENGINE";
+        if (textToSpeech == null || !ttsReady) {
+          pendingTtsText = text;
+          pendingTtsLang = lang;
+          pendingTtsRate = rate;
+          pendingTtsCallbackId = callbackId;
+          if (!ttsInitializing) initializePreferredTts();
+          return "OK";
+        }
+      }
+      return speakNow(text, lang, rate, callbackId) ? "OK" : "NO_TTS_ENGINE";
     }
 
     @JavascriptInterface
@@ -322,7 +423,9 @@ public class MainActivity extends BridgeActivity {
     @JavascriptInterface
     public void stopTts() {
       synchronized (MainActivity.this) {
+        pendingTtsCallbackId = null;
         pendingTtsText = null;
+        ttsCallbacks.clear();
         if (textToSpeech != null) textToSpeech.stop();
       }
     }

@@ -15,7 +15,8 @@ const STORAGE = {
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
   standaloneWords: 'vocab.v2.standalone.words',
-  remoteServer: 'vocab.v2.remoteServer'
+  remoteServer: 'vocab.v2.remoteServer',
+  lastAutoBackupAt: 'vocab.v2.lastAutoBackupAt'
 };
 
 const state = {
@@ -162,9 +163,41 @@ function writeStandaloneProfile(profile) {
   profile.revision = Number(profile.revision || 0) + 1;
   profile.updatedAt = new Date().toISOString();
   writeJsonStorage(standaloneProfileKey(), profile);
+  scheduleStandaloneAutoBackup(profile);
   return profile;
 }
 
+
+
+function standaloneBackupPayload(profile = readStandaloneProfile(), backupType = 'auto') {
+  return {
+    app: 'vocab-master-mobile',
+    backupType,
+    syncCode: state.syncCode,
+    exportDate: new Date().toISOString(),
+    profile
+  };
+}
+
+let standaloneAutoBackupTimer = null;
+function scheduleStandaloneAutoBackup(profile = readStandaloneProfile()) {
+  if (!STANDALONE_MODE) return;
+  if (!(window.VocabNative?.saveJson || capacitorPlugin('Filesystem')?.writeFile)) return;
+  clearTimeout(standaloneAutoBackupTimer);
+  const snapshot = JSON.parse(JSON.stringify(profile));
+  standaloneAutoBackupTimer = setTimeout(() => autoBackupStandaloneProfile(snapshot), 1200);
+}
+
+async function autoBackupStandaloneProfile(profile = readStandaloneProfile()) {
+  if (!STANDALONE_MODE) return;
+  const filename = `vocab-auto-backup-${state.syncCode || 'LOCAL'}.json`;
+  try {
+    await saveJsonFile(filename, standaloneBackupPayload(profile, 'auto'), { silent: true, preferPublic: true });
+    writeJsonStorage(STORAGE.lastAutoBackupAt, new Date().toISOString());
+  } catch (error) {
+    console.warn('Standalone auto backup failed:', error);
+  }
+}
 
 function coerceStandaloneProfile(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return blankStandaloneProfile();
@@ -1287,8 +1320,8 @@ async function saveDailyGoal() {
 async function exportData() {
   try {
     if (STANDALONE_MODE) {
-      const payload = { app: 'vocab-master-mobile', syncCode: state.syncCode, exportDate: new Date().toISOString(), profile: readStandaloneProfile() };
-      await saveJsonFile(`vocab-mobile-backup-${state.syncCode}.json`, payload);
+      const payload = standaloneBackupPayload(readStandaloneProfile(), 'manual');
+      await saveJsonFile(`vocab-mobile-backup-${state.syncCode}.json`, payload, { preferPublic: true });
       return;
     }
     const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
@@ -1308,18 +1341,21 @@ function capacitorPlugin(name) {
   return globalThis.Capacitor?.Plugins?.[name] || null;
 }
 
-async function saveJsonFile(filename, payload) {
+async function saveJsonFile(filename, payload, options = {}) {
   const content = JSON.stringify(payload, null, 2);
   if (window.VocabNative?.saveJson) {
     try {
-      const result = window.VocabNative.saveJson(filename, content);
+      const nativeSave = options.silent && typeof window.VocabNative.saveJsonQuiet === 'function'
+        ? window.VocabNative.saveJsonQuiet.bind(window.VocabNative)
+        : window.VocabNative.saveJson.bind(window.VocabNative);
+      const result = nativeSave(filename, content);
       if (result === 'OPENED') {
         showToast('请选择保存目录并确认文件名');
         return;
       }
       if (result === 'SAVED_DOWNLOADS' || String(result).startsWith('SAVED_DOWNLOADS:')) {
         const savedPath = String(result).slice('SAVED_DOWNLOADS:'.length);
-        showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
+        if (!options.silent) showToast(savedPath ? `已导出到：${savedPath}` : `已导出到下载目录：${filename}`);
         return;
       }
     } catch (error) {
@@ -1343,12 +1379,12 @@ async function saveJsonFile(filename, payload) {
         dialogTitle: '保存学习数据备份'
       }).catch(() => {});
     }
-    showToast(`已导出到文档目录：${filename}`);
+    if (!options.silent) showToast(`已导出到文档目录：${filename}`);
     return;
   }
 
   if (isNativeApp()) {
-    showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
+    if (!options.silent) showToast('导出失败：APK 原生保存模块未加载，请关闭重开应用后重试');
     return;
   }
 
@@ -1364,15 +1400,22 @@ async function saveJsonFile(filename, payload) {
     URL.revokeObjectURL(url);
     link.remove();
   }, 1000);
-  showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
+  if (!options.silent) showToast(`已触发浏览器下载：${filename}，请在浏览器下载记录中查看`);
 }
 
 async function importData(file) {
   if (!file) return;
   try {
     const payload = JSON.parse(await file.text());
+    const backupCode = normalizeSyncCode(payload.syncCode || payload.profile?.syncCode || '');
+    if (backupCode.length >= 6 && backupCode !== state.syncCode) {
+      state.syncCode = backupCode;
+      localStorage.setItem(STORAGE.syncCode, backupCode);
+      const input = $('#syncCodeInput');
+      if (input) input.value = backupCode;
+    }
     await api('/progress/import', { method: 'POST', body: JSON.stringify(payload) });
-    showToast('学习数据已合并');
+    showToast(backupCode ? `学习数据已合并，并切换到同步码 ${backupCode}` : '学习数据已合并');
     await refreshAll();
   } catch (error) {
     showToast(`导入失败：${error.message}`);
@@ -1442,9 +1485,47 @@ function playRemoteTtsAudio(text, lang) {
   });
 }
 
+
+function speakNativeBridgeWithCallback(text, lang, rate) {
+  return new Promise((resolve) => {
+    const callbackId = `tts_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    window.__vocabNativeCallbacks = window.__vocabNativeCallbacks || {};
+    const fallbackTimer = setTimeout(() => {
+      delete window.__vocabNativeCallbacks[callbackId];
+      resolve('OK');
+    }, estimatedSpeechMs(text, lang, rate) + 3000);
+    window.__vocabNativeCallbacks[callbackId] = (payload) => {
+      clearTimeout(fallbackTimer);
+      delete window.__vocabNativeCallbacks[callbackId];
+      resolve(payload?.result || 'OK');
+    };
+    try {
+      const result = window.VocabNative.speakWithCallback(text, lang, String(rate), callbackId);
+      if (result !== 'OK') {
+        clearTimeout(fallbackTimer);
+        delete window.__vocabNativeCallbacks[callbackId];
+        resolve(result || 'NO_TTS_ENGINE');
+      }
+    } catch {
+      clearTimeout(fallbackTimer);
+      delete window.__vocabNativeCallbacks[callbackId];
+      resolve('NO_TTS_ENGINE');
+    }
+  });
+}
+
 async function speakTextNative(text, lang, rate = 0.82) {
   if (hasNativeAndroidBridge()) {
     const spokenText = String(text || '');
+    if (typeof window.VocabNative.speakWithCallback === 'function') {
+      const result = await speakNativeBridgeWithCallback(spokenText, lang, rate);
+      if (result === 'OK') return true;
+      if (result === 'NO_TTS_ENGINE') {
+        const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+        if (played) return true;
+        return false;
+      }
+    }
     const result = window.VocabNative.speak(spokenText, lang, String(rate));
     if (result === 'OK') {
       await delay(estimatedSpeechMs(spokenText, lang, rate));
