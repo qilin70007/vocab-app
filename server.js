@@ -9,6 +9,7 @@ const multer = require('multer');
 const APP_VERSION = '2.1.5';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 const DEFAULT_DAILY_GOAL = 45;
+const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
 const VALID_STATUSES = new Set(['new', 'learning', 'known']);
 const VALID_RATINGS = new Set(['again', 'hard', 'good', 'easy']);
 
@@ -309,6 +310,10 @@ function createStore(options = {}) {
     const safeCode = sanitizeSyncCode(code);
     const dir = path.join(backupsDir, safeCode);
     ensureDir(dir);
+    const latestMtime = fs.readdirSync(dir)
+      .filter((name) => name.endsWith('.json'))
+      .reduce((latest, name) => Math.max(latest, fs.statSync(path.join(dir, name)).mtimeMs), 0);
+    if (Date.now() - latestMtime < AUTO_BACKUP_INTERVAL_MS) return;
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
     writeJsonAtomic(path.join(dir, `${stamp}.json`), {
       app: 'vocab-master',
