@@ -5,6 +5,7 @@ const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') =
   || globalThis.VOCAB_STANDALONE === true
   || globalThis.Capacitor?.isNativePlatform?.() === true;
 const REMOTE_REVISION_POLL_MS = 15_000;
+const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
 
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
@@ -180,12 +181,20 @@ function standaloneBackupPayload(profile = readStandaloneProfile(), backupType =
 }
 
 let standaloneAutoBackupTimer = null;
+let pendingStandaloneBackupProfile = null;
 function scheduleStandaloneAutoBackup(profile = readStandaloneProfile()) {
   if (!STANDALONE_MODE) return;
   if (!(window.VocabNative?.saveJson || capacitorPlugin('Filesystem')?.writeFile)) return;
-  clearTimeout(standaloneAutoBackupTimer);
-  const snapshot = JSON.parse(JSON.stringify(profile));
-  standaloneAutoBackupTimer = setTimeout(() => autoBackupStandaloneProfile(snapshot), 1200);
+  pendingStandaloneBackupProfile = JSON.parse(JSON.stringify(profile));
+  if (standaloneAutoBackupTimer) return;
+  const lastBackupAt = Date.parse(readJsonStorage(STORAGE.lastAutoBackupAt, null)) || 0;
+  const waitMs = Math.max(1200, AUTO_BACKUP_INTERVAL_MS - (Date.now() - lastBackupAt));
+  standaloneAutoBackupTimer = setTimeout(async () => {
+    standaloneAutoBackupTimer = null;
+    const snapshot = pendingStandaloneBackupProfile;
+    pendingStandaloneBackupProfile = null;
+    await autoBackupStandaloneProfile(snapshot);
+  }, waitMs);
 }
 
 async function autoBackupStandaloneProfile(profile = readStandaloneProfile()) {
@@ -1676,6 +1685,17 @@ async function speakWordDetails(word) {
   if (example) await speakText(example, 'en-US', hasNativeAndroidBridge() ? 0.58 : Math.min(0.78, speechRate('en-US') + 0.04));
 }
 
+async function speakWordDetailsForAutoRead(word) {
+  const normalRate = speechRate('en-US');
+  await speakText(word.word, 'en-US', normalRate);
+  await speakText(word.word, 'en-US', Math.max(0.35, normalRate * 0.72));
+  await speakText(word.word, 'en-US', normalRate);
+  const meaning = spokenMeaning(word);
+  if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
+  const example = firstEnglishExample(word);
+  if (example) await speakText(example, 'en-US', hasNativeAndroidBridge() ? 0.58 : Math.min(0.78, normalRate + 0.04));
+}
+
 async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
@@ -1687,7 +1707,18 @@ async function toggleAutoReadUnknown() {
   state.autoReadActive = true;
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
-  const words = filteredWords(section, 'notknown').filter((word) => word.status === 'new' || word.status === 'learning');
+  const currentWord = state.studyQueue[state.studyIndex];
+  const remainingQueue = state.studyQueue.slice(state.studyIndex)
+    .filter((word) => (word.status === 'new' || word.status === 'learning') && (!section || word.section === section));
+  const remainingKeys = new Set(remainingQueue.map((word) => word.word.toLowerCase()));
+  const additionalWords = filteredWords(section, 'notknown')
+    .filter((word) => !remainingKeys.has(word.word.toLowerCase()));
+  let words = [...remainingQueue, ...additionalWords];
+  if (currentWord) {
+    const currentIndex = words.findIndex((word) => word.word.toLowerCase() === currentWord.word.toLowerCase());
+    if (currentIndex >= 0) words = words.slice(currentIndex);
+    else words.unshift(currentWord);
+  }
   if (!words.length) {
     state.autoReadActive = false;
     $('#autoReadUnknown').textContent = '连续朗读不认识';
@@ -1702,7 +1733,9 @@ async function toggleAutoReadUnknown() {
     state.studyRevealed = true;
     renderStudyCard();
     scrollStudyCardIntoView();
-    await speakWordDetails(words[index]);
+    const displayedWord = state.studyQueue[state.studyIndex];
+    if (!displayedWord) break;
+    await speakWordDetailsForAutoRead(displayedWord);
     if (state.autoReadActive) await delay(autoReadPauseMs());
   }
   state.autoReadActive = false;
