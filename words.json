@@ -315,8 +315,7 @@
       "action n. 行动；行为过程"
     ],
     "collocations": [
-      "act out 表演",
-      "Think well before you act. 三思而后行。"
+      "act out 表演"
     ],
     "examples": [
       "The actor who acted in the TV series last night became famous in his thirties. 昨晚电视剧中的这位演员，在他30多岁时就成名了。",
@@ -326,7 +325,9 @@
     "source": "ocr_1785",
     "synonyms": [],
     "antonyms": [],
-    "proverbs": [],
+    "proverbs": [
+      "Think well before you act. 三思而后行。"
+    ],
     "definitions": [
       {
         "pos": "v.",
@@ -348,7 +349,8 @@
     "collocations": [
       "live an active life 过着积极的生活",
       "keep active and healthy 保持活跃健康",
-      "take an active part in 积极参与"
+      "take an active part in 积极参与",
+      "take an active part in sth. 积极参与某事"
     ],
     "examples": [
       "They took an active part in the singing competition yesterday. 他们昨天积极参加了唱歌比赛。"
@@ -469,7 +471,7 @@
       "addition n. 增加"
     ],
     "collocations": [
-      "add.to.把……加到.……-"
+      "add ... to ... 把……加到……"
     ],
     "examples": [
       "Don’t add too much salt to the soup, or it will be too salty. 汤里不要加太多盐，否则会太咸。"
@@ -494,7 +496,7 @@
     "meaning": "增加",
     "forms": [],
     "collocations": [
-      "in addition (= besides = what’s more) 除:……以外(还)；另外；此外"
+      "in addition (to) (= besides = what’s more) 除……以外（还）；另外；此外"
     ],
     "examples": [
       "Ann will be a very useful addition to our team. 安的加入对我们团队将是十分有利的。"
@@ -2066,7 +2068,7 @@
       "application n. 申请；请求"
     ],
     "collocations": [
-      "apply for 申请；请求"
+      "apply for sth. 申请；请求……"
     ],
     "examples": [
       "In this way they can better apply theory to practice. 这样他们就能更好地把理论运用到实践中去。",
@@ -2386,7 +2388,7 @@
     "meaning": "conj. 像……一样；如同；因为；当…….:时\nprep. 作为，当作；当……时",
     "forms": [],
     "collocations": [
-      "as.… as 像……一样；如同",
+      "as ... as 像……一样；如同",
       "as long as 只要",
       "as soon as 一……就",
       "as well 也；又"
@@ -2581,7 +2583,7 @@
     "meaning": "注意；专心",
     "forms": [],
     "collocations": [
-      "pay attention to 注意"
+      "pay attention to sb./sth. 注意某人/某事"
     ],
     "examples": [
       "The news about education has attracted the public attention recently. 最近有关教育的新闻引起了公众的注意。"
@@ -4985,7 +4987,7 @@
     "meaning": "det. （与复数名词连用）两者（都）；双方（都）\npron. （与复数名词连用）两者（都）；双方（都）\nadj. （两）……都；双\nadv. 两个都",
     "forms": [],
     "collocations": [
-      "both... and... 两者都"
+      "both ... and ... 两者都"
     ],
     "examples": [
       "Both men were Italian. 两名男子都是意大利人。",
@@ -7480,7 +7482,7 @@
       "choose v. 选择；挑选"
     ],
     "collocations": [
-      "have no choice but to do 别无选择；只能"
+      "have no choice but to do sth. 别无选择；只能做某事"
     ],
     "examples": [
       "Life is simple. You make choices, and you don’t look back. 生活很简单。你做出选择，就不要回头。",
@@ -8418,7 +8420,7 @@
     "meaning": "普通的；一般的；共有的；共同的；常见的",
     "forms": [],
     "collocations": [
-      "have... in common 有相同的特征"
+      "have ... in common 有共同之处；有相同的特征"
     ],
     "examples": [
       "It’s common knowledge that the sun sets down in the west. 夕阳西下，这是常识。"
@@ -8451,7 +8453,7 @@
       "communicatively adv. 爱说话地；善于沟通地"
     ],
     "collocations": [
-      "communicate with 与……交流"
+      "communicate with sb. 与某人交流"
     ],
     "examples": [
       "The foreign visitor could speak only a little Chinese, but he managed to communicate with us. 这位外国游客只会说一点中文，却成功地与我们进行了交流。"
@@ -8528,7 +8530,7 @@
     "meaning": "比较；对照",
     "forms": [],
     "collocations": [
-      "compare A with 把A和作比较"
+      "compare A with B 把A和B作比较"
     ],
     "examples": [
       "It is hard to compare. 很难比较。"
@@ -8578,7 +8580,7 @@
       "complaint n. 抱怨；投诉"
     ],
     "collocations": [
-      "complain about 投诉；抱怨"
+      "complain about sth. 投诉；抱怨某事"
     ],
     "examples": [
       "Do you think it is useful to complain about the current situation? 你认为抱怨现状有用吗？",
@@ -8707,7 +8709,7 @@
       "conclude v 下结论"
     ],
     "collocations": [
-      "jump to conclusion 下结论"
+      "jump to a conclusion 贸然下结论"
     ],
     "examples": [
       "All of us come to a conclusion that we should work better as a team. 我们所有人得出一个结论——作为一个团队，我们应该更好地合作。",
@@ -8859,7 +8861,7 @@
       "connection n. 联系；连接"
     ],
     "collocations": [
-      "be connected to/with 与……有联系"
+      "be connected to/with sth. 与……有联系"
     ],
     "examples": [
       "You must connect this wire with that one. 你必须把这根电线和那根接起来。"
@@ -10227,7 +10229,7 @@
     "meaning": "v. 对付；分配；分给；经营；处理\nn. 交易；买卖",
     "forms": [],
     "collocations": [
-      "deal with 处理"
+      "deal with sth. 处理某事"
     ],
     "examples": [
       "How will you deal with these things？ 你将如何处理这些事情？",
@@ -10632,7 +10634,7 @@
       "independent adj. 独立的；有主见的"
     ],
     "collocations": [
-      "depend on 依靠，依赖"
+      "depend on sb./sth. 依靠；依赖某人/某物"
     ],
     "examples": [
       "Our future happiness depends on the choices we make today. 我们未来的幸福取决于我们今天所做的选择。",
@@ -11519,7 +11521,7 @@
     "meaning": "盘；碟；盘装菜；菜肴",
     "forms": [],
     "collocations": [
-      "side dish (随同主菜一起上的)配全"
+      "side dish （随同主菜一起上的）配菜"
     ],
     "examples": [
       "Please remember to bring your dishes and cakes to Tom’s birthday party. 请记得带上你的菜和蛋糕去汤姆的生日聚会。"
@@ -12520,7 +12522,7 @@
       "effective adj. 产生预期结果的；有效的"
     ],
     "collocations": [
-      "special effects (电影或电视节目的)特技效果"
+      "special effects (电影或电视节目的) 特技效果"
     ],
     "examples": [
       "Parents have the greatest effect on their children’s behaviour. 父母对孩子的行为有最深远的影响。"
@@ -12926,7 +12928,7 @@
       "encouragement n. 鼓励"
     ],
     "collocations": [
-      "encourage sb. to do sth. 鼓励基人做某事"
+      "encourage sb. to do sth. 鼓励某人做某事"
     ],
     "examples": [
       "The mother always encouraged her baby to stand up by himself when he fell over. 当婴儿摔倒时，母亲总是鼓励他自己站起来。"
@@ -14360,7 +14362,7 @@
     "meaning": "事实；现实；实际情况",
     "forms": [],
     "collocations": [
-      "in fact 事实上；，实际上"
+      "in fact 事实上；实际上"
     ],
     "examples": [
       "The fact that I didn’t have enough experience was really a big disadvantage. 我没有足够的经验，这确实是一个很大的劣势。"
@@ -15417,8 +15419,7 @@
       "firework n. 烟火；烟花"
     ],
     "collocations": [
-      "make a fire 生火",
-      "There is no smoke without fire. 无风不起浪。"
+      "make a fire 生火"
     ],
     "examples": [
       "Without fire, those old and tall trees would block the floor. Fires can get rid of some of these old trees. 没有火，那些古老而高大的树会遮挡地面；火可以清除其中一些老树。",
@@ -15428,7 +15429,9 @@
     "source": "ocr_1785",
     "synonyms": [],
     "antonyms": [],
-    "proverbs": [],
+    "proverbs": [
+      "There is no smoke without fire. 无风不起浪。"
+    ],
     "definitions": [
       {
         "pos": "n.",
@@ -16990,7 +16993,7 @@
       "funny adj. 滑稽的；可笑的"
     ],
     "collocations": [
-      "make fun of拿……开玩笑"
+      "make fun of sb. 拿某人开玩笑；取笑某人"
     ],
     "examples": [
       "It is not nice to make fun of someone because of their appearance. 因为别人的外貌而取笑他们是不好的。",
@@ -17469,7 +17472,7 @@
     "meaning": "成为；变得；得到；到达；（用于 have got）拥有",
     "forms": [],
     "collocations": [
-      "get along/on 进展；与……相处",
+      "get along/on (with sb.) 进展；与某人相处",
       "get away 走开，离开；逃走",
       "get into the habit of 养成……的习惯",
       "get off 下车",
@@ -17626,13 +17629,13 @@
     "forms": [],
     "collocations": [
       "go Dutch AA 制",
-      "go for it加调，大胆尝试",
+      "go for it 加油；大胆尝试",
       "go hiking 去远足；去徒步旅行",
       "go in for 参加；从事于；酷爱",
       "go on 继续",
       "go on a diet 节食",
       "go on a picnic 去野营；去野餐",
-      "go on with/doing 继续做某事",
+      "go on with/doing sth. 继续做某事",
       "go out 外出；熄灭",
       "go over 复习；仔细地再读一遍",
       "go sailing 去航海，去航行",
@@ -17741,8 +17744,7 @@
     "forms": [],
     "collocations": [
       "be good at 擅长于",
-      "be good for 对………有好处",
-      "All things in their being are good for something. 天生我材必有用。"
+      "be good for ... 对……有好处"
     ],
     "examples": [
       "Nadal is a good tennis player, but I think Djokovic is better. 纳达尔是一名优秀的网球运动员，但我认为德约科维奇更优秀。"
@@ -17753,7 +17755,9 @@
     "antonyms": [
       "bad"
     ],
-    "proverbs": [],
+    "proverbs": [
+      "All things in their being are good for something. 天生我材必有用。"
+    ],
     "definitions": [
       {
         "pos": "adj.",
@@ -18018,7 +18022,7 @@
       "greeting n. 问候"
     ],
     "collocations": [
-      "greet a teacher politely 礼瑶地和老师打招呼"
+      "greet a teacher politely 有礼貌地向老师打招呼"
     ],
     "examples": [
       "When you first meet the interviewer, greet him or her politely. 当你第一次见到面试官时，必须有礼貌地向他或她打招呼。"
@@ -18420,8 +18424,8 @@
     "meaning": "(偶然) 发生；碰巧",
     "forms": [],
     "collocations": [
-      "happen to do 碰巧做",
-      "happen to sb. 发生到某人身上"
+      "happen to do sth. 碰巧做某事",
+      "happen to sb. 发生在某人身上"
     ],
     "examples": [
       "They happened to see the famous Chinese tennis player at the airport yesterday. 他们昨天碰巧在机场看到了那位著名的中国网球运动员。",
@@ -18707,7 +18711,7 @@
     "meaning": "\"8；进行；患病",
     "forms": [],
     "collocations": [
-      "have (gob to 不得不"
+      "have (got) to 不得不"
     ],
     "examples": [
       "She had a fever last night. 她昨晚发烧了。"
@@ -21959,7 +21963,7 @@
     "meaning": "热切的；敏锐的",
     "forms": [],
     "collocations": [
-      "be keen on &"
+      "be keen on sth. 喜爱……；热衷于……"
     ],
     "examples": [
       "About one-third of the students in our class are keen on pop songs. 我们班大约有三分之一的学生热圳于流行歌曲。"
@@ -22673,7 +22677,7 @@
       "later adv. 后来；以后"
     ],
     "collocations": [
-      "be late for ……迟到"
+      "be late for 因……迟到"
     ],
     "examples": [
       "I’m sorry I’m late. I was kept at the office. 对不起，我迟到了。我在办公室有点事儿被耽搁了。",
@@ -22897,7 +22901,7 @@
     "meaning": "学习；学会",
     "forms": [],
     "collocations": [
-      "learn... from 向……学习"
+      "learn ... from ... 向……学习"
     ],
     "examples": [
       "In some English classes, pictures are used to help the students learn new words. 在一些英语课上，图片被用来辅助学生学习新单词。",
@@ -23617,7 +23621,7 @@
     "meaning": "听；仔细听",
     "forms": [],
     "collocations": [
-      "listen to 听……（讲话）"
+      "listen to sb./sth. 听某人讲话/听某物"
     ],
     "examples": [
       "How wonderful the music is! I will listen to it again. 音乐多么美妙啊！我会再听一遍的。"
@@ -23708,7 +23712,7 @@
     "meaning": "v. 生活；居住；活着\nadj. 活的；现场直播的；现场演出的",
     "forms": [],
     "collocations": [
-      "live on 靠.……为生"
+      "live on ... 靠……为生"
     ],
     "examples": [
       "Miss Wang has got a big room to live in. 王小姐住在一间大房间里。",
@@ -23921,8 +23925,7 @@
       "look out 注意；留神",
       "look through 浏览；查看",
       "look up 查寻；抬头看",
-      "take a look 看一看",
-      "Look before you jump. 三思而后行。"
+      "take a look 看一看"
     ],
     "examples": [
       "Let’s have a look! 我们去看看!",
@@ -23934,7 +23937,9 @@
     "source": "ocr_1785",
     "synonyms": [],
     "antonyms": [],
-    "proverbs": [],
+    "proverbs": [
+      "Look before you jump. 三思而后行。"
+    ],
     "definitions": [
       {
         "pos": "n.",
@@ -23954,7 +23959,7 @@
     "collocations": [
       "lose one’s life 丧生",
       "lose one’s way 迷路",
-      "lose temper 发脾气",
+      "lose one’s temper 发脾气",
       "lose weight 减肥"
     ],
     "examples": [
@@ -24007,7 +24012,7 @@
     "meaning": "许多",
     "forms": [],
     "collocations": [
-      "a lot ofllots of 许多"
+      "a lot of/lots of 许多"
     ],
     "examples": [
       "Lots of students went to the school hall to enjoy the wonderful paintings by Mr. Hu. 很多学生前往学校礼堂来欣赏胡先生的精彩画作。"
@@ -25429,7 +25434,7 @@
     "meaning": "n. 中间；中央\nadj. 中间的",
     "forms": [],
     "collocations": [
-      "in the middle of 在.……中间"
+      "in the middle of ... 在……中间"
     ],
     "examples": [
       "She placed the vase in the middle of the table. 她在桌子中间放了个花瓶。",
@@ -25974,8 +25979,7 @@
     "meaning": "adj. 较多的；更多的\ndet. 较多的；更多的\npron. 较多的；更多的\nadv. 更；更加\nn. 更多的量",
     "forms": [],
     "collocations": [
-      "what’s more 而且；另外",
-      "More haste, less speed. 欲速则不达。"
+      "what’s more 而且；另外"
     ],
     "examples": [
       "We have a lot more work to do. 我们还有很多工作要做。",
@@ -25988,7 +25992,9 @@
     "antonyms": [
       "less"
     ],
-    "proverbs": [],
+    "proverbs": [
+      "More haste, less speed. 欲速则不达。"
+    ],
     "definitions": [
       {
         "pos": "adj.",
@@ -26449,8 +26455,8 @@
     "meaning": "n. 名字；姓名；名称\nv. 命名；名叫",
     "forms": [],
     "collocations": [
-      "first name = family name 姓",
-      "last name = given name 名"
+      "first name = given name 名",
+      "last name = family name 姓"
     ],
     "examples": [
       "Can you name the flower？ 你能叫出这花儿的名字吗？",
@@ -27068,7 +27074,7 @@
     "meaning": "adj. 最近的；紧挨着的；隔壁的；下一次的\nadv. 最近地；然后；下一步",
     "forms": [],
     "collocations": [
-      "next to Rika；紧靠着"
+      "next to 紧挨着；紧靠着"
     ],
     "examples": [
       "Next, click the View Files button. 然后，单击“查看文件”按钮。",
@@ -29152,7 +29158,7 @@
     "meaning": "传；递；经过；路过；通过",
     "forms": [],
     "collocations": [
-      "pass on 传递；转交；(用后)递给，传给"
+      "pass on 传递；转交；(用后) 递给，传给"
     ],
     "examples": [
       "He passed the ball to Edwards. 他把球传给了爱德华。",
@@ -29839,7 +29845,7 @@
     "meaning": "拾起；摘；采集；挑选；选择",
     "forms": [],
     "collocations": [
-      "pick onut 挑选出",
+      "pick out 挑选出",
       "pick up 捡起；拾起"
     ],
     "examples": [
@@ -29866,7 +29872,7 @@
     "meaning": "”野餐",
     "forms": [],
     "collocations": [
-      "go ona picnic 去野餐"
+      "go on a picnic 去野餐"
     ],
     "examples": [
       "If it doesn’t rain tomorrow, we will have a picnic in the park. 如果明天不下雨，我们就去公园野餐。",
@@ -30110,7 +30116,7 @@
     "meaning": "怜悯；同情；可惜的事",
     "forms": [],
     "collocations": [
-      "have pity on sb."
+      "have pity on sb. 同情某人；怜悯某人"
     ],
     "examples": [
       "She never asked for pity before. 她以前从未乞求过怜悯。"
@@ -30358,9 +30364,9 @@
       "player n. 运动员；选手；演奏者"
     ],
     "collocations": [
-      "play a trick on 捉弄",
-      "play with, 7257",
-      "act in a play 人参演戏剧"
+      "play a trick on sb. 捉弄某人",
+      "play with ... 与……玩；玩弄……",
+      "act in a play 参演戏剧"
     ],
     "examples": [
       "Although Yao Ming has made the whole world know that he has a gift for playing basketball, he still stays very humble. 虽然姚明已经让全世界知道他有篮球天赋，但他仍然很谦逊。",
@@ -30488,7 +30494,7 @@
     "meaning": "感到高兴的；感到满意的",
     "forms": [],
     "collocations": [
-      "be pleased with 对.………，满意"
+      "be pleased with ... 对……满意"
     ],
     "examples": [
       "We are very pleased with our new house. 我们对自己的新居很满意。"
@@ -31373,7 +31379,7 @@
       "preference n. 偏受；偏好"
     ],
     "collocations": [
-      "prefer... to.…(比起……来)"
+      "prefer A to B 比起B来更喜欢A"
     ],
     "examples": [
       "I prefer running to swimming. 比起游泳，我更喜欢跑步。"
@@ -31562,7 +31568,7 @@
     "meaning": "防止；预防；阻止；阻挡；阻碍",
     "forms": [],
     "collocations": [
-      "prevent... from 阻止……做"
+      "prevent sb. from doing sth. 阻止某人做某事"
     ],
     "examples": [
       "How to prevent disease？ 怎么预防疾病？",
@@ -32058,7 +32064,7 @@
       "protection n. 保护"
     ],
     "collocations": [
-      "protect... from 保护:……免受"
+      "protect sb./sth. from sth. 保护某人/某物免受……"
     ],
     "examples": [
       "It’s necessary for us to know how to protect ourselves in an earthquake. 我们有必要知道在地震中如何保护自己。"
@@ -32156,7 +32162,7 @@
     "meaning": "提供；供应",
     "forms": [],
     "collocations": [
-      "provide... with 癌……，提供"
+      "provide sb. with sth. 给某人提供某物"
     ],
     "examples": [
       "The organisation provides poor children with educational resources. 这个组织向贫困儿童提供教育资源。",
@@ -35567,7 +35573,7 @@
     "meaning": "看见；看到；领会；理解；拜访；会见；理会",
     "forms": [],
     "collocations": [
-      "see off 为seeeee送行"
+      "see sb. off 为某人送行"
     ],
     "examples": [
       "The light is on. I see them watching a slide show. 灯亮着。我看见他们正在看幻灯片。"
@@ -36119,7 +36125,7 @@
     "meaning": "分享；共同使用",
     "forms": [],
     "collocations": [
-      "share with 与.……分享"
+      "share sth. with sb. 与某人分享某物"
     ],
     "examples": [
       "Ideas are always shared by my students in class. 在课堂上，学生总是分享各自的想法。"
@@ -38270,7 +38276,7 @@
     "meaning": "v. 开始 (做某事)；着手；出发\nn. 开端，开始",
     "forms": [],
     "collocations": [
-      "start off；开始；从……开始"
+      "start off 开始；出发；从……开始"
     ],
     "examples": [
       "The runners lined up at the start. 赛跑选手在起跑线排成一行。",
@@ -38604,7 +38610,7 @@
     "meaning": "v. 停止；阻止\nn. 停止；车站",
     "forms": [],
     "collocations": [
-      "stop... from 阻止……做"
+      "stop sb. (from) doing sth. 阻止某人做某事"
     ],
     "examples": [
       "There’s a bus stop near the school. 学校附近有个公共汽车站。",
@@ -39239,7 +39245,7 @@
     "meaning": "建议；提议",
     "forms": [],
     "collocations": [
-      "suggest doing 建议做某事",
+      "suggest doing sth. 建议做某事",
       "suggest sb. do sth. 建议某人做某事"
     ],
     "examples": [
@@ -39811,13 +39817,13 @@
     "forms": [],
     "collocations": [
       "take away 拿走",
-      "take off (衣物等)；起飞",
+      "take off 脱下（衣物等）；起飞",
       "take out 取出",
       "take part in 参加",
       "take place 发生；举行",
       "take pleasure in 从……当中获得乐趣",
       "take the place of 取代",
-      "take up sth. 开始从事/做某事",
+      "take up (doing) sth. 开始从事/做某事",
       "It takes sb. some time to do sth. 做某事花费某人多少时间"
     ],
     "examples": [
@@ -40271,7 +40277,7 @@
       "retell y 复述"
     ],
     "collocations": [
-      "tell.… from 区别；分辩"
+      "tell A from B 区分A和B；辨别A和B"
     ],
     "examples": [
       "Who can tell me the meaning of that sign？ 谁能告诉我那个标志的含义？",
@@ -40761,8 +40767,8 @@
       "thought n. 思想；想法"
     ],
     "collocations": [
-      "think about 考虑 (做某事的可行性)",
-      "think of想起，想到",
+      "think about 考虑（做某事的可行性）",
+      "think of 想起；想到",
       "think over 仔细考虑"
     ],
     "examples": [
@@ -41379,7 +41385,7 @@
     "meaning": "还；又；很；非常",
     "forms": [],
     "collocations": [
-      "too … to 太……以至不能"
+      "too ... to do sth. 太……而不能做某事"
     ],
     "examples": [
       "It’s not safe for teenagers to give out too much information about themselves on the Internet. 青少年在互联网上提供太多有关自己的信息，这是不安全的。"
@@ -41524,7 +41530,7 @@
     "meaning": "v. 触摸；接触；感动\nn. 触摸",
     "forms": [],
     "collocations": [
-      "keep in touch (与……) 保持联系"
+      "keep in touch (with sb.) （与某人）保持联系"
     ],
     "examples": [
       "Please don’t touch anything. 请不要碰任何东西。",
@@ -43434,7 +43440,7 @@
       "awake adj. 醒着的"
     ],
     "collocations": [
-      "wake up；叫醒"
+      "wake up 醒来；叫醒"
     ],
     "examples": [
       "Dona woke up and found herself in a hospital bed. 多娜醒来发现自己躺在医院的病床上。"
@@ -43561,7 +43567,7 @@
       "warmth n. 温暖；暖和"
     ],
     "collocations": [
-      "warm up (体育活动等前的)适应性活动，准备活动；热身练习"
+      "warm up (体育活动等前的) 适应性活动，准备活动；热身练习"
     ],
     "examples": [
       "It is warm in spring. 春天天气暖和。",
@@ -43940,7 +43946,7 @@
       "weekly adj. 每周的"
     ],
     "collocations": [
-      "the week after next F F Jal"
+      "the week after next 下下周"
     ],
     "examples": [
       "Some questions were raised in their class meeting last week. 在上星期的班会上有人提了一些问题。"
@@ -44217,7 +44223,7 @@
     "meaning": "pron. (表示疑问)什么；(表示建议) 怎尹\nadv. (表示感叹)多么；(表示疑问) ea\nconj. 引导宾语从句",
     "forms": [],
     "collocations": [
-      "what's more 而且"
+      "what’s more 而且"
     ],
     "examples": [
       "What is your name？ 你叫什么名字？",
@@ -45335,8 +45341,8 @@
     "meaning": "愿意；（客气地建议或邀请）将；将会",
     "forms": [],
     "collocations": [
-      "would like/love to 想要；(表示喜欢、愿意)很想；很愿意",
-      "would rather 宁愿，宁可"
+      "would like/love to do sth. 想要做某事；很想/很愿意做某事",
+      "would rather 宁愿；宁可"
     ],
     "examples": [
       "She said she would come. 她说过她会来的。",
