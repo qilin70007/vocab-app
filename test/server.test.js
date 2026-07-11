@@ -67,6 +67,22 @@ test('persists status and isolates sync profiles', async () => {
   assert.equal(second.body.known, 0);
 });
 
+test('throttles automatic backup files while continuing to save progress', async () => {
+  const code = 'BACKUP1';
+  await request('/api/words/ability/status', {
+    method: 'PUT', body: JSON.stringify({ status: 'learning' })
+  }, code);
+  await request('/api/words/ability/status', {
+    method: 'PUT', body: JSON.stringify({ status: 'known' })
+  }, code);
+
+  const backupDir = path.join(dataDir, 'backups', code);
+  const backupFiles = fs.readdirSync(backupDir).filter((name) => name.endsWith('.json'));
+  assert.equal(backupFiles.length, 1);
+  const stats = await request('/api/stats', {}, code);
+  assert.equal(stats.body.known, 1);
+});
+
 
 test('saves daily plan limit settings', async () => {
   const update = await request('/api/settings', {
