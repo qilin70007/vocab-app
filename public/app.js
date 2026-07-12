@@ -989,12 +989,14 @@ function renderStudyCard() {
   const pct = Math.round((position / state.studyQueue.length) * 100);
   const chineseRecall = state.studyRecallMode === 'chinese';
   const revealed = state.studyRevealed || (!chineseRecall && state.alwaysShowMeaning);
-  const prompt = chineseRecall && !revealed ? spokenMeaning(word) : word.word;
+  const promptHtml = chineseRecall && !revealed
+    ? chineseRecallPrompt(word).map((line) => escapeHtml(line)).join('<br>')
+    : escapeHtml(word.word);
   const metadata = revealed || !chineseRecall
     ? `<div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button></div>`
     : '';
   card.innerHTML = `
-    <div class="flashcard-head"><h2 class="word-title${chineseRecall && !revealed ? ' chinese-prompt' : ''}">${escapeHtml(prompt)}</h2></div>
+    <div class="flashcard-head"><h2 class="word-title${chineseRecall && !revealed ? ' chinese-prompt' : ''}">${promptHtml}</h2></div>
     ${metadata}
     <div class="reveal-zone">
       ${revealed
@@ -1798,6 +1800,11 @@ function spokenMeaning(word) {
   return derivedSenses(word).map((sense) => `${sense.pos ? `${posToChinese(sense.pos)}，` : ''}${sense.meaning}`).join('；') || word.meaning || '';
 }
 
+function chineseRecallPrompt(word) {
+  const lines = derivedSenses(word).map((sense) => `${sense.pos ? `${posToChinese(sense.pos)}：` : ''}${sense.meaning}`);
+  return lines.length ? lines : [word.meaning || ''];
+}
+
 function firstEnglishExample(word) {
   const raw = (word.examples || []).find((example) => /[A-Za-z]/.test(example));
   if (!raw) return '';
@@ -1805,6 +1812,15 @@ function firstEnglishExample(word) {
   const normalized = beforeChinese.replace(/\s+/g, ' ').trim();
   const sentence = normalized.match(/^[^.!?]+[.!?]/);
   return (sentence ? sentence[0] : normalized).trim();
+}
+
+function naturalizeExampleForSpeech(example) {
+  const normalized = String(example || '')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/([,;:!?])(?=[A-Za-z])/g, '$1 ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return normalized && !/[.!?]$/.test(normalized) ? `${normalized}.` : normalized;
 }
 
 function delay(ms) {
@@ -1832,14 +1848,18 @@ async function speakWordDetailsForAutoRead(word) {
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', normalRate);
+  if (example) {
+    await speakText(naturalizeExampleForSpeech(example), 'en-US', normalRate * 0.8);
+    // Do not advance the queue until the TTS completion callback and a natural sentence-ending pause.
+    await delay(400);
+  }
 }
 
 async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
     stopSpeaking();
-    $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
+    $('#autoReadUnknown').textContent = '朗读未掌握';
     return;
   }
   if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
@@ -1860,7 +1880,7 @@ async function toggleAutoReadUnknown() {
   }
   if (!words.length) {
     state.autoReadActive = false;
-    $('#autoReadUnknown').textContent = '连续朗读不认识';
+    $('#autoReadUnknown').textContent = '朗读未掌握';
     showToast('当前没有不认识或模糊的单词');
     return;
   }
@@ -1878,7 +1898,7 @@ async function toggleAutoReadUnknown() {
     if (state.autoReadActive) await delay(autoReadPauseMs());
   }
   state.autoReadActive = false;
-  $('#autoReadUnknown').textContent = '连续朗读未掌握的单词';
+  $('#autoReadUnknown').textContent = '朗读未掌握';
 }
 
 

@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手（手机离线版）</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.3.0">
+  <link rel="stylesheet" href="/style.css?v=2.3.2">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -87,7 +87,7 @@
           <label>背诵模式<select id="studyRecallMode"><option value="english">英文 → 中文</option><option value="chinese">中文 → 英文</option></select></label>
           <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
           <label class="toggle-control"><input id="alwaysShowMeaning" type="checkbox"><span>一直显示释义</span></label>
-          <button class="secondary-btn compact" id="autoReadUnknown" type="button">连续朗读不认识</button>
+          <button class="secondary-btn compact" id="autoReadUnknown" type="button">朗读未掌握</button>
         </div>
 
         <div class="flashcard-wrap">
@@ -246,6 +246,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>window.VOCAB_STANDALONE = true;</script>
-  <script src="/app.js?v=2.3.0" defer></script>
+  <script src="/app.js?v=2.3.2" defer></script>
 </body>
 </html>
