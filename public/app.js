@@ -1871,12 +1871,14 @@ async function toggleAutoReadUnknown() {
     state.autoReadActive = false;
     state.autoReadRunId += 1;
     stopSpeaking();
+    window.VocabNative?.stopContinuousReading?.();
     $('#autoReadUnknown').textContent = '朗读未掌握';
     return;
   }
   if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
   const runId = ++state.autoReadRunId;
+  window.VocabNative?.startContinuousReading?.();
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
   const currentWord = state.studyQueue[state.studyIndex];
@@ -1893,27 +1895,32 @@ async function toggleAutoReadUnknown() {
   }
   if (!words.length) {
     state.autoReadActive = false;
+    window.VocabNative?.stopContinuousReading?.();
     $('#autoReadUnknown').textContent = '朗读未掌握';
     showToast('当前没有不认识或模糊的单词');
     return;
   }
   state.studyQueue = words;
   state.studyRevealed = true;
-  for (let index = 0; index < words.length; index += 1) {
-    if (!isCurrentAutoReadRun(runId)) break;
-    state.studyIndex = index;
-    state.studyRevealed = true;
-    renderStudyCard();
-    scrollStudyCardIntoView();
-    const displayedWord = state.studyQueue[state.studyIndex];
-    if (!displayedWord) break;
-    const completed = await speakWordDetailsForAutoRead(displayedWord, runId);
-    if (!completed) break;
-    if (isCurrentAutoReadRun(runId)) await delay(autoReadPauseMs());
-  }
-  if (state.autoReadRunId === runId) {
-    state.autoReadActive = false;
-    $('#autoReadUnknown').textContent = '朗读未掌握';
+  try {
+    for (let index = 0; index < words.length; index += 1) {
+      if (!isCurrentAutoReadRun(runId)) break;
+      state.studyIndex = index;
+      state.studyRevealed = true;
+      renderStudyCard();
+      scrollStudyCardIntoView();
+      const displayedWord = state.studyQueue[state.studyIndex];
+      if (!displayedWord) break;
+      const completed = await speakWordDetailsForAutoRead(displayedWord, runId);
+      if (!completed) break;
+      if (isCurrentAutoReadRun(runId)) await delay(autoReadPauseMs());
+    }
+  } finally {
+    if (state.autoReadRunId === runId) {
+      state.autoReadActive = false;
+      window.VocabNative?.stopContinuousReading?.();
+      $('#autoReadUnknown').textContent = '朗读未掌握';
+    }
   }
 }
 
