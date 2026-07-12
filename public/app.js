@@ -1342,6 +1342,99 @@ async function exportData() {
   }
 }
 
+function unstudiedWords() {
+  return state.words.filter((word) => (word.status || 'new') === 'new').sort(compareWordOrder);
+}
+
+function unstudiedWordRows(words) {
+  return words.map((word, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td><strong>${escapeHtml(word.word)}</strong>${word.phonetic ? `<br><span class="phonetic">${escapeHtml(word.phonetic)}</span>` : ''}</td>
+      <td>${escapeHtml(word.pos || '')}</td>
+      <td>${escapeHtml(word.meaning || '')}</td>
+      <td class="check-box">□</td>
+    </tr>`).join('');
+}
+
+function unstudiedDocumentHtml(words) {
+  const date = new Date().toLocaleDateString('zh-CN');
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>未背单词清单</title>
+    <style>
+      @page { size: A4; margin: 12mm; }
+      body { font-family: Arial, "Microsoft YaHei", sans-serif; color: #111; font-size: 10pt; }
+      h1 { margin: 0 0 4mm; text-align: center; font-size: 18pt; }
+      .summary { margin: 0 0 4mm; text-align: center; color: #555; }
+      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      th, td { border: 1px solid #777; padding: 2.2mm 1.8mm; vertical-align: middle; word-break: break-word; }
+      th { background: #eef3f8; }
+      th:nth-child(1), td:nth-child(1) { width: 7%; text-align: center; }
+      th:nth-child(2), td:nth-child(2) { width: 24%; }
+      th:nth-child(3), td:nth-child(3) { width: 11%; text-align: center; }
+      th:nth-child(4), td:nth-child(4) { width: 50%; }
+      th:nth-child(5), td:nth-child(5) { width: 8%; text-align: center; }
+      .phonetic { color: #555; font-size: 9pt; }
+      .check-box { font-size: 15pt; }
+      tr { break-inside: avoid; }
+    </style></head><body>
+    <h1>未背单词清单</h1>
+    <p class="summary">导出日期：${escapeHtml(date)}　共 ${words.length} 个新词</p>
+    <table><thead><tr><th>序号</th><th>单词 / 音标</th><th>词性</th><th>中文释义</th><th>掌握</th></tr></thead>
+    <tbody>${unstudiedWordRows(words)}</tbody></table></body></html>`;
+}
+
+function downloadTextFile(filename, content, type) {
+  const blob = new Blob(['\ufeff', content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    link.remove();
+  }, 1000);
+}
+
+async function exportUnstudiedWord() {
+  const words = unstudiedWords();
+  if (!words.length) return showToast('当前没有未背的新词');
+  const filename = `未背单词-${new Date().toISOString().slice(0, 10)}.doc`;
+  const content = unstudiedDocumentHtml(words);
+  if (window.VocabNative?.saveJson) {
+    const result = window.VocabNative.saveJson(filename, content);
+    if (result === 'OPENED') showToast('请选择保存目录并确认文件名');
+    else showToast(`已导出 ${words.length} 个未背单词到下载目录`);
+    return;
+  }
+  const filesystem = capacitorPlugin('Filesystem');
+  const share = capacitorPlugin('Share');
+  if (filesystem?.writeFile) {
+    const result = await filesystem.writeFile({ path: filename, data: content, directory: 'DOCUMENTS', recursive: true });
+    if (share?.share) await share.share({ title: '未背单词清单', url: result.uri, dialogTitle: '保存或分享 Word 文件' }).catch(() => {});
+    showToast(`已导出 ${words.length} 个未背单词`);
+    return;
+  }
+  downloadTextFile(filename, content, 'application/msword;charset=utf-8');
+  showToast(`已导出 ${words.length} 个未背单词的 Word 文件`);
+}
+
+function printUnstudiedWords() {
+  const words = unstudiedWords();
+  if (!words.length) return showToast('当前没有未背的新词');
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) return showToast('浏览器拦截了打印窗口，请允许弹出窗口后重试');
+  printWindow.document.open();
+  printWindow.document.write(unstudiedDocumentHtml(words));
+  printWindow.document.close();
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 250);
+}
+
 function isNativeApp() {
   return globalThis.Capacitor?.isNativePlatform?.() === true || Boolean(window.VocabNative);
 }
@@ -1688,7 +1781,7 @@ async function speakWordDetails(word) {
 async function speakWordDetailsForAutoRead(word) {
   const normalRate = speechRate('en-US');
   await speakText(word.word, 'en-US', normalRate);
-  await speakText(word.word, 'en-US', Math.max(0.35, normalRate * 0.72));
+  await speakText(word.word, 'en-US', normalRate * 0.7);
   await speakText(word.word, 'en-US', normalRate);
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
@@ -1814,6 +1907,8 @@ function bindEvents() {
   });
   $('#saveGoal').addEventListener('click', saveDailyGoal);
   $('#exportData').addEventListener('click', exportData);
+  $('#exportUnstudiedWord').addEventListener('click', exportUnstudiedWord);
+  $('#printUnstudiedWords').addEventListener('click', printUnstudiedWords);
   $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
   $('#resetData').addEventListener('click', resetData);
   $('#installButton').addEventListener('click', installApp);
