@@ -1872,13 +1872,14 @@ async function toggleAutoReadUnknown() {
     state.autoReadRunId += 1;
     stopSpeaking();
     window.VocabNative?.stopContinuousReading?.();
+    window.VocabNative?.stopNativeContinuousReading?.();
     $('#autoReadUnknown').textContent = '朗读未掌握';
     return;
   }
   if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
   const runId = ++state.autoReadRunId;
-  window.VocabNative?.startContinuousReading?.();
+  if (!window.VocabNative?.startNativeContinuousReading) window.VocabNative?.startContinuousReading?.();
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
   const currentWord = state.studyQueue[state.studyIndex];
@@ -1902,6 +1903,23 @@ async function toggleAutoReadUnknown() {
   }
   state.studyQueue = words;
   state.studyRevealed = true;
+  if (window.VocabNative?.startNativeContinuousReading) {
+    const nativeQueue = words.map((word) => ({
+      word: word.word,
+      meaning: spokenMeaning(word),
+      example: naturalizeExampleForSpeech(firstEnglishExample(word))
+    }));
+    const result = window.VocabNative.startNativeContinuousReading(JSON.stringify(nativeQueue), String(autoReadPauseMs()));
+    if (result === 'OK') {
+      state.studyIndex = 0;
+      renderStudyCard();
+      return;
+    }
+    state.autoReadActive = false;
+    $('#autoReadUnknown').textContent = '朗读未掌握';
+    showToast('后台朗读启动失败，请重新构建并安装最新版 APK');
+    return;
+  }
   try {
     for (let index = 0; index < words.length; index += 1) {
       if (!isCurrentAutoReadRun(runId)) break;
