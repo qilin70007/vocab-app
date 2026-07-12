@@ -83,6 +83,16 @@ test('throttles automatic backup files while continuing to save progress', async
   assert.equal(stats.body.known, 1);
 });
 
+test('saves a custom note with its word progress', async () => {
+  const update = await request('/api/words/ability/note', {
+    method: 'PUT', body: JSON.stringify({ customNote: '搭配：have the ability to do sth.' })
+  }, 'NOTES1');
+  assert.equal(update.response.status, 200);
+  assert.equal(update.body.progress.customNote, '搭配：have the ability to do sth.');
+  const word = await request('/api/words/ability', {}, 'NOTES1');
+  assert.equal(word.body.customNote, '搭配：have the ability to do sth.');
+});
+
 
 test('saves daily plan limit settings', async () => {
   const update = await request('/api/settings', {
