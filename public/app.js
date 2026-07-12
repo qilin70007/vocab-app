@@ -987,7 +987,7 @@ function renderStudyCard() {
   const pct = Math.round((position / state.studyQueue.length) * 100);
   card.innerHTML = `
     <div class="flashcard-head"><h2 class="word-title">${escapeHtml(word.word)}</h2></div>
-    <div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}<button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span></div>
+    <div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button></div>
     <div class="reveal-zone">
       ${state.alwaysShowMeaning || state.studyRevealed
         ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div>${customNoteEditorHtml(word)}</div>`
