@@ -964,6 +964,14 @@ function wordDetailsHtml(word) {
   return groups.map(([title, values]) => `<section class="detail-group"><strong>${title}</strong><ul>${values.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul></section>`).join('');
 }
 
+function customNoteEditorHtml(word) {
+  return `<section class="custom-note-editor">
+    <label for="customNoteInput">我的注释、例句或搭配</label>
+    <textarea id="customNoteInput" maxlength="5000" placeholder="例如：自定义释义、例句、固定搭配、易错点……">${escapeHtml(word.customNote || '')}</textarea>
+    <button class="secondary-btn compact" id="saveCustomNote" type="button">保存注释</button>
+  </section>`;
+}
+
 function renderStudyCard() {
   const card = $('#studyCard');
   $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
@@ -982,14 +990,9 @@ function renderStudyCard() {
     <div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}<button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span></div>
     <div class="reveal-zone">
       ${state.alwaysShowMeaning || state.studyRevealed
-        ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
+        ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div>${customNoteEditorHtml(word)}</div>`
         : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
     </div>
-    <section class="custom-note-editor">
-      <label for="customNoteInput">我的注释、例句或搭配</label>
-      <textarea id="customNoteInput" maxlength="5000" placeholder="例如：自定义释义、例句、固定搭配、易错点……">${escapeHtml(word.customNote || '')}</textarea>
-      <button class="secondary-btn compact" id="saveCustomNote" type="button">保存注释</button>
-    </section>
     <div class="study-actions">
       <button class="action-again" type="button" data-study-status="new">😕 不认识</button>
       <button class="action-hard" type="button" data-study-status="learning">🤔 模糊</button>
@@ -1432,6 +1435,7 @@ function downloadTextFile(filename, content, type) {
 }
 
 async function exportUnstudiedWord() {
+  if (!selectedExportLetters().length) return showToast('请至少选择一个字母');
   const words = unstudiedWords();
   if (!words.length) return showToast('当前没有未背的新词');
   const filename = `未背单词-${new Date().toISOString().slice(0, 10)}.doc`;
@@ -1454,22 +1458,12 @@ async function exportUnstudiedWord() {
   showToast(`已导出 ${words.length} 个未背单词的 Word 文件`);
 }
 
-function printUnstudiedWords() {
-  const words = unstudiedWords();
-  if (!words.length) return showToast('当前没有未背的新词');
-  const frame = $('#pdfPreviewFrame');
-  frame.srcdoc = unstudiedDocumentHtml(words);
-  $('#pdfPreviewDialog').showModal();
-}
-
 function renderExportLetterChoices() {
-  $('#exportLetterChoices').innerHTML = EXPORT_LETTERS.map((letter) => `<label><input type="checkbox" value="${letter}" checked> ${letter}</label>`).join('');
+  $('#exportLetterChoices').innerHTML = EXPORT_LETTERS.map((letter) => `<label><input type="checkbox" value="${letter}"> ${letter}</label>`).join('');
 }
 
 function exportSelectedWords() {
-  const format = $('#exportFormat').value;
-  if (format === 'pdf') printUnstudiedWords();
-  else exportUnstudiedWord();
+  exportUnstudiedWord();
 }
 
 function isNativeApp() {
@@ -1824,7 +1818,7 @@ async function speakWordDetailsForAutoRead(word) {
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', hasNativeAndroidBridge() ? 0.58 : Math.min(0.78, normalRate + 0.04));
+  if (example) await speakText(example, 'en-US', normalRate);
 }
 
 async function toggleAutoReadUnknown() {
@@ -1949,8 +1943,6 @@ function bindEvents() {
   $('#selectAllExportLetters').addEventListener('click', () => $$('#exportLetterChoices input').forEach((input) => { input.checked = true; }));
   $('#clearExportLetters').addEventListener('click', () => $$('#exportLetterChoices input').forEach((input) => { input.checked = false; }));
   $('#exportSelectedWords').addEventListener('click', exportSelectedWords);
-  $('#closePdfPreview').addEventListener('click', () => $('#pdfPreviewDialog').close());
-  $('#printPdfPreview').addEventListener('click', () => $('#pdfPreviewFrame').contentWindow.print());
   $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
   $('#resetData').addEventListener('click', resetData);
   $('#installButton').addEventListener('click', installApp);
