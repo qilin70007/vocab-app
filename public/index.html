@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.2.0">
+  <link rel="stylesheet" href="/style.css?v=2.2.1">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -187,8 +187,8 @@
             <div class="panel-heading"><div><p class="eyebrow">打印背诵</p><h2>导出未背单词</h2></div></div>
             <div class="export-letter-actions"><button class="ghost-btn" id="selectAllExportLetters" type="button">全选</button><button class="ghost-btn" id="clearExportLetters" type="button">清空</button></div>
             <div class="letter-checkbox-grid" id="exportLetterChoices"></div>
-            <div class="button-row"><select id="exportFormat"><option value="word">Word</option><option value="pdf">PDF</option></select><button class="secondary-btn" id="exportSelectedWords" type="button">生成文件</button></div>
-            <p class="muted">可同时选择多个字母；不选择时导出全部新词。PDF 会先进入预览页，可返回或打印保存。</p>
+            <div class="button-row"><button class="secondary-btn" id="exportSelectedWords" type="button">生成 Word</button></div>
+            <p class="muted">可同时选择多个字母，默认全部不选。请至少选择一个字母后生成 Word。</p>
           </article>
 
           <article class="panel">
@@ -235,9 +235,8 @@
     <button class="dialog-close" id="dialogClose" type="button" aria-label="关闭">×</button>
     <div id="wordDialogBody"></div>
   </dialog>
-  <dialog class="pdf-preview-dialog" id="pdfPreviewDialog"><div class="pdf-preview-toolbar"><button class="ghost-btn" id="closePdfPreview" type="button">← 返回</button><strong>未背单词 PDF 预览</strong><button class="secondary-btn" id="printPdfPreview" type="button">打印 / 保存 PDF</button></div><iframe id="pdfPreviewFrame" title="PDF 打印预览"></iframe></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/app.js?v=2.2.0" defer></script>
+  <script src="/app.js?v=2.2.1" defer></script>
 </body>
 </html>
