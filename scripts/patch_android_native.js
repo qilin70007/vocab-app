@@ -314,12 +314,12 @@ public class MainActivity extends BridgeActivity {
   }
 
   public class VocabNativeBridge {
-    private String saveJsonInternal(String filename, String content, boolean quiet) {
+    private String saveDocumentInternal(String filename, String content, String mimeType, boolean quiet) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
         ContentValues values = new ContentValues();
         values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
-        values.put(MediaStore.Downloads.MIME_TYPE, "application/json");
+        values.put(MediaStore.Downloads.MIME_TYPE, mimeType == null || mimeType.isEmpty() ? "application/octet-stream" : mimeType);
         values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/VocabMaster");
         Uri item = null;
         try {
@@ -361,12 +361,17 @@ public class MainActivity extends BridgeActivity {
 
     @JavascriptInterface
     public String saveJson(String filename, String content) {
-      return saveJsonInternal(filename, content, false);
+      return saveDocumentInternal(filename, content, "application/json", false);
     }
 
     @JavascriptInterface
     public String saveJsonQuiet(String filename, String content) {
-      return saveJsonInternal(filename, content, true);
+      return saveDocumentInternal(filename, content, "application/json", true);
+    }
+
+    @JavascriptInterface
+    public String saveDocument(String filename, String content, String mimeType) {
+      return saveDocumentInternal(filename, content, mimeType, false);
     }
 
     @JavascriptInterface
