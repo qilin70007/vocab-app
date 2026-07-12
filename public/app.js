@@ -15,6 +15,7 @@ const STORAGE = {
   alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
   autoReadPauseSeconds: 'vocab.v2.autoReadPauseSeconds',
   studyRecallMode: 'vocab.v2.studyRecallMode',
+  studySession: 'vocab.v2.studySession',
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
   standaloneWords: 'vocab.v2.standalone.words',
@@ -878,7 +879,7 @@ function renderHome() {
   $$('[data-study-section]').forEach((button) => button.addEventListener('click', () => {
     switchPage('study');
     $('#studySection').value = button.dataset.studySection;
-    prepareStudyQueue(true);
+    prepareStudyQueue(true, true);
   }));
 }
 
@@ -938,10 +939,17 @@ function wordMeaningHtml(word) {
   return `<div class="answer-meaning">${escapeHtml(senses[0]?.meaning || word.meaning)}</div>`;
 }
 
-function prepareStudyQueue(force = true) {
+function prepareStudyQueue(force = true, resetPosition = false) {
   if (!force && state.studyQueue.length) {
     renderStudyCard();
     return;
+  }
+  const saved = readJsonStorage(STORAGE.studySession, {});
+  const currentWord = resetPosition ? '' : (state.studyQueue[state.studyIndex]?.word || saved.word || '');
+  if (!state.studyQueue.length && !resetPosition) {
+    if (saved.section != null && [...$('#studySection').options].some((option) => option.value === saved.section)) $('#studySection').value = saved.section;
+    if (saved.status && [...$('#studyStatus').options].some((option) => option.value === saved.status)) $('#studyStatus').value = saved.status;
+    if (saved.order && [...$('#studyOrder').options].some((option) => option.value === saved.order)) $('#studyOrder').value = saved.order;
   }
   const section = $('#studySection')?.value || '';
   const status = $('#studyStatus')?.value || 'notknown';
@@ -952,8 +960,11 @@ function prepareStudyQueue(force = true) {
   const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled === true;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
-  state.studyIndex = 0;
-  state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
+  const restoredIndex = currentWord ? state.studyQueue.findIndex((word) => word.word.toLowerCase() === currentWord.toLowerCase()) : -1;
+  state.studyIndex = restoredIndex >= 0 ? restoredIndex : 0;
+  state.studyRevealed = restoredIndex >= 0 && saved.word === currentWord
+    ? saved.revealed === true
+    : state.studyRecallMode === 'english' && state.alwaysShowMeaning;
   renderStudyCard();
 }
 
@@ -981,12 +992,19 @@ function renderStudyCard() {
   $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
   if (!state.studyQueue.length || state.studyIndex >= state.studyQueue.length) {
     card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去复习中心巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
-    $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true));
+    $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true, true));
     refreshStatsOnly();
     return;
   }
 
   const word = state.studyQueue[state.studyIndex];
+  writeJsonStorage(STORAGE.studySession, {
+    word: word.word,
+    section: $('#studySection')?.value || '',
+    status: $('#studyStatus')?.value || 'notknown',
+    order: $('#studyOrder')?.value || 'sequence',
+    revealed: state.studyRevealed === true
+  });
   const position = state.studyIndex + 1;
   const pct = Math.round((position / state.studyQueue.length) * 100);
   const chineseRecall = state.studyRecallMode === 'chinese';
@@ -1990,9 +2008,9 @@ function bindEvents() {
   $$('.nav-item').forEach((button) => button.addEventListener('click', () => switchPage(button.dataset.page)));
   $$('[data-page-link]').forEach((button) => button.addEventListener('click', () => switchPage(button.dataset.pageLink)));
 
-  $('#studySection').addEventListener('change', () => prepareStudyQueue(true));
-  $('#studyStatus').addEventListener('change', () => prepareStudyQueue(true));
-  $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
+  $('#studySection').addEventListener('change', () => prepareStudyQueue(true, true));
+  $('#studyStatus').addEventListener('change', () => prepareStudyQueue(true, true));
+  $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true, true));
   $('#studyRecallMode').value = state.studyRecallMode;
   $('#studyRecallMode').addEventListener('change', (event) => {
     state.studyRecallMode = event.target.value === 'chinese' ? 'chinese' : 'english';
@@ -2000,7 +2018,7 @@ function bindEvents() {
     state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
     renderStudyCard();
   });
-  $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
+  $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true, true));
   $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
   const autoReadPauseInput = $('#autoReadPauseSeconds');
   if (autoReadPauseInput) {
