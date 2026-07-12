@@ -44,6 +44,7 @@ const state = {
   deferredInstallPrompt: null,
   online: navigator.onLine,
   autoReadActive: false,
+  autoReadRunId: 0,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
   autoReadPauseSeconds: Number(readJsonStorage(STORAGE.autoReadPauseSeconds, 3)) || 3,
   studyRecallMode: readJsonStorage(STORAGE.studyRecallMode, 'english') === 'chinese' ? 'chinese' : 'english',
@@ -1837,33 +1838,45 @@ async function speakWordDetails(word) {
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', hasNativeAndroidBridge() ? 0.58 : Math.min(0.78, speechRate('en-US') + 0.04));
+  if (example) await speakText(naturalizeExampleForSpeech(example), 'en-US', 0.8);
 }
 
-async function speakWordDetailsForAutoRead(word) {
+function isCurrentAutoReadRun(runId) {
+  return state.autoReadActive && state.autoReadRunId === runId;
+}
+
+async function speakWordDetailsForAutoRead(word, runId) {
   const normalRate = hasNativeAndroidBridge() ? 1.0 : speechRate('en-US');
   await speakText(word.word, 'en-US', normalRate);
+  if (!isCurrentAutoReadRun(runId)) return false;
   await speakText(word.word, 'en-US', normalRate * 0.7);
+  if (!isCurrentAutoReadRun(runId)) return false;
   await speakText(word.word, 'en-US', normalRate);
+  if (!isCurrentAutoReadRun(runId)) return false;
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
+  if (!isCurrentAutoReadRun(runId)) return false;
   const example = firstEnglishExample(word);
   if (example) {
-    await speakText(naturalizeExampleForSpeech(example), 'en-US', normalRate * 0.8);
-    // Do not advance the queue until the TTS completion callback and a natural sentence-ending pause.
+    // Example rate is an explicit absolute 0.8, and this is the only example invocation for the word.
+    await speakText(naturalizeExampleForSpeech(example), 'en-US', 0.8);
+    if (!isCurrentAutoReadRun(runId)) return false;
     await delay(400);
   }
+  return isCurrentAutoReadRun(runId);
 }
 
 async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
     state.autoReadActive = false;
+    state.autoReadRunId += 1;
     stopSpeaking();
     $('#autoReadUnknown').textContent = '朗读未掌握';
     return;
   }
   if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
   state.autoReadActive = true;
+  const runId = ++state.autoReadRunId;
   $('#autoReadUnknown').textContent = '停止朗读';
   const section = $('#studySection')?.value || '';
   const currentWord = state.studyQueue[state.studyIndex];
@@ -1887,18 +1900,21 @@ async function toggleAutoReadUnknown() {
   state.studyQueue = words;
   state.studyRevealed = true;
   for (let index = 0; index < words.length; index += 1) {
-    if (!state.autoReadActive) break;
+    if (!isCurrentAutoReadRun(runId)) break;
     state.studyIndex = index;
     state.studyRevealed = true;
     renderStudyCard();
     scrollStudyCardIntoView();
     const displayedWord = state.studyQueue[state.studyIndex];
     if (!displayedWord) break;
-    await speakWordDetailsForAutoRead(displayedWord);
-    if (state.autoReadActive) await delay(autoReadPauseMs());
+    const completed = await speakWordDetailsForAutoRead(displayedWord, runId);
+    if (!completed) break;
+    if (isCurrentAutoReadRun(runId)) await delay(autoReadPauseMs());
   }
-  state.autoReadActive = false;
-  $('#autoReadUnknown').textContent = '朗读未掌握';
+  if (state.autoReadRunId === runId) {
+    state.autoReadActive = false;
+    $('#autoReadUnknown').textContent = '朗读未掌握';
+  }
 }
 
 
