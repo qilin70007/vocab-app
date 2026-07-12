@@ -19,6 +19,7 @@ const STORAGE = {
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
   standaloneWords: 'vocab.v2.standalone.words',
+  wordbookName: 'vocab.v2.wordbookName',
   remoteServer: 'vocab.v2.remoteServer',
   lastAutoBackupAt: 'vocab.v2.lastAutoBackupAt'
 };
@@ -1329,6 +1330,10 @@ function showWordDialog(wordText) {
 }
 
 async function renderDataPage() {
+  const wordbookPanel = $('#wordbookPanel');
+  if (wordbookPanel) wordbookPanel.classList.toggle('hidden', !STANDALONE_MODE);
+  const wordbookSummary = $('#wordbookSummary');
+  if (wordbookSummary) wordbookSummary.textContent = `当前词书：${localStorage.getItem(STORAGE.wordbookName) || '内置 words.json'} · ${state.words.length} 个单词`;
   $('#syncCodeInput').value = state.syncCode;
   const remoteInput = $('#remoteServerInput');
   if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
@@ -1345,6 +1350,38 @@ async function renderDataPage() {
     $('#syncStatusDot').classList.remove('ok');
   }
   $('#installSettingsButton').disabled = !state.deferredInstallPrompt;
+}
+
+async function importWordbook(file) {
+  if (!file) return;
+  try {
+    const payload = JSON.parse(await file.text());
+    const records = Array.isArray(payload) ? payload : payload?.words;
+    if (!Array.isArray(records) || !records.length) throw new Error('文件必须是非空的单词数组，或包含 words 数组');
+    if (records.length > 20000) throw new Error('单词数量不能超过 20000');
+    const normalized = records.map(ensureWordArrays);
+    if (normalized.some((word) => !String(word.word || '').trim() || !String(word.meaning || '').trim())) throw new Error('每条记录必须包含非空的 word 和 meaning');
+    const unique = new Set(normalized.map((word) => word.word.toLowerCase()));
+    if (unique.size !== normalized.length) throw new Error('词书中存在重复单词');
+    writeJsonStorage(STORAGE.standaloneWords, normalized);
+    const savedWords = readJsonStorage(STORAGE.standaloneWords, []);
+    if (!Array.isArray(savedWords) || savedWords.length !== normalized.length) throw new Error('手机存储空间不足，未能保存新词书');
+    localStorage.setItem(STORAGE.wordbookName, file.name || 'words.json');
+    localStorage.removeItem(STORAGE.studySession);
+    state.studyQueue = []; state.reviewQueue = []; state.spellQueue = [];
+    await refreshAll(); renderDataPage();
+    showToast(`已导入新词书，共 ${normalized.length} 个单词`);
+  } catch (error) { showToast(`词书导入失败：${error.message}`); }
+  finally { $('#importWordbook').value = ''; }
+}
+
+async function restoreBuiltInWordbook() {
+  localStorage.removeItem(STORAGE.standaloneWords);
+  localStorage.removeItem(STORAGE.wordbookName);
+  localStorage.removeItem(STORAGE.studySession);
+  state.studyQueue = []; state.reviewQueue = []; state.spellQueue = [];
+  await refreshAll(); renderDataPage();
+  showToast('已恢复 APK 内置 words.json');
 }
 
 async function applySyncCode() {
@@ -2075,6 +2112,8 @@ function bindEvents() {
   $('#clearExportLetters').addEventListener('click', () => $$('#exportLetterChoices input').forEach((input) => { input.checked = false; }));
   $('#exportSelectedWords').addEventListener('click', exportSelectedWords);
   $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
+  $('#importWordbook')?.addEventListener('change', (event) => importWordbook(event.target.files[0]));
+  $('#restoreBuiltInWordbook')?.addEventListener('click', restoreBuiltInWordbook);
   $('#resetData').addEventListener('click', resetData);
   $('#installButton').addEventListener('click', installApp);
   $('#installSettingsButton').addEventListener('click', installApp);
