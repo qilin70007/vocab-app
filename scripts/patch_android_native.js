@@ -16,6 +16,7 @@ if (!fs.existsSync(mainActivity)) {
 const source = `package com.vocabmaster.app;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -23,10 +24,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.media.AudioManager;
 import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
@@ -66,6 +69,10 @@ public class MainActivity extends BridgeActivity {
   private float pendingTtsRate = 0.82f;
   private String pendingTtsCallbackId = null;
   private final Map<String, String> ttsCallbacks = new HashMap<>();
+  private PowerManager.WakeLock readingWakeLock = null;
+  private AudioManager audioManager = null;
+  private boolean readingAudioFocus = false;
+  private final AudioManager.OnAudioFocusChangeListener readingFocusListener = focusChange -> {};
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -83,6 +90,7 @@ public class MainActivity extends BridgeActivity {
 
   @Override
   public void onDestroy() {
+    stopBackgroundReading();
     synchronized (this) {
       ttsGeneration += 1;
       if (textToSpeech != null) {
@@ -94,6 +102,32 @@ public class MainActivity extends BridgeActivity {
       ttsInitializing = false;
     }
     super.onDestroy();
+  }
+
+  private synchronized void startBackgroundReading() {
+    try {
+      if (readingWakeLock == null) {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        readingWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VocabMaster:ContinuousReading");
+        readingWakeLock.setReferenceCounted(false);
+      }
+      if (!readingWakeLock.isHeld()) readingWakeLock.acquire();
+    } catch (Exception ignored) {}
+    try {
+      if (audioManager == null) audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+      int result = audioManager.requestAudioFocus(readingFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+      readingAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+    } catch (Exception ignored) {}
+  }
+
+  private synchronized void stopBackgroundReading() {
+    try {
+      if (readingWakeLock != null && readingWakeLock.isHeld()) readingWakeLock.release();
+    } catch (Exception ignored) {}
+    try {
+      if (readingAudioFocus && audioManager != null) audioManager.abandonAudioFocus(readingFocusListener);
+    } catch (Exception ignored) {}
+    readingAudioFocus = false;
   }
 
   private void showToast(String message) {
@@ -314,6 +348,12 @@ public class MainActivity extends BridgeActivity {
   }
 
   public class VocabNativeBridge {
+    @JavascriptInterface
+    public void startContinuousReading() { startBackgroundReading(); }
+
+    @JavascriptInterface
+    public void stopContinuousReading() { stopBackgroundReading(); }
+
     private String saveDocumentInternal(String filename, String content, String mimeType, boolean quiet) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -506,6 +546,11 @@ console.log(`Patched native Android bridge: ${path.relative(root, mainActivity)}
 
 if (fs.existsSync(androidManifest)) {
   let manifest = fs.readFileSync(androidManifest, 'utf8');
+  if (!manifest.includes('android.permission.WAKE_LOCK')) {
+    manifest = manifest.replace(/<application\b/, '<uses-permission android:name="android.permission.WAKE_LOCK" />\n    <application');
+    fs.writeFileSync(androidManifest, manifest, 'utf8');
+    console.log(`Added Android wake-lock permission: ${path.relative(root, androidManifest)}`);
+  }
   if (!manifest.includes('android.intent.action.TTS_SERVICE')) {
     const queries = `\n    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>\n`;
     manifest = manifest.replace(/\s*<application\b/, `${queries}\n    <application`);
