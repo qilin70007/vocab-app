@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.4.2">
+  <link rel="stylesheet" href="/style.css?v=2.5.0">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -209,6 +209,14 @@
           </article>
 
           <article class="panel danger-panel">
+          <article class="panel hidden" id="wordbookPanel">
+            <div class="panel-heading"><div><p class="eyebrow">APK 词书</p><h2>更换 words.json</h2></div></div>
+            <p class="muted" id="wordbookSummary"></p>
+            <div class="button-column"><label class="secondary-btn file-button">选择新的 words.json<input id="importWordbook" type="file" accept="application/json,.json"></label><button class="ghost-btn" id="restoreBuiltInWordbook" type="button">恢复内置词书</button></div>
+            <p class="muted">每个单词至少包含 word 和 meaning；校验失败不会覆盖当前词书。</p>
+          </article>
+
+          <article class="panel danger-panel">
             <div class="panel-heading"><div><p class="eyebrow">危险操作</p><h2>重新开始</h2></div></div>
             <p class="muted">清除当前同步码下的全部学习记录，但不会删除词库。</p>
             <button class="danger-btn" id="resetData" type="button">清除学习记录</button>
@@ -245,6 +253,6 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/app.js?v=2.4.2" defer></script>
+  <script src="/app.js?v=2.5.0" defer></script>
 </body>
 </html>
