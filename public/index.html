@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.2.1">
+  <link rel="stylesheet" href="/style.css?v=2.3.0">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -84,16 +84,17 @@
             <option value="all">全部</option>
           </select></label>
           <label>顺序<select id="studyOrder"><option value="sequence">词表顺序</option><option value="random">随机</option></select></label>
+          <label>背诵模式<select id="studyRecallMode"><option value="english">英文 → 中文</option><option value="chinese">中文 → 英文</option></select></label>
           <button class="secondary-btn compact" id="reloadStudy" type="button">重新生成</button>
           <label class="toggle-control"><input id="alwaysShowMeaning" type="checkbox"><span>一直显示释义</span></label>
           <button class="secondary-btn compact" id="autoReadUnknown" type="button">连续朗读不认识</button>
-          <label class="pause-control" title="从当前单词朗读结束到下一个单词开始的等待时间">单词间隔<input id="autoReadPauseSeconds" type="number" min="0.5" max="10" step="0.5" value="3"><span>秒</span></label>
         </div>
 
         <div class="flashcard-wrap">
           <article class="flashcard" id="studyCard">
             <div class="empty-state"><span>📚</span><p>正在准备学习队列……</p></div>
           </article>
+
           <div class="keyboard-hint">← 不认识　1 模糊　→ 认识　空格显示释义（开关打开时始终显示）</div>
         </div>
       </section>
@@ -149,7 +150,7 @@
 
       <section class="page" id="page-data" aria-labelledby="dataTitle">
         <div class="page-heading">
-          <div><p class="eyebrow">设备与数据</p><h1 id="dataTitle">同步设置</h1></div>
+          <div><p class="eyebrow">设备与数据</p><h1 id="dataTitle">设置</h1></div>
         </div>
         <div class="settings-grid">
           <article class="panel">
@@ -173,6 +174,12 @@
           </article>
 
           <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">朗读设置</p><h2>连续朗读间隔</h2></div></div>
+            <label class="pause-control" title="从当前单词朗读结束到下一个单词开始的等待时间">单词间隔<input id="autoReadPauseSeconds" type="number" min="0.5" max="10" step="0.5" value="3"><span>秒</span></label>
+            <p class="muted">默认 3 秒，用于设置连续朗读时两个单词之间的等待时间。</p>
+          </article>
+
+          <article class="panel">
             <div class="panel-heading"><div><p class="eyebrow">学习计划</p><h2>每日学习计划</h2></div></div>
             <div class="goal-setting-row">
               <label class="switch-row"><input id="dailyGoalEnabled" type="checkbox"> 开启限制</label>
@@ -184,7 +191,8 @@
           </article>
 
           <article class="panel">
-            <div class="panel-heading"><div><p class="eyebrow">打印背诵</p><h2>导出未背单词</h2></div></div>
+            <div class="panel-heading"><div><p class="eyebrow">打印背诵</p><h2>导出未掌握的单词</h2></div></div>
+            <label>导出范围<select id="exportMasteryStatus"><option value="notknown">不认识＋模糊</option><option value="new">不认识</option><option value="learning">模糊</option></select></label>
             <div class="export-letter-actions"><button class="ghost-btn" id="selectAllExportLetters" type="button">全选</button><button class="ghost-btn" id="clearExportLetters" type="button">清空</button></div>
             <div class="letter-checkbox-grid" id="exportLetterChoices"></div>
             <div class="button-row"><button class="secondary-btn" id="exportSelectedWords" type="button">生成 Word</button></div>
@@ -227,7 +235,7 @@
       <button class="nav-item" type="button" data-page="review"><span>↻</span><small>复习</small></button>
       <button class="nav-item" type="button" data-page="spell"><span>✎</span><small>拼写</small></button>
       <button class="nav-item" type="button" data-page="words"><span>☷</span><small>词表</small></button>
-      <button class="nav-item" type="button" data-page="data"><span>⚙</span><small>同步</small></button>
+      <button class="nav-item" type="button" data-page="data"><span>⚙</span><small>设置</small></button>
     </nav>
   </div>
 
@@ -237,6 +245,6 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/app.js?v=2.2.1" defer></script>
+  <script src="/app.js?v=2.3.0" defer></script>
 </body>
 </html>
