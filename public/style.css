@@ -121,6 +121,7 @@ select, input[type="text"], input[type="search"], input[type="number"] { min-hei
 .flashcard { min-height: 620px; padding: clamp(28px, 5.6vw, 54px); border: 1px solid rgba(218, 225, 238, .9); border-radius: 30px; background: linear-gradient(155deg, #fff, #fbfcff 72%, #edf2ff); box-shadow: var(--shadow); }
 .flashcard-head { display: block; min-width: 0; }
 .word-title { margin: 0; font-size: clamp(46px, 8vw, 80px); letter-spacing: -.045em; line-height: 1.05; overflow-wrap: anywhere; }
+.word-title.chinese-prompt { font-size: clamp(30px, 5vw, 52px); letter-spacing: 0; line-height: 1.35; }
 .word-meta { display: flex; width: 100%; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; color: var(--muted); }
 .tag { display: inline-flex; align-items: center; min-height: 28px; padding: 4px 9px; border-radius: 999px; background: var(--surface-soft); border: 1px solid var(--line); font-size: 12px; }
 .speak-btn { flex: 0 0 auto; width: 38px; height: 38px; margin-left: auto; border: 1px solid var(--line); border-radius: 50%; background: white; color: var(--brand); font-size: 18px; }
