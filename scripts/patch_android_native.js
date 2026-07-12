@@ -373,6 +373,16 @@ public class MainActivity extends BridgeActivity {
     }
 
     @JavascriptInterface
+    public int getNativeReadingIndex() {
+      return getSharedPreferences("continuous_reading", MODE_PRIVATE).getInt("index", -1);
+    }
+
+    @JavascriptInterface
+    public boolean isNativeContinuousReadingActive() {
+      return getSharedPreferences("continuous_reading", MODE_PRIVATE).getBoolean("active", false);
+    }
+
+    @JavascriptInterface
     public void startContinuousReading() { startBackgroundReading(); }
 
     @JavascriptInterface
@@ -574,6 +584,7 @@ import android.app.*;
 import android.content.*;
 import android.os.*;
 import android.speech.tts.*;
+import android.media.*;
 import org.json.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -589,6 +600,8 @@ public class ContinuousReadingService extends Service implements TextToSpeech.On
   private PowerManager.WakeLock wakeLock;
   private int index = 0, stage = 0;
   private long pauseMs = 3000;
+  private AudioManager audioManager;
+  private AudioManager.OnAudioFocusChangeListener focusListener = change -> {};
 
   @Override public void onCreate() {
     super.onCreate();
@@ -596,13 +609,16 @@ public class ContinuousReadingService extends Service implements TextToSpeech.On
     wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VocabMaster:NativeReading");
     wakeLock.setReferenceCounted(false);
     createChannel();
+    audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
   }
 
   @Override public int onStartCommand(Intent intent, int flags, int startId) {
     if (intent != null && ACTION_STOP.equals(intent.getAction())) { finishReading(); return START_NOT_STICKY; }
     if (intent == null || !ACTION_START.equals(intent.getAction())) return START_NOT_STICKY;
     startForeground(4201, notification());
+    getSharedPreferences("continuous_reading", MODE_PRIVATE).edit().putBoolean("active", true).putInt("index", 0).apply();
     if (!wakeLock.isHeld()) wakeLock.acquire();
+    audioManager.requestAudioFocus(focusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
     pauseMs = intent.getLongExtra("pauseMs", 3000);
     items.clear(); index = 0; stage = 0;
     try {
@@ -622,12 +638,15 @@ public class ContinuousReadingService extends Service implements TextToSpeech.On
       @Override public void onDone(String id) { handler.post(() -> advance()); }
       @Override public void onError(String id) { handler.post(() -> advance()); }
     });
+    tts.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+      .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
     speakStage();
   }
 
   private void speakStage() {
     if (index >= items.size()) { finishReading(); return; }
     JSONObject item = items.get(index);
+    if (stage == 0) getSharedPreferences("continuous_reading", MODE_PRIVATE).edit().putInt("index", index).apply();
     String text = ""; Locale locale = Locale.US; float rate = 1f;
     if (stage == 0) text = item.optString("word");
     else if (stage == 1) { text = item.optString("word"); rate = .7f; }
@@ -661,6 +680,8 @@ public class ContinuousReadingService extends Service implements TextToSpeech.On
     handler.removeCallbacksAndMessages(null);
     if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
     if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+    if (audioManager != null) audioManager.abandonAudioFocus(focusListener);
+    getSharedPreferences("continuous_reading", MODE_PRIVATE).edit().putBoolean("active", false).apply();
     stopForeground(true); stopSelf();
   }
   @Override public void onDestroy() { finishReading(); super.onDestroy(); }

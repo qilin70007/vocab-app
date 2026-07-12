@@ -45,6 +45,7 @@ const state = {
   online: navigator.onLine,
   autoReadActive: false,
   autoReadRunId: 0,
+  nativeReadingProgressTimer: null,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
   autoReadPauseSeconds: Number(readJsonStorage(STORAGE.autoReadPauseSeconds, 3)) || 3,
   studyRecallMode: readJsonStorage(STORAGE.studyRecallMode, 'english') === 'chinese' ? 'chinese' : 'english',
@@ -1845,6 +1846,34 @@ function isCurrentAutoReadRun(runId) {
   return state.autoReadActive && state.autoReadRunId === runId;
 }
 
+function stopNativeReadingProgressPolling() {
+  clearInterval(state.nativeReadingProgressTimer);
+  state.nativeReadingProgressTimer = null;
+}
+
+function syncNativeReadingProgress() {
+  if (!window.VocabNative?.getNativeReadingIndex) return;
+  const active = window.VocabNative.isNativeContinuousReadingActive?.() === true;
+  const index = Number(window.VocabNative.getNativeReadingIndex());
+  if (active && Number.isInteger(index) && index >= 0 && index < state.studyQueue.length && index !== state.studyIndex) {
+    state.studyIndex = index;
+    state.studyRevealed = true;
+    renderStudyCard();
+    scrollStudyCardIntoView();
+  }
+  if (!active && state.nativeReadingProgressTimer) {
+    stopNativeReadingProgressPolling();
+    state.autoReadActive = false;
+    $('#autoReadUnknown').textContent = '朗读未掌握';
+  }
+}
+
+function startNativeReadingProgressPolling() {
+  stopNativeReadingProgressPolling();
+  state.nativeReadingProgressTimer = setInterval(syncNativeReadingProgress, 400);
+  setTimeout(syncNativeReadingProgress, 300);
+}
+
 async function speakWordDetailsForAutoRead(word, runId) {
   const normalRate = hasNativeAndroidBridge() ? 1.0 : speechRate('en-US');
   await speakText(word.word, 'en-US', normalRate);
@@ -1873,6 +1902,7 @@ async function toggleAutoReadUnknown() {
     stopSpeaking();
     window.VocabNative?.stopContinuousReading?.();
     window.VocabNative?.stopNativeContinuousReading?.();
+    stopNativeReadingProgressPolling();
     $('#autoReadUnknown').textContent = '朗读未掌握';
     return;
   }
@@ -1913,6 +1943,7 @@ async function toggleAutoReadUnknown() {
     if (result === 'OK') {
       state.studyIndex = 0;
       renderStudyCard();
+      startNativeReadingProgressPolling();
       return;
     }
     state.autoReadActive = false;
@@ -2051,6 +2082,9 @@ function bindEvents() {
     flushPendingMutations();
   });
   window.addEventListener('offline', () => setConnectionStatus(false, '离线模式'));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncNativeReadingProgress();
+  });
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     state.deferredInstallPrompt = event;
