@@ -1814,6 +1814,15 @@ function firstEnglishExample(word) {
   return (sentence ? sentence[0] : normalized).trim();
 }
 
+function naturalizeExampleForSpeech(example) {
+  const normalized = String(example || '')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/([,;:!?])(?=[A-Za-z])/g, '$1 ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return normalized && !/[.!?]$/.test(normalized) ? `${normalized}.` : normalized;
+}
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -1839,7 +1848,11 @@ async function speakWordDetailsForAutoRead(word) {
   const meaning = spokenMeaning(word);
   if (meaning) await speakText(meaning, 'zh-CN', speechRate('zh-CN'));
   const example = firstEnglishExample(word);
-  if (example) await speakText(example, 'en-US', normalRate);
+  if (example) {
+    await speakText(naturalizeExampleForSpeech(example), 'en-US', normalRate * 0.8);
+    // Do not advance the queue until the TTS completion callback and a natural sentence-ending pause.
+    await delay(400);
+  }
 }
 
 async function toggleAutoReadUnknown() {
