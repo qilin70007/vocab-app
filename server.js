@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 const multer = require('multer');
 
-const APP_VERSION = '2.1.6';
+const APP_VERSION = '2.2.0';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 const DEFAULT_DAILY_GOAL = 45;
 const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
@@ -148,6 +148,7 @@ function blankProgress() {
     firstSeenAt: null,
     lastReview: null,
     nextReviewAt: null,
+    customNote: '',
     updatedAt: null
   };
 }
@@ -647,6 +648,18 @@ function createApp(options = {}) {
     if (!VALID_STATUSES.has(req.body.status)) return res.status(400).json({ error: 'Invalid status' });
     const profile = loadRequestProfile(req);
     const progress = store.setStatus(profile, word, req.body.status);
+    store.saveProfile(req.syncCode, profile);
+    return res.json({ word, progress });
+  });
+
+  app.put('/api/words/:word/note', (req, res) => {
+    const word = String(req.params.word || '').toLowerCase();
+    if (!store.getWord(word)) return res.status(404).json({ error: 'Word not found' });
+    const profile = loadRequestProfile(req);
+    const progress = store.getProgress(profile, word);
+    progress.customNote = String(req.body.customNote || '').slice(0, 5000);
+    progress.updatedAt = new Date().toISOString();
+    profile.progress[word] = progress;
     store.saveProfile(req.syncCode, profile);
     return res.json({ word, progress });
   });

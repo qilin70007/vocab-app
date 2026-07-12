@@ -6,6 +6,7 @@ const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') =
   || globalThis.Capacitor?.isNativePlatform?.() === true;
 const REMOTE_REVISION_POLL_MS = 15_000;
 const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
+const EXPORT_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 const STORAGE = {
   syncCode: 'vocab.v2.syncCode',
@@ -137,7 +138,8 @@ function blankStandaloneProgress() {
   return {
     status: 'new', reviewCount: 0, correctCount: 0, wrongCount: 0,
     intervalDays: 0, easeFactor: 2.5, firstSeenAt: null,
-    lastReview: null, nextReviewAt: null, updatedAt: null
+    lastReview: null, nextReviewAt: null, updatedAt: null,
+    customNote: ''
   };
 }
 
@@ -400,6 +402,16 @@ async function standaloneApi(path, options = {}) {
     const body = JSON.parse(options.body || '{}');
     const word = decodeURIComponent(url.pathname.split('/')[2]).toLowerCase();
     const progress = setStandaloneStatus(profile, word, body.status);
+    writeStandaloneProfile(profile);
+    return { word, progress };
+  }
+  if (method === 'PUT' && /\/words\/[^/]+\/note$/.test(url.pathname)) {
+    const body = JSON.parse(options.body || '{}');
+    const word = decodeURIComponent(url.pathname.split('/')[2]).toLowerCase();
+    const progress = standaloneProgress(profile, word);
+    progress.customNote = String(body.customNote || '').slice(0, 5000);
+    progress.updatedAt = new Date().toISOString();
+    profile.progress[word] = progress;
     writeStandaloneProfile(profile);
     return { word, progress };
   }
@@ -966,15 +978,18 @@ function renderStudyCard() {
   const position = state.studyIndex + 1;
   const pct = Math.round((position / state.studyQueue.length) * 100);
   card.innerHTML = `
-    <div class="flashcard-head">
-      <div><h2 class="word-title">${escapeHtml(word.word)}</h2><div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span></div></div>
-      <button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>
-    </div>
+    <div class="flashcard-head"><h2 class="word-title">${escapeHtml(word.word)}</h2></div>
+    <div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}<button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button>${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span></div>
     <div class="reveal-zone">
       ${state.alwaysShowMeaning || state.studyRevealed
         ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div></div>`
         : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
     </div>
+    <section class="custom-note-editor">
+      <label for="customNoteInput">我的注释、例句或搭配</label>
+      <textarea id="customNoteInput" maxlength="5000" placeholder="例如：自定义释义、例句、固定搭配、易错点……">${escapeHtml(word.customNote || '')}</textarea>
+      <button class="secondary-btn compact" id="saveCustomNote" type="button">保存注释</button>
+    </section>
     <div class="study-actions">
       <button class="action-again" type="button" data-study-status="new">😕 不认识</button>
       <button class="action-hard" type="button" data-study-status="learning">🤔 模糊</button>
@@ -985,6 +1000,19 @@ function renderStudyCard() {
   $('[data-reveal-study]')?.addEventListener('click', revealStudy);
   $$('[data-study-status]').forEach((button) => button.addEventListener('click', () => markStudyWord(button.dataset.studyStatus)));
   $('[data-speak]')?.addEventListener('click', () => speakWord(word));
+  $('#saveCustomNote')?.addEventListener('click', () => saveCustomNote(word));
+}
+
+async function saveCustomNote(word) {
+  const customNote = $('#customNoteInput')?.value || '';
+  word.customNote = customNote;
+  updateLocalProgress(word.word, { customNote });
+  try {
+    await api(`/words/${encodeURIComponent(word.word)}/note`, {
+      method: 'PUT', body: JSON.stringify({ customNote })
+    }, { queueable: true });
+    showToast('自定义注释已保存');
+  } catch (error) { showToast(error.message); }
 }
 
 function revealStudy() {
@@ -1342,8 +1370,13 @@ async function exportData() {
   }
 }
 
-function unstudiedWords() {
-  return state.words.filter((word) => (word.status || 'new') === 'new').sort(compareWordOrder);
+function selectedExportLetters() {
+  return $$('#exportLetterChoices input:checked').map((input) => input.value);
+}
+
+function unstudiedWords(letters = selectedExportLetters()) {
+  const selected = new Set(letters);
+  return state.words.filter((word) => (word.status || 'new') === 'new' && selected.has(String(word.section || word.word[0]).toUpperCase())).sort(compareWordOrder);
 }
 
 function unstudiedWordRows(words) {
@@ -1352,7 +1385,7 @@ function unstudiedWordRows(words) {
       <td>${index + 1}</td>
       <td><strong>${escapeHtml(word.word)}</strong>${word.phonetic ? `<br><span class="phonetic">${escapeHtml(word.phonetic)}</span>` : ''}</td>
       <td>${escapeHtml(word.pos || '')}</td>
-      <td>${escapeHtml(word.meaning || '')}</td>
+      <td>${escapeHtml(word.meaning || '')}${word.customNote ? `<br><em>我的注释：${escapeHtml(word.customNote)}</em>` : ''}</td>
       <td class="check-box">□</td>
     </tr>`).join('');
 }
@@ -1403,8 +1436,8 @@ async function exportUnstudiedWord() {
   if (!words.length) return showToast('当前没有未背的新词');
   const filename = `未背单词-${new Date().toISOString().slice(0, 10)}.doc`;
   const content = unstudiedDocumentHtml(words);
-  if (window.VocabNative?.saveJson) {
-    const result = window.VocabNative.saveJson(filename, content);
+  if (window.VocabNative?.saveDocument) {
+    const result = window.VocabNative.saveDocument(filename, content, 'application/msword');
     if (result === 'OPENED') showToast('请选择保存目录并确认文件名');
     else showToast(`已导出 ${words.length} 个未背单词到下载目录`);
     return;
@@ -1424,15 +1457,19 @@ async function exportUnstudiedWord() {
 function printUnstudiedWords() {
   const words = unstudiedWords();
   if (!words.length) return showToast('当前没有未背的新词');
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) return showToast('浏览器拦截了打印窗口，请允许弹出窗口后重试');
-  printWindow.document.open();
-  printWindow.document.write(unstudiedDocumentHtml(words));
-  printWindow.document.close();
-  setTimeout(() => {
-    printWindow.focus();
-    printWindow.print();
-  }, 250);
+  const frame = $('#pdfPreviewFrame');
+  frame.srcdoc = unstudiedDocumentHtml(words);
+  $('#pdfPreviewDialog').showModal();
+}
+
+function renderExportLetterChoices() {
+  $('#exportLetterChoices').innerHTML = EXPORT_LETTERS.map((letter) => `<label><input type="checkbox" value="${letter}" checked> ${letter}</label>`).join('');
+}
+
+function exportSelectedWords() {
+  const format = $('#exportFormat').value;
+  if (format === 'pdf') printUnstudiedWords();
+  else exportUnstudiedWord();
 }
 
 function isNativeApp() {
@@ -1577,9 +1614,10 @@ function remoteTtsUrl(text, lang) {
   return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${language}&q=${encoded}`;
 }
 
-function playRemoteTtsAudio(text, lang) {
+function playRemoteTtsAudio(text, lang, rate = 1) {
   return new Promise((resolve, reject) => {
     const audio = new Audio(remoteTtsUrl(text, lang));
+    audio.playbackRate = Math.max(0.5, Math.min(2, rate));
     audio.preload = 'auto';
     audio.onended = resolve;
     audio.onerror = reject;
@@ -1623,7 +1661,7 @@ async function speakTextNative(text, lang, rate = 0.82) {
       const result = await speakNativeBridgeWithCallback(spokenText, lang, rate);
       if (result === 'OK') return true;
       if (result === 'NO_TTS_ENGINE') {
-        const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+        const played = await playRemoteTtsAudio(text, lang, rate).then(() => true).catch(() => false);
         if (played) return true;
         return false;
       }
@@ -1634,7 +1672,7 @@ async function speakTextNative(text, lang, rate = 0.82) {
       return true;
     }
     if (result === 'NO_TTS_ENGINE') {
-      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      const played = await playRemoteTtsAudio(text, lang, rate).then(() => true).catch(() => false);
       if (played) return true;
       return false;
     }
@@ -1642,7 +1680,7 @@ async function speakTextNative(text, lang, rate = 0.82) {
   const nativeTts = nativeTextToSpeech();
   if (!nativeTts?.speak) {
     if (isNativeApp()) {
-      const played = await playRemoteTtsAudio(text, lang).then(() => true).catch(() => false);
+      const played = await playRemoteTtsAudio(text, lang, rate).then(() => true).catch(() => false);
       if (played) return true;
     }
     return false;
@@ -1779,7 +1817,7 @@ async function speakWordDetails(word) {
 }
 
 async function speakWordDetailsForAutoRead(word) {
-  const normalRate = speechRate('en-US');
+  const normalRate = hasNativeAndroidBridge() ? 1.0 : speechRate('en-US');
   await speakText(word.word, 'en-US', normalRate);
   await speakText(word.word, 'en-US', normalRate * 0.7);
   await speakText(word.word, 'en-US', normalRate);
@@ -1907,8 +1945,12 @@ function bindEvents() {
   });
   $('#saveGoal').addEventListener('click', saveDailyGoal);
   $('#exportData').addEventListener('click', exportData);
-  $('#exportUnstudiedWord').addEventListener('click', exportUnstudiedWord);
-  $('#printUnstudiedWords').addEventListener('click', printUnstudiedWords);
+  renderExportLetterChoices();
+  $('#selectAllExportLetters').addEventListener('click', () => $$('#exportLetterChoices input').forEach((input) => { input.checked = true; }));
+  $('#clearExportLetters').addEventListener('click', () => $$('#exportLetterChoices input').forEach((input) => { input.checked = false; }));
+  $('#exportSelectedWords').addEventListener('click', exportSelectedWords);
+  $('#closePdfPreview').addEventListener('click', () => $('#pdfPreviewDialog').close());
+  $('#printPdfPreview').addEventListener('click', () => $('#pdfPreviewFrame').contentWindow.print());
   $('#importData').addEventListener('change', (event) => importData(event.target.files[0]));
   $('#resetData').addEventListener('click', resetData);
   $('#installButton').addEventListener('click', installApp);
