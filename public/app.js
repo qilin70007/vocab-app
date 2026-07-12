@@ -14,6 +14,7 @@ const STORAGE = {
   cachePrefix: 'vocab.v2.3.1.cache.',
   alwaysShowMeaning: 'vocab.v2.alwaysShowMeaning',
   autoReadPauseSeconds: 'vocab.v2.autoReadPauseSeconds',
+  studyRecallMode: 'vocab.v2.studyRecallMode',
   offlineDailyPrefix: 'vocab.v2.offlineDaily.',
   standaloneProfilePrefix: 'vocab.v2.standalone.profile.',
   standaloneWords: 'vocab.v2.standalone.words',
@@ -45,6 +46,7 @@ const state = {
   autoReadActive: false,
   alwaysShowMeaning: readJsonStorage(STORAGE.alwaysShowMeaning, false),
   autoReadPauseSeconds: Number(readJsonStorage(STORAGE.autoReadPauseSeconds, 3)) || 3,
+  studyRecallMode: readJsonStorage(STORAGE.studyRecallMode, 'english') === 'chinese' ? 'chinese' : 'english',
   remoteServer: '',
   serverRevision: null,
   revisionPollTimer: null,
@@ -949,7 +951,7 @@ function prepareStudyQueue(force = true) {
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
   state.studyIndex = 0;
-  state.studyRevealed = state.alwaysShowMeaning;
+  state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
   renderStudyCard();
 }
 
@@ -985,13 +987,19 @@ function renderStudyCard() {
   const word = state.studyQueue[state.studyIndex];
   const position = state.studyIndex + 1;
   const pct = Math.round((position / state.studyQueue.length) * 100);
+  const chineseRecall = state.studyRecallMode === 'chinese';
+  const revealed = state.studyRevealed || (!chineseRecall && state.alwaysShowMeaning);
+  const prompt = chineseRecall && !revealed ? spokenMeaning(word) : word.word;
+  const metadata = revealed || !chineseRecall
+    ? `<div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button></div>`
+    : '';
   card.innerHTML = `
-    <div class="flashcard-head"><h2 class="word-title">${escapeHtml(word.word)}</h2></div>
-    <div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button></div>
+    <div class="flashcard-head"><h2 class="word-title${chineseRecall && !revealed ? ' chinese-prompt' : ''}">${escapeHtml(prompt)}</h2></div>
+    ${metadata}
     <div class="reveal-zone">
-      ${state.alwaysShowMeaning || state.studyRevealed
+      ${revealed
         ? `<div class="answer-block">${wordMeaningHtml(word)}<div class="detail-groups">${wordDetailsHtml(word)}</div>${customNoteEditorHtml(word)}</div>`
-        : '<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示释义</button>'}
+        : `<button class="primary-btn" type="button" data-reveal-study>先回忆，再显示${chineseRecall ? '英文' : '释义'}</button>`}
     </div>
     <div class="study-actions">
       <button class="action-again" type="button" data-study-status="new">😕 不认识</button>
@@ -1034,7 +1042,7 @@ async function markStudyWord(status) {
   const sourceWord = updateLocalProgress(word.word, { status, lastReview: new Date().toISOString(), firstSeenAt: word.firstSeenAt || new Date().toISOString() });
   if (sourceWord) Object.assign(word, sourceWord);
   state.studyIndex += 1;
-  state.studyRevealed = state.alwaysShowMeaning;
+  state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
   renderStudyCard();
   scrollStudyCardIntoView();
   try {
@@ -1379,7 +1387,13 @@ function selectedExportLetters() {
 
 function unstudiedWords(letters = selectedExportLetters()) {
   const selected = new Set(letters);
-  return state.words.filter((word) => (word.status || 'new') === 'new' && selected.has(String(word.section || word.word[0]).toUpperCase())).sort(compareWordOrder);
+  const status = $('#exportMasteryStatus')?.value || 'notknown';
+  return state.words.filter((word) => {
+    const matchesStatus = status === 'notknown'
+      ? word.status === 'new' || word.status === 'learning'
+      : word.status === status;
+    return matchesStatus && selected.has(String(word.section || word.word[0]).toUpperCase());
+  }).sort(compareWordOrder);
 }
 
 function unstudiedWordRows(words) {
@@ -1395,7 +1409,7 @@ function unstudiedWordRows(words) {
 
 function unstudiedDocumentHtml(words) {
   const date = new Date().toLocaleDateString('zh-CN');
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>未背单词清单</title>
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>未掌握单词清单</title>
     <style>
       @page { size: A4; margin: 12mm; }
       body { font-family: Arial, "Microsoft YaHei", sans-serif; color: #111; font-size: 10pt; }
@@ -1413,8 +1427,8 @@ function unstudiedDocumentHtml(words) {
       .check-box { font-size: 15pt; }
       tr { break-inside: avoid; }
     </style></head><body>
-    <h1>未背单词清单</h1>
-    <p class="summary">导出日期：${escapeHtml(date)}　共 ${words.length} 个新词</p>
+    <h1>未掌握单词清单</h1>
+    <p class="summary">导出日期：${escapeHtml(date)}　共 ${words.length} 个单词</p>
     <table><thead><tr><th>序号</th><th>单词 / 音标</th><th>词性</th><th>中文释义</th><th>掌握</th></tr></thead>
     <tbody>${unstudiedWordRows(words)}</tbody></table></body></html>`;
 }
@@ -1437,25 +1451,25 @@ function downloadTextFile(filename, content, type) {
 async function exportUnstudiedWord() {
   if (!selectedExportLetters().length) return showToast('请至少选择一个字母');
   const words = unstudiedWords();
-  if (!words.length) return showToast('当前没有未背的新词');
-  const filename = `未背单词-${new Date().toISOString().slice(0, 10)}.doc`;
+  if (!words.length) return showToast('当前选择范围内没有未掌握的单词');
+  const filename = `未掌握单词-${new Date().toISOString().slice(0, 10)}.doc`;
   const content = unstudiedDocumentHtml(words);
   if (window.VocabNative?.saveDocument) {
     const result = window.VocabNative.saveDocument(filename, content, 'application/msword');
     if (result === 'OPENED') showToast('请选择保存目录并确认文件名');
-    else showToast(`已导出 ${words.length} 个未背单词到下载目录`);
+    else showToast(`已导出 ${words.length} 个未掌握单词到下载目录`);
     return;
   }
   const filesystem = capacitorPlugin('Filesystem');
   const share = capacitorPlugin('Share');
   if (filesystem?.writeFile) {
     const result = await filesystem.writeFile({ path: filename, data: content, directory: 'DOCUMENTS', recursive: true });
-    if (share?.share) await share.share({ title: '未背单词清单', url: result.uri, dialogTitle: '保存或分享 Word 文件' }).catch(() => {});
-    showToast(`已导出 ${words.length} 个未背单词`);
+    if (share?.share) await share.share({ title: '未掌握单词清单', url: result.uri, dialogTitle: '保存或分享 Word 文件' }).catch(() => {});
+    showToast(`已导出 ${words.length} 个未掌握单词`);
     return;
   }
   downloadTextFile(filename, content, 'application/msword;charset=utf-8');
-  showToast(`已导出 ${words.length} 个未背单词的 Word 文件`);
+  showToast(`已导出 ${words.length} 个未掌握单词的 Word 文件`);
 }
 
 function renderExportLetterChoices() {
@@ -1887,6 +1901,13 @@ function bindEvents() {
   $('#studySection').addEventListener('change', () => prepareStudyQueue(true));
   $('#studyStatus').addEventListener('change', () => prepareStudyQueue(true));
   $('#studyOrder').addEventListener('change', () => prepareStudyQueue(true));
+  $('#studyRecallMode').value = state.studyRecallMode;
+  $('#studyRecallMode').addEventListener('change', (event) => {
+    state.studyRecallMode = event.target.value === 'chinese' ? 'chinese' : 'english';
+    writeJsonStorage(STORAGE.studyRecallMode, state.studyRecallMode);
+    state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
+    renderStudyCard();
+  });
   $('#reloadStudy').addEventListener('click', () => prepareStudyQueue(true));
   $('#autoReadUnknown').addEventListener('click', toggleAutoReadUnknown);
   const autoReadPauseInput = $('#autoReadPauseSeconds');
@@ -1902,7 +1923,7 @@ function bindEvents() {
   $('#alwaysShowMeaning').addEventListener('change', (event) => {
     state.alwaysShowMeaning = event.target.checked;
     writeJsonStorage(STORAGE.alwaysShowMeaning, state.alwaysShowMeaning);
-    state.studyRevealed = state.alwaysShowMeaning;
+    state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
     renderStudyCard();
   });
   $('#startReviewButton').addEventListener('click', startReview);
