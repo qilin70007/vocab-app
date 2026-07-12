@@ -5,6 +5,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const mainActivity = path.join(root, 'android', 'app', 'src', 'main', 'java', 'com', 'vocabmaster', 'app', 'MainActivity.java');
+const readingService = path.join(path.dirname(mainActivity), 'ContinuousReadingService.java');
 const androidManifest = path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const variablesGradle = path.join(root, 'android', 'variables.gradle');
 
@@ -349,6 +350,29 @@ public class MainActivity extends BridgeActivity {
 
   public class VocabNativeBridge {
     @JavascriptInterface
+    public String startNativeContinuousReading(String queueJson, String pauseText) {
+      try {
+        File queueFile = new File(getCacheDir(), "continuous-reading.json");
+        try (OutputStream output = new FileOutputStream(queueFile)) {
+          output.write(queueJson.getBytes(StandardCharsets.UTF_8));
+        }
+        Intent intent = new Intent(MainActivity.this, ContinuousReadingService.class);
+        intent.setAction(ContinuousReadingService.ACTION_START);
+        intent.putExtra("queuePath", queueFile.getAbsolutePath());
+        intent.putExtra("pauseMs", Long.parseLong(pauseText));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent); else startService(intent);
+        return "OK";
+      } catch (Exception error) { return "ERROR:" + error.getMessage(); }
+    }
+
+    @JavascriptInterface
+    public void stopNativeContinuousReading() {
+      Intent intent = new Intent(MainActivity.this, ContinuousReadingService.class);
+      intent.setAction(ContinuousReadingService.ACTION_STOP);
+      startService(intent);
+    }
+
+    @JavascriptInterface
     public void startContinuousReading() { startBackgroundReading(); }
 
     @JavascriptInterface
@@ -544,6 +568,107 @@ public class MainActivity extends BridgeActivity {
 fs.writeFileSync(mainActivity, source, 'utf8');
 console.log(`Patched native Android bridge: ${path.relative(root, mainActivity)}`);
 
+const serviceSource = `package com.vocabmaster.app;
+
+import android.app.*;
+import android.content.*;
+import android.os.*;
+import android.speech.tts.*;
+import org.json.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+public class ContinuousReadingService extends Service implements TextToSpeech.OnInitListener {
+  public static final String ACTION_START = "com.vocabmaster.app.START_READING";
+  public static final String ACTION_STOP = "com.vocabmaster.app.STOP_READING";
+  private static final String CHANNEL = "continuous_reading";
+  private final Handler handler = new Handler(Looper.getMainLooper());
+  private final List<JSONObject> items = new ArrayList<>();
+  private TextToSpeech tts;
+  private PowerManager.WakeLock wakeLock;
+  private int index = 0, stage = 0;
+  private long pauseMs = 3000;
+
+  @Override public void onCreate() {
+    super.onCreate();
+    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VocabMaster:NativeReading");
+    wakeLock.setReferenceCounted(false);
+    createChannel();
+  }
+
+  @Override public int onStartCommand(Intent intent, int flags, int startId) {
+    if (intent != null && ACTION_STOP.equals(intent.getAction())) { finishReading(); return START_NOT_STICKY; }
+    if (intent == null || !ACTION_START.equals(intent.getAction())) return START_NOT_STICKY;
+    startForeground(4201, notification());
+    if (!wakeLock.isHeld()) wakeLock.acquire();
+    pauseMs = intent.getLongExtra("pauseMs", 3000);
+    items.clear(); index = 0; stage = 0;
+    try {
+      String raw = new String(java.nio.file.Files.readAllBytes(new File(intent.getStringExtra("queuePath")).toPath()), StandardCharsets.UTF_8);
+      JSONArray array = new JSONArray(raw);
+      for (int i = 0; i < array.length(); i++) items.add(array.getJSONObject(i));
+    } catch (Exception error) { finishReading(); return START_NOT_STICKY; }
+    if (tts != null) { tts.stop(); tts.shutdown(); }
+    tts = new TextToSpeech(this, this);
+    return START_NOT_STICKY;
+  }
+
+  @Override public void onInit(int status) {
+    if (status != TextToSpeech.SUCCESS) { finishReading(); return; }
+    tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+      @Override public void onStart(String id) {}
+      @Override public void onDone(String id) { handler.post(() -> advance()); }
+      @Override public void onError(String id) { handler.post(() -> advance()); }
+    });
+    speakStage();
+  }
+
+  private void speakStage() {
+    if (index >= items.size()) { finishReading(); return; }
+    JSONObject item = items.get(index);
+    String text = ""; Locale locale = Locale.US; float rate = 1f;
+    if (stage == 0) text = item.optString("word");
+    else if (stage == 1) { text = item.optString("word"); rate = .7f; }
+    else if (stage == 2) text = item.optString("word");
+    else if (stage == 3) { text = item.optString("meaning"); locale = Locale.CHINA; rate = .86f; }
+    else { text = item.optString("example"); rate = .8f; }
+    if (text.trim().isEmpty()) { advance(); return; }
+    tts.setLanguage(locale); tts.setSpeechRate(rate);
+    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "item-" + index + "-" + stage);
+  }
+
+  private void advance() {
+    if (stage < 4) { stage++; speakStage(); return; }
+    index++; stage = 0; handler.postDelayed(() -> speakStage(), pauseMs + 400);
+  }
+
+  private Notification notification() {
+    Intent stop = new Intent(this, ContinuousReadingService.class); stop.setAction(ACTION_STOP);
+    PendingIntent stopPi = PendingIntent.getService(this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    Notification.Action stopAction = new Notification.Action.Builder(
+      android.R.drawable.ic_media_pause, "停止", stopPi).build();
+    return new Notification.Builder(this, CHANNEL).setSmallIcon(getApplicationInfo().icon)
+      .setContentTitle("正在朗读未掌握单词").setContentText("息屏后继续朗读")
+      .setOngoing(true).addAction(stopAction).build();
+  }
+  private void createChannel() {
+    NotificationChannel c = new NotificationChannel(CHANNEL, "连续朗读", NotificationManager.IMPORTANCE_LOW);
+    ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(c);
+  }
+  private void finishReading() {
+    handler.removeCallbacksAndMessages(null);
+    if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
+    if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+    stopForeground(true); stopSelf();
+  }
+  @Override public void onDestroy() { finishReading(); super.onDestroy(); }
+  @Override public android.os.IBinder onBind(Intent intent) { return null; }
+}`;
+fs.writeFileSync(readingService, serviceSource, 'utf8');
+console.log(`Created native reading service: ${path.relative(root, readingService)}`);
+
 if (fs.existsSync(androidManifest)) {
   let manifest = fs.readFileSync(androidManifest, 'utf8');
   if (!manifest.includes('android.permission.WAKE_LOCK')) {
@@ -551,6 +676,13 @@ if (fs.existsSync(androidManifest)) {
     fs.writeFileSync(androidManifest, manifest, 'utf8');
     console.log(`Added Android wake-lock permission: ${path.relative(root, androidManifest)}`);
   }
+  for (const permission of ['android.permission.FOREGROUND_SERVICE', 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK']) {
+    if (!manifest.includes(permission)) manifest = manifest.replace(/<application\b/, `<uses-permission android:name="${permission}" />\n    <application`);
+  }
+  if (!manifest.includes('ContinuousReadingService')) {
+    manifest = manifest.replace(/<\/application>/, '    <service android:name=".ContinuousReadingService" android:exported="false" android:foregroundServiceType="mediaPlayback" />\n    </application>');
+  }
+  fs.writeFileSync(androidManifest, manifest, 'utf8');
   if (!manifest.includes('android.intent.action.TTS_SERVICE')) {
     const queries = `\n    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>\n`;
     manifest = manifest.replace(/\s*<application\b/, `${queries}\n    <application`);
