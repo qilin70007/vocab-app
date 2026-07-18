@@ -388,7 +388,7 @@ public class MainActivity extends BridgeActivity {
     @JavascriptInterface
     public void stopContinuousReading() { stopBackgroundReading(); }
 
-    private String saveDocumentInternal(String filename, String content, String mimeType, boolean quiet) {
+    private String saveDocumentBytesInternal(String filename, byte[] content, String mimeType, boolean quiet) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
         ContentValues values = new ContentValues();
@@ -399,12 +399,12 @@ public class MainActivity extends BridgeActivity {
         try {
           item = getContentResolver().insert(collection, values);
           if (item != null) {
-            try (OutputStream output = getContentResolver().openOutputStream(item, "wt")) {
+            try (OutputStream output = getContentResolver().openOutputStream(item, "w")) {
               if (output == null) throw new java.io.IOException("无法打开备份文件");
-              output.write(content.getBytes(StandardCharsets.UTF_8));
+              output.write(content);
             }
             String location = "Download/VocabMaster/" + filename;
-            if (!quiet) showToast("学习数据已导出到：" + location);
+            if (!quiet) showToast("文件已导出到：" + location);
             return "SAVED_DOWNLOADS:" + location;
           }
         } catch (Exception mediaError) {
@@ -424,13 +424,17 @@ public class MainActivity extends BridgeActivity {
       }
       File outputFile = new File(outputDir, filename);
       try (OutputStream output = new FileOutputStream(outputFile)) {
-        output.write(content.getBytes(StandardCharsets.UTF_8));
-        if (!quiet) showToast("学习数据已导出到：" + outputFile.getAbsolutePath());
+        output.write(content);
+        if (!quiet) showToast("文件已导出到：" + outputFile.getAbsolutePath());
         return "SAVED_DOWNLOADS:" + outputFile.getAbsolutePath();
       } catch (Exception writeError) {
         if (!quiet) showToast("导出失败：" + writeError.getMessage());
         return "ERROR";
       }
+    }
+
+    private String saveDocumentInternal(String filename, String content, String mimeType, boolean quiet) {
+      return saveDocumentBytesInternal(filename, content.getBytes(StandardCharsets.UTF_8), mimeType, quiet);
     }
 
     @JavascriptInterface
@@ -446,6 +450,16 @@ public class MainActivity extends BridgeActivity {
     @JavascriptInterface
     public String saveDocument(String filename, String content, String mimeType) {
       return saveDocumentInternal(filename, content, mimeType, false);
+    }
+
+    @JavascriptInterface
+    public String saveBase64Document(String filename, String base64Content, String mimeType) {
+      try {
+        byte[] content = android.util.Base64.decode(base64Content, android.util.Base64.DEFAULT);
+        return saveDocumentBytesInternal(filename, content, mimeType, false);
+      } catch (Exception error) {
+        return "ERROR:" + error.getMessage();
+      }
     }
 
     @JavascriptInterface
