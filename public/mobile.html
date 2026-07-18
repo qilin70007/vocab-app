@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手（手机离线版）</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.5.0">
+  <link rel="stylesheet" href="/style.css?v=2.5.1">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -195,8 +195,8 @@
             <label>导出范围<select id="exportMasteryStatus"><option value="notknown">不认识＋模糊</option><option value="new">不认识</option><option value="learning">模糊</option></select></label>
             <div class="export-letter-actions"><button class="ghost-btn" id="selectAllExportLetters" type="button">全选</button><button class="ghost-btn" id="clearExportLetters" type="button">清空</button></div>
             <div class="letter-checkbox-grid" id="exportLetterChoices"></div>
-            <div class="button-row"><button class="secondary-btn" id="exportSelectedWords" type="button">生成 Word</button></div>
-            <p class="muted">可同时选择多个字母，默认全部不选。请至少选择一个字母后生成 Word。</p>
+            <div class="button-row"><button class="secondary-btn" id="exportSelectedWords" type="button">生成 DOCX</button></div>
+            <p class="muted">可同时选择多个字母，默认全部不选。请至少选择一个字母后生成标准 .docx Word 文件。</p>
           </article>
 
           <article class="panel">
@@ -208,7 +208,6 @@
             <p class="muted">桌面版每次保存学习进度时，会自动在 data/backups/同步码/ 下保留最近 30 份备份；APK 版会把自动/手动备份写入手机 Download/VocabMaster，卸载应用后仍可通过“导入学习数据”恢复，并会自动切回备份里的同步码。</p>
           </article>
 
-          <article class="panel danger-panel">
           <article class="panel hidden" id="wordbookPanel">
             <div class="panel-heading"><div><p class="eyebrow">APK 词书</p><h2>更换 words.json</h2></div></div>
             <p class="muted" id="wordbookSummary"></p>
@@ -254,6 +253,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>window.VOCAB_STANDALONE = true;</script>
-  <script src="/app.js?v=2.5.0" defer></script>
+  <script src="/docx-export.js?v=2.5.1" defer></script>
+  <script src="/app.js?v=2.5.1" defer></script>
 </body>
 </html>
