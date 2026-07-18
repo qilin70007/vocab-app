@@ -12335,7 +12335,7 @@
     "pos": "adv.",
     "meaning": "容易地",
     "forms": [
-      "easy adj.；不费力的"
+      "easy adj. 容易的；不费力的"
     ],
     "collocations": [],
     "examples": [
@@ -13743,7 +13743,7 @@
     "word": "exam",
     "phonetic": "[eg'zæm]",
     "pos": "n.",
-    "meaning": "ern/) n.；检查",
+    "meaning": "考试；测试；检查",
     "forms": [
       "examine v. 检查，细查；对……进行考试"
     ],
@@ -13759,7 +13759,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "ern/) n.；检查"
+        "meaning": "考试；测试；检查"
       }
     ]
   },
@@ -13943,8 +13943,8 @@
     "number": 540,
     "word": "excuse",
     "phonetic": "[ɪk'skju:z]",
-    "pos": "n.; v.",
-    "meaning": "n. 借口；理由\nv. 原谅；宽恕",
+    "pos": "v.; n.",
+    "meaning": "v. 原谅；宽恕\nn. 借口；辩解",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -13958,12 +13958,12 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
-        "meaning": "借口；理由"
-      },
-      {
         "pos": "v.",
         "meaning": "原谅；宽恕"
+      },
+      {
+        "pos": "n.",
+        "meaning": "借口；辩解"
       }
     ]
   },
@@ -14125,7 +14125,7 @@
     "word": "experience",
     "phonetic": "[ek'spiərɪns]",
     "pos": "n.",
-    "meaning": "经历",
+    "meaning": "经验；经历",
     "forms": [
       "experienced adj. 有经验的；熟练的，有见识的"
     ],
@@ -14144,7 +14144,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "经历"
+        "meaning": "经验；经历"
       }
     ]
   },
@@ -14438,7 +14438,7 @@
     "word": "fair",
     "phonetic": "[feə(r)]",
     "pos": "adj.; n.",
-    "meaning": "adj. 公平的；合理的；浅色的；晴朗的\nn. 集市；商品交易会",
+    "meaning": "adj. 公平的；合理的；（头发或皮肤）浅色的；白皙的\nn. 集市",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -14456,11 +14456,11 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "公平的；合理的；浅色的；晴朗的"
+        "meaning": "公平的；合理的；（头发或皮肤）浅色的；白皙的"
       },
       {
         "pos": "n.",
-        "meaning": "集市；商品交易会"
+        "meaning": "集市"
       }
     ]
   },
@@ -14580,7 +14580,7 @@
     "word": "fan",
     "phonetic": "[fæn]",
     "pos": "n.",
-    "meaning": "(电影、运动等的)迷；热心的爱好者 (支持者)；刷子",
+    "meaning": "（电影、运动等的）迷；热心的爱好者（支持者）；扇子",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -14594,7 +14594,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "(电影、运动等的)迷；热心的爱好者 (支持者)；刷子"
+        "meaning": "（电影、运动等的）迷；热心的爱好者（支持者）；扇子"
       }
     ]
   },
@@ -14729,8 +14729,8 @@
     "number": 570,
     "word": "fast",
     "phonetic": "[fɑ:st]",
-    "pos": "adj.",
-    "meaning": "快的；迅速的",
+    "pos": "adj.; adv.",
+    "meaning": "adj. 快的；迅速的\nadv. 快地；迅速地",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -14749,6 +14749,10 @@
       {
         "pos": "adj.",
         "meaning": "快的；迅速的"
+      },
+      {
+        "pos": "adv.",
+        "meaning": "快地；迅速地"
       }
     ]
   },
@@ -14887,7 +14891,7 @@
     "word": "fear",
     "phonetic": "['fiə(r)]",
     "pos": "n.",
-    "meaning": "害怕；恐惧",
+    "meaning": "害怕；恐惧；担忧",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -14901,7 +14905,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "害怕；恐惧"
+        "meaning": "害怕；恐惧；担忧"
       }
     ]
   },
@@ -14933,7 +14937,7 @@
     "word": "feed",
     "phonetic": "[fi:d]",
     "pos": "v.",
-    "meaning": "喂养；给（人或动物）食物",
+    "meaning": "喂养；给（人或动物）食物；饲养",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -14947,7 +14951,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "喂养；给（人或动物）食物"
+        "meaning": "喂养；给（人或动物）食物；饲养"
       }
     ]
   },
@@ -14955,8 +14959,8 @@
     "number": 579,
     "word": "feel",
     "phonetic": "[fi:l]",
-    "pos": "v.; link.v.",
-    "meaning": "v. link.v. 感觉；觉得；摸；触\nlink.v. link.v. 感觉；觉得；摸；触",
+    "pos": "v.; link v.",
+    "meaning": "感觉；觉得；摸；触",
     "forms": [
       "feeling n. 感觉，情感"
     ],
@@ -14971,12 +14975,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
-        "meaning": "link.v. 感觉；觉得；摸；触"
-      },
-      {
-        "pos": "link.v.",
-        "meaning": "link.v. 感觉；觉得；摸；触"
+        "pos": "v.; link v.",
+        "meaning": "感觉；觉得；摸；触"
       }
     ]
   },
@@ -15010,7 +15010,7 @@
     "word": "fence",
     "phonetic": "[fens]",
     "pos": "n.",
-    "meaning": "栅栏；围栏",
+    "meaning": "栅栏；围栏；篱笆",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -15024,7 +15024,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "栅栏；围栏"
+        "meaning": "栅栏；围栏；篱笆"
       }
     ]
   },
@@ -15182,7 +15182,7 @@
     "word": "figure",
     "phonetic": "['fɪgə(r)]",
     "pos": "n.",
-    "meaning": "人物；身材；图形；数字",
+    "meaning": "（人的）体形；外形；数字",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -15196,7 +15196,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "人物；身材；图形；数字"
+        "meaning": "（人的）体形；外形；数字"
       }
     ]
   },
@@ -15205,7 +15205,7 @@
     "word": "fill",
     "phonetic": "[fɪl]",
     "pos": "v.",
-    "meaning": "填空；(使)装满；充满；注满",
+    "meaning": "填充；（使）装满；充满；注满",
     "forms": [
       "full adj. 满的；充满的；完全的"
     ],
@@ -15225,7 +15225,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "填空；(使)装满；充满；注满"
+        "meaning": "填充；（使）装满；充满；注满"
       }
     ]
   },
@@ -15661,7 +15661,7 @@
     "word": "flash",
     "phonetic": "[flæʃ]",
     "pos": "v.; n.",
-    "meaning": "v. 闪光；闪现\nn. 闪光；闪现",
+    "meaning": "闪；闪光；转瞬间；动画",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -15674,12 +15674,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
-        "meaning": "闪光；闪现"
-      },
-      {
-        "pos": "n.",
-        "meaning": "闪光；闪现"
+        "pos": "v.; n.",
+        "meaning": "闪；闪光；转瞬间；动画"
       }
     ]
   },
@@ -15857,7 +15853,7 @@
     "word": "fly",
     "phonetic": "[flaɪ]",
     "pos": "v.; n.",
-    "meaning": "v. 飞；飞行；乘飞机旅行；放（风筝、飞机模型等）\nn. 苍蝇",
+    "meaning": "v. 飞；飞行；乘飞机旅行；（旗帜等）飘动；放（风筝、飞机模型等）\nn. 飞行；苍蝇",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -15873,11 +15869,11 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "飞；飞行；乘飞机旅行；放（风筝、飞机模型等）"
+        "meaning": "飞；飞行；乘飞机旅行；（旗帜等）飘动；放（风筝、飞机模型等）"
       },
       {
         "pos": "n.",
-        "meaning": "苍蝇"
+        "meaning": "飞行；苍蝇"
       }
     ]
   },
@@ -15885,8 +15881,8 @@
     "number": 615,
     "word": "focus",
     "phonetic": "['fəʊkəs]",
-    "pos": "v.; n.",
-    "meaning": "v. 集中（注意力等）\nn. 焦点；中心",
+    "pos": "v.",
+    "meaning": "集中（注意力、精力于）",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -15900,11 +15896,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "集中（注意力等）"
-      },
-      {
-        "pos": "n.",
-        "meaning": "焦点；中心"
+        "meaning": "集中（注意力、精力于）"
       }
     ]
   },
@@ -16008,10 +16000,10 @@
     "number": 620,
     "word": "fool",
     "phonetic": "[fu:l]",
-    "pos": "n.",
-    "meaning": "傻子",
+    "pos": "n.; v.",
+    "meaning": "n. 傻子\nv. 愚弄；欺骗",
     "forms": [
-      "foolish adj. 思春的，傻的"
+      "foolish adj. 愚蠢的；傻的"
     ],
     "collocations": [],
     "examples": [
@@ -16026,6 +16018,10 @@
       {
         "pos": "n.",
         "meaning": "傻子"
+      },
+      {
+        "pos": "v.",
+        "meaning": "愚弄；欺骗"
       }
     ]
   },
@@ -16034,7 +16030,7 @@
     "word": "foolish",
     "phonetic": "['fu:lɪʃ]",
     "pos": "adj.",
-    "meaning": "愚蠢的",
+    "meaning": "愚蠢的；傻的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -16052,7 +16048,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "愚蠢的"
+        "meaning": "愚蠢的；傻的"
       }
     ]
   },
@@ -16061,7 +16057,7 @@
     "word": "foot",
     "phonetic": "[fʊt]",
     "pos": "n.",
-    "meaning": "Hi；英尺",
+    "meaning": "足；脚；英尺",
     "forms": [],
     "collocations": [
       "on foot 步行；走路"
@@ -16077,7 +16073,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "Hi；英尺"
+        "meaning": "足；脚；英尺"
       }
     ]
   },
@@ -16086,7 +16082,7 @@
     "word": "football",
     "phonetic": "['fʊtbɔ:l]",
     "pos": "n.",
-    "meaning": ")；(美式)橄槛球",
+    "meaning": "（英式）足球；（美式）橄榄球",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -16100,7 +16096,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ")；(美式)橄槛球"
+        "meaning": "（英式）足球；（美式）橄榄球"
       }
     ]
   },
@@ -16109,7 +16105,7 @@
     "word": "for",
     "phonetic": "[fɔ:(r)]",
     "pos": "prep.; conj.",
-    "meaning": "prep. (表示目的、用途等)为了……；(表示方向) 向……；(表示时间\nconj. 因为，由于",
+    "meaning": "prep. （表示目的、用途等）为了……；（表示方向）向……；（表示时间、距离等）达；计；（表示原因）因为……；（表示对象）对……来说\nconj. 因为；由于",
     "forms": [],
     "collocations": [
       "for the first time 第一次",
@@ -16131,11 +16127,11 @@
     "definitions": [
       {
         "pos": "prep.",
-        "meaning": "(表示目的、用途等)为了……；(表示方向) 向……；(表示时间"
+        "meaning": "（表示目的、用途等）为了……；（表示方向）向……；（表示时间、距离等）达；计；（表示原因）因为……；（表示对象）对……来说"
       },
       {
         "pos": "conj.",
-        "meaning": "因为，由于"
+        "meaning": "因为；由于"
       }
     ]
   },
@@ -16339,7 +16335,7 @@
     "word": "fork",
     "phonetic": "[fɔ:k]",
     "pos": "n.",
-    "meaning": "又",
+    "meaning": "叉",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -16353,7 +16349,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "又"
+        "meaning": "叉"
       }
     ]
   },
@@ -16361,8 +16357,8 @@
     "number": 634,
     "word": "form",
     "phonetic": "[fɔ:m]",
-    "pos": "n.",
-    "meaning": "形式；方式；类型",
+    "pos": "n.; v.",
+    "meaning": "n. 形式；方式；类型\nv. 形成",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -16378,6 +16374,10 @@
       {
         "pos": "n.",
         "meaning": "形式；方式；类型"
+      },
+      {
+        "pos": "v.",
+        "meaning": "形成"
       }
     ]
   },
@@ -16555,8 +16555,8 @@
     "number": 642,
     "word": "French",
     "phonetic": "[frentʃ]",
-    "pos": "adj.",
-    "meaning": "法国的；法国人的；法语的",
+    "pos": "adj.; n.",
+    "meaning": "adj. 法国的；法国人的；法语的\nn. 法国人；法语",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -16572,6 +16572,10 @@
       {
         "pos": "adj.",
         "meaning": "法国的；法国人的；法语的"
+      },
+      {
+        "pos": "n.",
+        "meaning": "法国人；法语"
       }
     ]
   },
@@ -16649,7 +16653,7 @@
     "word": "fried",
     "phonetic": "[fraɪd]",
     "pos": "adj.",
-    "meaning": "油前的",
+    "meaning": "油煎的",
     "forms": [
       "fry v 油炒",
       "fryer n. 油炸锅"
@@ -16666,7 +16670,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "油前的"
+        "meaning": "油煎的"
       }
     ]
   },
@@ -17016,7 +17020,7 @@
     "word": "funny",
     "phonetic": "['fʌni]",
     "pos": "adj.",
-    "meaning": "滑稽的 可笑的",
+    "meaning": "滑稽的；可笑的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -17030,7 +17034,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "滑稽的 可笑的"
+        "meaning": "滑稽的；可笑的"
       }
     ]
   },
@@ -17345,7 +17349,7 @@
     "word": "gentleman",
     "phonetic": "['dʒentəlmən]",
     "pos": "n.",
-    "meaning": "绅士；先生；a gentleman. 我是一个绅士",
+    "meaning": "绅士；先生",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -17360,7 +17364,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "绅士；先生；a gentleman. 我是一个绅士"
+        "meaning": "绅士；先生"
       }
     ]
   },
@@ -17601,7 +17605,7 @@
     "word": "glass",
     "phonetic": "[glɑ:s]",
     "pos": "n.",
-    "meaning": "玻璃杯；玻璃；) 眼镜",
+    "meaning": "玻璃杯；玻璃；（复）眼镜",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -17616,7 +17620,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "玻璃杯；玻璃；) 眼镜"
+        "meaning": "玻璃杯；玻璃；（复）眼镜"
       }
     ]
   },
@@ -17691,7 +17695,7 @@
     "number": 686,
     "word": "gold",
     "phonetic": "[gəʊld]",
-    "pos": "adj.",
+    "pos": "n.",
     "meaning": "黄金",
     "forms": [
       "golden adj. 金色的"
@@ -17707,7 +17711,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "adj.",
+        "pos": "n.",
         "meaning": "黄金"
       }
     ]
@@ -17818,7 +17822,7 @@
     "word": "graduate",
     "phonetic": "['grædʒueɪt]",
     "pos": "v.; n.",
-    "meaning": "v. 毕业；// n. 大学毕业生\nn. 大学毕业生",
+    "meaning": "v. 毕业\nn. 大学毕业生",
     "forms": [
       "graduation n. 毕业",
       "graduated adj. 大学毕业的"
@@ -17836,7 +17840,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "毕业；// n. 大学毕业生"
+        "meaning": "毕业"
       },
       {
         "pos": "n.",
@@ -18314,7 +18318,7 @@
     "word": "hall",
     "phonetic": "[hɔ:l]",
     "pos": "n.",
-    "meaning": "大厅；会党；礼党",
+    "meaning": "大厅；会堂；礼堂",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -18328,7 +18332,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "大厅；会党；礼党"
+        "meaning": "大厅；会堂；礼堂"
       }
     ]
   },
@@ -18397,7 +18401,7 @@
     "word": "hang",
     "phonetic": "[hæŋ]",
     "pos": "v.",
-    "meaning": "处绞刑 上吊",
+    "meaning": "处绞刑；上吊；悬挂；把……吊起",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -18412,7 +18416,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "处绞刑 上吊"
+        "meaning": "处绞刑；上吊；悬挂；把……吊起"
       }
     ]
   },
@@ -18680,8 +18684,8 @@
     "number": 725,
     "word": "hate",
     "phonetic": "[heɪt]",
-    "pos": "n.",
-    "meaning": "不喜欢；恨",
+    "pos": "n.; v.",
+    "meaning": "不喜欢；恨；讨厌；憎恶",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -18698,8 +18702,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
-        "meaning": "不喜欢；恨"
+        "pos": "n.; v.",
+        "meaning": "不喜欢；恨；讨厌；憎恶"
       }
     ]
   },
@@ -18708,7 +18712,7 @@
     "word": "have",
     "phonetic": "[hæv]",
     "pos": "v.",
-    "meaning": "\"8；进行；患病",
+    "meaning": "有；吃；喝；进行；患病",
     "forms": [],
     "collocations": [
       "have (got) to 不得不"
@@ -18724,7 +18728,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "\"8；进行；患病"
+        "meaning": "有；吃；喝；进行；患病"
       }
     ]
   },
@@ -18802,7 +18806,7 @@
     "word": "headmaster",
     "phonetic": "[hed'mɑ:stə(r)]",
     "pos": "n.",
-    "meaning": "2.《英》中小学校长",
+    "meaning": "（英）中小学校长",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -18816,7 +18820,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "2.《英》中小学校长"
+        "meaning": "（英）中小学校长"
       }
     ]
   },
@@ -19037,7 +19041,7 @@
     "word": "hello",
     "phonetic": "[hə'ləʊ]",
     "pos": "int.",
-    "meaning": "；你好",
+    "meaning": "喂；你好",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -19051,7 +19055,7 @@
     "definitions": [
       {
         "pos": "int.",
-        "meaning": "；你好"
+        "meaning": "喂；你好"
       }
     ]
   },
@@ -19059,7 +19063,7 @@
     "number": 740,
     "word": "help",
     "phonetic": "[help]",
-    "pos": "v.",
+    "pos": "v.; n.",
     "meaning": "帮助；帮忙",
     "forms": [
       "helper n. 助手",
@@ -19082,7 +19086,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
+        "pos": "v.; n.",
         "meaning": "帮助；帮忙"
       }
     ]
@@ -19282,7 +19286,7 @@
     "word": "historical",
     "phonetic": "[hɪ'stɒrɪkəl]",
     "pos": "adj.",
-    "meaning": "《有关) 历史的；历史上的",
+    "meaning": "（有关）历史的；历史上的",
     "forms": [
       "history n. 历史；历史学"
     ],
@@ -19298,7 +19302,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "《有关) 历史的；历史上的"
+        "meaning": "（有关）历史的；历史上的"
       }
     ]
   },
@@ -19633,8 +19637,8 @@
     "number": 763,
     "word": "honour",
     "phonetic": "['ɒnə(r)]",
-    "pos": "n.; v.",
-    "meaning": "n. 荣誉；尊敬\nv. 尊敬；给予荣誉",
+    "pos": "n.",
+    "meaning": "荣誉；光荣",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -19648,11 +19652,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "荣誉；尊敬"
-      },
-      {
-        "pos": "v.",
-        "meaning": "尊敬；给予荣誉"
+        "meaning": "荣誉；光荣"
       }
     ]
   },
@@ -20112,7 +20112,7 @@
     "pos": "adj.",
     "meaning": "幽默的；风趣的",
     "forms": [
-      "humor ((3&) humour) n. 幽默；幽默感"
+      "humor（英 humour）n. 幽默；幽默感"
     ],
     "collocations": [],
     "examples": [
@@ -20161,9 +20161,9 @@
     "word": "hunt",
     "phonetic": "[hʌnt]",
     "pos": "v.",
-    "meaning": "寻找；狂取",
+    "meaning": "寻找；猎取",
     "forms": [
-      "hunter 7. 猎人"
+      "hunter n. 猎人"
     ],
     "collocations": [],
     "examples": [
@@ -20177,7 +20177,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "寻找；狂取"
+        "meaning": "寻找；猎取"
       }
     ]
   },
@@ -20342,7 +20342,7 @@
     "word": "if",
     "phonetic": "[ɪf]",
     "pos": "conj.",
-    "meaning": "(连接状语从名) 如果；假使；(连接宾语从句)是否；是不是",
+    "meaning": "（连接状语从句）如果；假使；（连接宾语从句）是否；是不是",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -20356,7 +20356,7 @@
     "definitions": [
       {
         "pos": "conj.",
-        "meaning": "(连接状语从名) 如果；假使；(连接宾语从句)是否；是不是"
+        "meaning": "（连接状语从句）如果；假使；（连接宾语从句）是否；是不是"
       }
     ]
   },
@@ -20620,7 +20620,7 @@
     "word": "in",
     "phonetic": "[ɪn]",
     "pos": "prep.; adv.",
-    "meaning": "prep. 在……里面；在……期间；在……状态中；用……\nadv. 在家；在里面",
+    "meaning": "prep. 在……里面；在……期间；在……状态中；用……；穿；戴\nadv. 在家；在里面；向内",
     "forms": [],
     "collocations": [
       "in one’s fifties 在某人 50 多岁时"
@@ -20642,11 +20642,11 @@
     "definitions": [
       {
         "pos": "prep.",
-        "meaning": "在……里面；在……期间；在……状态中；用……"
+        "meaning": "在……里面；在……期间；在……状态中；用……；穿；戴"
       },
       {
         "pos": "adv.",
-        "meaning": "在家；在里面"
+        "meaning": "在家；在里面；向内"
       }
     ]
   },
@@ -21193,7 +21193,7 @@
     "number": 824,
     "word": "introduce",
     "phonetic": "[,ɪntrə'dju:s]",
-    "pos": "n.",
+    "pos": "v.",
     "meaning": "介绍",
     "forms": [],
     "collocations": [],
@@ -21207,7 +21207,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
+        "pos": "v.",
         "meaning": "介绍"
       }
     ]
@@ -21313,7 +21313,7 @@
     "word": "invitation",
     "phonetic": "[ɪnvɪ'teɪʃən]",
     "pos": "n.",
-    "meaning": "请帖",
+    "meaning": "邀请；请帖",
     "forms": [
       "invite v. 邀请"
     ],
@@ -21330,7 +21330,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "请帖"
+        "meaning": "邀请；请帖"
       }
     ]
   },
@@ -21435,8 +21435,8 @@
     "number": 834,
     "word": "Italy",
     "phonetic": "['ɪtəli]",
-    "pos": "n.; adj.",
-    "meaning": "n. 意大利\nadj. 意大利人的；意大利语的\nn. 意大利人；意大利语",
+    "pos": "n.",
+    "meaning": "意大利",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -21451,14 +21451,6 @@
       {
         "pos": "n.",
         "meaning": "意大利"
-      },
-      {
-        "pos": "adj.",
-        "meaning": "意大利人的；意大利语的"
-      },
-      {
-        "pos": "n.",
-        "meaning": "意大利人；意大利语"
       }
     ]
   },
@@ -21467,7 +21459,7 @@
     "word": "item",
     "phonetic": "['aɪtəm]",
     "pos": "n.",
-    "meaning": "项目；一件商品（物品）；一则",
+    "meaning": "项目；节目；一件商品（物品）；一则",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -21481,7 +21473,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "项目；一件商品（物品）；一则"
+        "meaning": "项目；节目；一件商品（物品）；一则"
       }
     ]
   },
@@ -21783,8 +21775,8 @@
     "number": 848,
     "word": "judge",
     "phonetic": "[dʒʌdʒ]",
-    "pos": "n.",
-    "meaning": "裁判；审判员；法官",
+    "pos": "n.; v.",
+    "meaning": "n. 裁判；审判员；法官\nv. 审判；断定",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -21802,6 +21794,10 @@
       {
         "pos": "n.",
         "meaning": "裁判；审判员；法官"
+      },
+      {
+        "pos": "v.",
+        "meaning": "审判；断定"
       }
     ]
   },
@@ -21855,10 +21851,10 @@
     "number": 851,
     "word": "jump",
     "phonetic": "[dʒʌmp]",
-    "pos": "v.",
-    "meaning": "跳；跃",
+    "pos": "v.; n.",
+    "meaning": "跳；跳跃",
     "forms": [
-      "jumper 7. 跳高运动员"
+      "jumper n. 跳高运动员"
     ],
     "collocations": [
       "jump to a conclusion 贸然断定；草率决定"
@@ -21874,8 +21870,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
-        "meaning": "跳；跃"
+        "pos": "v.; n.",
+        "meaning": "跳；跳跃"
       }
     ]
   },
@@ -21907,7 +21903,7 @@
     "word": "junior",
     "phonetic": "['dʒu:nɪə(r)]",
     "pos": "adj.; n.",
-    "meaning": "adj. 年少的；较年幼的；年资较浅的\nn. 年少者；较年幼者；年资较浅者",
+    "meaning": "adj. 初级的；年少的\nn. 年少者；较年幼者；年资较浅者",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -21922,7 +21918,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "年少的；较年幼的；年资较浅的"
+        "meaning": "初级的；年少的"
       },
       {
         "pos": "n.",
@@ -21935,7 +21931,7 @@
     "word": "just",
     "phonetic": "[dʒʌst]",
     "pos": "adv.",
-    "meaning": "恰好；不过；只是",
+    "meaning": "刚才；恰好；不过；仅；只是",
     "forms": [],
     "collocations": [
       "just now 刚才"
@@ -21951,7 +21947,7 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "恰好；不过；只是"
+        "meaning": "刚才；恰好；不过；仅；只是"
       }
     ]
   },
@@ -22062,7 +22058,7 @@
     "word": "kick",
     "phonetic": "[kɪk]",
     "pos": "v.; n.",
-    "meaning": "v. 踢；踢球\nn. 踢；踢球",
+    "meaning": "踢",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -22076,12 +22072,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
-        "meaning": "踢；踢球"
-      },
-      {
-        "pos": "n.",
-        "meaning": "踢；踢球"
+        "pos": "v.; n.",
+        "meaning": "踢"
       }
     ]
   },
@@ -22090,7 +22082,7 @@
     "word": "kid",
     "phonetic": "[kɪd]",
     "pos": "v.; n.",
-    "meaning": "v. 开玩笑\nn. 小孩；年轻人",
+    "meaning": "v. 开玩笑\nn. 小孩",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -22108,7 +22100,7 @@
       },
       {
         "pos": "n.",
-        "meaning": "小孩；年轻人"
+        "meaning": "小孩"
       }
     ]
   },
@@ -22339,7 +22331,7 @@
     "word": "knife",
     "phonetic": "[naɪf]",
     "pos": "n.",
-    "meaning": "小刀；刀",
+    "meaning": "小刀",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -22353,7 +22345,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "小刀；刀"
+        "meaning": "小刀"
       }
     ]
   },
@@ -22362,7 +22354,7 @@
     "word": "knock",
     "phonetic": "[nɒk]",
     "pos": "n.; v.",
-    "meaning": "n. 敲击声\nv. 敲；打；击",
+    "meaning": "敲（门）；打；击",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -22376,12 +22368,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
-        "meaning": "敲击声"
-      },
-      {
-        "pos": "v.",
-        "meaning": "敲；打；击"
+        "pos": "n.; v.",
+        "meaning": "敲（门）；打；击"
       }
     ]
   },
@@ -22390,7 +22378,7 @@
     "word": "know",
     "phonetic": "[nəʊ]",
     "pos": "v.",
-    "meaning": "ju:/；known /noun/) v. 知道；了解；认识；懂得",
+    "meaning": "知道；了解；认识；懂得",
     "forms": [
       "knowledge n. 知识，学问",
       "knowledgeable adj. 知识渊博的"
@@ -22408,7 +22396,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "ju:/；known /noun/) v. 知道；了解；认识；懂得"
+        "meaning": "知道；了解；认识；懂得"
       }
     ]
   },
@@ -22533,8 +22521,8 @@
     "number": 878,
     "word": "land",
     "phonetic": "[lænd]",
-    "pos": "n.",
-    "meaning": "陆地；土地；大地",
+    "pos": "n.; v.",
+    "meaning": "n. 陆地；土地；大地\nv. 登陆；降落",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -22550,6 +22538,10 @@
       {
         "pos": "n.",
         "meaning": "陆地；土地；大地"
+      },
+      {
+        "pos": "v.",
+        "meaning": "登陆；降落"
       }
     ]
   },
@@ -22631,8 +22623,8 @@
     "number": 882,
     "word": "last",
     "phonetic": "[lɑ:st]",
-    "pos": "adj.; adv.; n.",
-    "meaning": "adj. 最近刚过去的；最后的\nadv. 最近刚过去；最后地\nn. 最后",
+    "pos": "adj.; adv.; n.; v.",
+    "meaning": "adj. 最近刚过去的；最后的\nadv. 最近刚过去；最后地\nn. 最后\nv. 持续；延续",
     "forms": [],
     "collocations": [
       "at last 最后；终于"
@@ -22662,6 +22654,10 @@
       {
         "pos": "n.",
         "meaning": "最后"
+      },
+      {
+        "pos": "v.",
+        "meaning": "持续；延续"
       }
     ]
   },
@@ -22984,8 +22980,8 @@
     "number": 894,
     "word": "left",
     "phonetic": "[left]",
-    "pos": "adj.; n.",
-    "meaning": "adj. 左边的 [al Ze\nn. 左边的",
+    "pos": "adj.; adv.; n.",
+    "meaning": "adj. 左边的\nadv. 向左\nn. 左；左边",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23002,11 +22998,15 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "左边的 [al Ze"
+        "meaning": "左边的"
+      },
+      {
+        "pos": "adv.",
+        "meaning": "向左"
       },
       {
         "pos": "n.",
-        "meaning": "左边的"
+        "meaning": "左；左边"
       }
     ]
   },
@@ -23038,7 +23038,7 @@
     "word": "lend",
     "phonetic": "[lend]",
     "pos": "v.",
-    "meaning": "ff；把…… fea",
+    "meaning": "借（出）；把……借给",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23052,7 +23052,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "ff；把…… fea"
+        "meaning": "借（出）；把……借给"
       }
     ]
   },
@@ -23231,7 +23231,7 @@
     "word": "lie",
     "phonetic": "[laɪ]",
     "pos": "n.; v.",
-    "meaning": "n. 谎言\nv. 说谎\nv. 卧；位于",
+    "meaning": "n. 谎言\nv. 说谎；躺；卧；位于",
     "forms": [
       "lied /laɪd/（过去式；过去分词，指“说谎”）",
       "lay /leɪ/（过去式，指“卧；位于”）",
@@ -23260,11 +23260,7 @@
       },
       {
         "pos": "v.",
-        "meaning": "说谎"
-      },
-      {
-        "pos": "v.",
-        "meaning": "卧；位于"
+        "meaning": "说谎；躺；卧；位于"
       }
     ]
   },
@@ -23273,7 +23269,7 @@
     "word": "life",
     "phonetic": "[laɪf]",
     "pos": "n.",
-    "meaning": "生活；人生",
+    "meaning": "生命；生活；人生",
     "forms": [
       "lifeless adj. 无生命的",
       "live v. 生活；居住；活着",
@@ -23298,7 +23294,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "生活；人生"
+        "meaning": "生命；生活；人生"
       }
     ]
   },
@@ -23307,7 +23303,7 @@
     "word": "lift",
     "phonetic": "[lɪft]",
     "pos": "v.; n.",
-    "meaning": "v. 举起；抬起\nn. 电梯；搭便车",
+    "meaning": "v. 举起；抬起\nn. （英）电梯；升降机",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23326,7 +23322,7 @@
       },
       {
         "pos": "n.",
-        "meaning": "电梯；搭便车"
+        "meaning": "（英）电梯；升降机"
       }
     ]
   },
@@ -23372,7 +23368,7 @@
     "word": "like",
     "phonetic": "[laɪk]",
     "pos": "prep.; v.",
-    "meaning": "prep. 像；跟:……一样\nv. 喜欢；喜爱；想要 (should/would like)",
+    "meaning": "prep. 像；跟……一样\nv. 喜欢；喜爱；想要（should/would like）",
     "forms": [
       "likely adj. 很可能的",
       "likely adv. 很可能地"
@@ -23396,11 +23392,11 @@
     "definitions": [
       {
         "pos": "prep.",
-        "meaning": "像；跟:……一样"
+        "meaning": "像；跟……一样"
       },
       {
         "pos": "v.",
-        "meaning": "喜欢；喜爱；想要 (should/would like)"
+        "meaning": "喜欢；喜爱；想要（should/would like）"
       }
     ]
   },
@@ -23436,8 +23432,8 @@
     "number": 910,
     "word": "limit",
     "phonetic": "['lɪmɪt]",
-    "pos": "n.",
-    "meaning": "极限；限制；限度；界限",
+    "pos": "n.; v.",
+    "meaning": "n. 极限；限制；限度；界限\nv. 限制；限定",
     "forms": [
       "limited adj. 有限的；限制的"
     ],
@@ -23455,6 +23451,10 @@
       {
         "pos": "n.",
         "meaning": "极限；限制；限度；界限"
+      },
+      {
+        "pos": "v.",
+        "meaning": "限制；限定"
       }
     ]
   },
@@ -23485,8 +23485,8 @@
     "number": 912,
     "word": "line",
     "phonetic": "[laɪn]",
-    "pos": "n.",
-    "meaning": "线；排；行；线路",
+    "pos": "n.; v.",
+    "meaning": "n. 排；行；线路；线；线条\nv. 排队",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23502,7 +23502,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "线；排；行；线路"
+        "meaning": "排；行；线路；线；线条"
+      },
+      {
+        "pos": "v.",
+        "meaning": "排队"
       }
     ]
   },
@@ -23562,7 +23566,7 @@
     "word": "liquid",
     "phonetic": "['lɪkwɪd]",
     "pos": "n.; adj.",
-    "meaning": "n. 液体\nadj. 液体；液体的；液态的",
+    "meaning": "n. 液体\nadj. 液体的；液态的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23581,7 +23585,7 @@
       },
       {
         "pos": "adj.",
-        "meaning": "液体；液体的；液态的"
+        "meaning": "液体的；液态的"
       }
     ]
   },
@@ -23671,7 +23675,7 @@
     "word": "little",
     "phonetic": "['lɪtəl]",
     "pos": "adj.; adv.; n.",
-    "meaning": "adj. 小的；少的；名\nadv. 很少地；稍许\nn. 没有多少；一点",
+    "meaning": "adj. 小的；少的\nadv. 很少地；稍许\nn. 没有多少；一点",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23692,7 +23696,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "小的；少的；名"
+        "meaning": "小的；少的"
       },
       {
         "pos": "adv.",
@@ -23740,8 +23744,8 @@
     "number": 921,
     "word": "local",
     "phonetic": "['ləʊkl]",
-    "pos": "adj.",
-    "meaning": "当地的；地方的",
+    "pos": "adj.; n.",
+    "meaning": "adj. 当地的；地方的\nn. 本地人",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -23756,6 +23760,10 @@
       {
         "pos": "adj.",
         "meaning": "当地的；地方的"
+      },
+      {
+        "pos": "n.",
+        "meaning": "本地人"
       }
     ]
   },
@@ -23813,7 +23821,7 @@
     "number": 924,
     "word": "lock",
     "phonetic": "[lɒk]",
-    "pos": "v.",
+    "pos": "n.; v.",
     "meaning": "锁",
     "forms": [],
     "collocations": [],
@@ -23828,7 +23836,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
+        "pos": "n.; v.",
         "meaning": "锁"
       }
     ]
@@ -23913,8 +23921,8 @@
     "number": 928,
     "word": "look",
     "phonetic": "[lʊk]",
-    "pos": "n.",
-    "meaning": "六看；观看；看起来；’s have a look! 我们去看看!；出",
+    "pos": "n.; v.",
+    "meaning": "n. 看；瞧\nv. 看；观看；看起来",
     "forms": [],
     "collocations": [
       "look after 照料；照顾",
@@ -23943,7 +23951,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "六看；观看；看起来；’s have a look! 我们去看看!；出"
+        "meaning": "看；瞧"
+      },
+      {
+        "pos": "v.",
+        "meaning": "看；观看；看起来"
       }
     ]
   },
@@ -24034,7 +24046,7 @@
     "word": "loud",
     "phonetic": "[laʊd]",
     "pos": "adj.; adv.",
-    "meaning": "adj. 大声的；响亮的\nadv. 大声地",
+    "meaning": "adj. 大声的；喧闹的\nadv. 大声地",
     "forms": [
       "loudly adv. 大声地"
     ],
@@ -24053,7 +24065,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "大声的；响亮的"
+        "meaning": "大声的；喧闹的"
       },
       {
         "pos": "adv.",
@@ -24401,7 +24413,7 @@
     "word": "mail",
     "phonetic": "[meɪl]",
     "pos": "n.; v.",
-    "meaning": "n. 《美) 邮件；邮递\nv. 邮寄",
+    "meaning": "n. （美）邮件；邮递\nv. 邮寄",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -24416,7 +24428,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "《美) 邮件；邮递"
+        "meaning": "（美）邮件；邮递"
       },
       {
         "pos": "v.",
@@ -24740,8 +24752,8 @@
     "number": 959,
     "word": "mark",
     "phonetic": "[mɑ:k]",
-    "pos": "n.",
-    "meaning": "标记；记号；符号；(考试等) 分数",
+    "pos": "n.; v.",
+    "meaning": "n. 标记；记号；符号；（考试等）分数\nv. 标明；作记号于；给……打分数",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -24756,7 +24768,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "标记；记号；符号；(考试等) 分数"
+        "meaning": "标记；记号；符号；（考试等）分数"
+      },
+      {
+        "pos": "v.",
+        "meaning": "标明；作记号于；给……打分数"
       }
     ]
   },
@@ -24814,7 +24830,7 @@
     "word": "match",
     "phonetic": "[mætʃ]",
     "pos": "n.; v.",
-    "meaning": "n. 比赛；火柴；相配的人或物\nv. 相配；与……相匹配",
+    "meaning": "n. 比赛；竞赛；火柴\nv. 与……匹配",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -24829,11 +24845,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "比赛；火柴；相配的人或物"
+        "meaning": "比赛；竞赛；火柴"
       },
       {
         "pos": "v.",
-        "meaning": "相配；与……相匹配"
+        "meaning": "与……匹配"
       }
     ]
   },
@@ -24865,7 +24881,7 @@
     "word": "maths",
     "phonetic": "[mæθs]",
     "pos": "n.",
-    "meaning": "(通常作单数",
+    "meaning": "（通常作单数用）数学",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -24879,7 +24895,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "(通常作单数"
+        "meaning": "（通常作单数用）数学"
       }
     ]
   },
@@ -24887,8 +24903,8 @@
     "number": 965,
     "word": "matter",
     "phonetic": "['mætə(r)]",
-    "pos": "n.",
-    "meaning": "要紧事；麻烦事；事情；问题；物质",
+    "pos": "n.; v.",
+    "meaning": "n. 要紧事；麻烦事；事情；问题；物质\nv. 要紧；有关系",
     "forms": [],
     "collocations": [
       "What’s the matter？ 怎么了？"
@@ -24906,6 +24922,10 @@
       {
         "pos": "n.",
         "meaning": "要紧事；麻烦事；事情；问题；物质"
+      },
+      {
+        "pos": "v.",
+        "meaning": "要紧；有关系"
       }
     ]
   },
@@ -25134,7 +25154,7 @@
     "word": "medium",
     "phonetic": "['mi:diəm]",
     "pos": "adj.; n.",
-    "meaning": "adj. 中间的；中等的\nn. (& media /mi'dre/) (传播信息的) 媒介；手段",
+    "meaning": "adj. 中间的；中等的\nn. （复 media）（传播信息的）媒介；手段",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -25152,7 +25172,7 @@
       },
       {
         "pos": "n.",
-        "meaning": "(& media /mi'dre/) (传播信息的) 媒介；手段"
+        "meaning": "（复 media）（传播信息的）媒介；手段"
       }
     ]
   },
@@ -25160,8 +25180,8 @@
     "number": 976,
     "word": "meet",
     "phonetic": "[mi:t]",
-    "pos": "v.",
-    "meaning": "遇见；见到；会见；迎接；满足",
+    "pos": "v.; n.",
+    "meaning": "v. 遇见；见到；会见；迎接；满足\nn. 会；集会",
     "forms": [
       "meeting n. 会；集会；会见"
     ],
@@ -25180,6 +25200,10 @@
       {
         "pos": "v.",
         "meaning": "遇见；见到；会见；迎接；满足"
+      },
+      {
+        "pos": "n.",
+        "meaning": "会；集会"
       }
     ]
   },
@@ -25930,7 +25954,7 @@
     "word": "mood",
     "phonetic": "[mu:d]",
     "pos": "n.",
-    "meaning": "心情；语气；和气氛",
+    "meaning": "心情；语气；气氛",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -25944,7 +25968,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "心情；语气；和气氛"
+        "meaning": "心情；语气；气氛"
       }
     ]
   },
@@ -26557,7 +26581,7 @@
     "word": "nationality",
     "phonetic": "[,næʃə'nælɪti]",
     "pos": "n.",
-    "meaning": ") n. 国籍",
+    "meaning": "国籍",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -26571,7 +26595,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ") n. 国籍"
+        "meaning": "国籍"
       }
     ]
   },
@@ -26659,7 +26683,7 @@
     "word": "naughty",
     "phonetic": "['nɔ:ti]",
     "pos": "adj.",
-    "meaning": "项皮的",
+    "meaning": "顽皮的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -26673,7 +26697,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "项皮的"
+        "meaning": "顽皮的"
       }
     ]
   },
@@ -26797,8 +26821,8 @@
     "number": 1040,
     "word": "need",
     "phonetic": "[ni:d]",
-    "pos": "aux.v.",
-    "meaning": "需要；必须",
+    "pos": "aux.v.; v.; n.",
+    "meaning": "aux.v. 必须\nv. 需要；必须\nn. 需要；需求；必要",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -26812,7 +26836,15 @@
     "definitions": [
       {
         "pos": "aux.v.",
+        "meaning": "必须"
+      },
+      {
+        "pos": "v.",
         "meaning": "需要；必须"
+      },
+      {
+        "pos": "n.",
+        "meaning": "需要；需求；必要"
       }
     ]
   },
@@ -26821,7 +26853,7 @@
     "word": "neighbour",
     "phonetic": "['neɪbə(r)]",
     "pos": "n.",
-    "meaning": ") n. 邻居；邻人",
+    "meaning": "邻居；邻人",
     "forms": [
       "neighbourhood n. 邻近地区，街坊，街区"
     ],
@@ -26837,7 +26869,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ") n. 邻居；邻人"
+        "meaning": "邻居；邻人"
       }
     ]
   },
@@ -26846,7 +26878,7 @@
     "word": "neighbourhood",
     "phonetic": "['neɪbəhʊd]",
     "pos": "n.",
-    "meaning": ") n. 邻近地区；街坊；街区",
+    "meaning": "邻近地区；街坊；街区",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -26860,7 +26892,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ") n. 邻近地区；街坊；街区"
+        "meaning": "邻近地区；街坊；街区"
       }
     ]
   },
@@ -26869,7 +26901,7 @@
     "word": "neither",
     "phonetic": "['naɪðə(r); 'ni:ðə(r)]",
     "pos": "pron.; adj.; adv.; conj.",
-    "meaning": "pron. (两者) 都不\nadj. (两者) 都不\nadv. conj. 也不\nconj. conj. 也不",
+    "meaning": "pron.; adj. （两者）都不\nadv.; conj. 也不",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -26885,20 +26917,12 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "pron.",
-        "meaning": "(两者) 都不"
+        "pos": "pron.; adj.",
+        "meaning": "（两者）都不"
       },
       {
-        "pos": "adj.",
-        "meaning": "(两者) 都不"
-      },
-      {
-        "pos": "adv.",
-        "meaning": "conj. 也不"
-      },
-      {
-        "pos": "conj.",
-        "meaning": "conj. 也不"
+        "pos": "adv.; conj.",
+        "meaning": "也不"
       }
     ]
   },
@@ -27173,7 +27197,7 @@
     "pos": "n.",
     "meaning": "声音；噪声；响声",
     "forms": [
-      "noisy adj. 嘲杂的，哈闹的"
+      "noisy adj. 嘈杂的；喧闹的"
     ],
     "collocations": [
       "make a noise 弄出声"
@@ -27198,7 +27222,7 @@
     "word": "noisy",
     "phonetic": "['nɔɪzi]",
     "pos": "adj.",
-    "meaning": "嘲杂的；哈闹的",
+    "meaning": "嘈杂的；喧闹的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -27212,7 +27236,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "嘲杂的；哈闹的"
+        "meaning": "嘈杂的；喧闹的"
       }
     ]
   },
@@ -27396,8 +27420,8 @@
     "number": 1064,
     "word": "notice",
     "phonetic": "['nəʊtɪs]",
-    "pos": "n.",
-    "meaning": "布告；通知；注意",
+    "pos": "n.; v.",
+    "meaning": "n. 布告；通知；注意\nv. 注意；注意到",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -27413,6 +27437,10 @@
       {
         "pos": "n.",
         "meaning": "布告；通知；注意"
+      },
+      {
+        "pos": "v.",
+        "meaning": "注意；注意到"
       }
     ]
   },
@@ -27680,7 +27708,7 @@
     "word": "o'clock",
     "phonetic": "[ə'klɒk]",
     "pos": "adv.",
-    "meaning": "«+++:点钟",
+    "meaning": "……点钟",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -27694,7 +27722,7 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "«+++:点钟"
+        "meaning": "……点钟"
       }
     ]
   },
@@ -27749,7 +27777,7 @@
     "word": "off",
     "phonetic": "[ɒf]",
     "pos": "adv.; prep.",
-    "meaning": "adv. 离开；走开；断掉(水、 i\nprep. 脱离，(走)开；从……",
+    "meaning": "adv. 离开；走开；断掉（水、电等）；完；光\nprep. 脱离；（走）开；从……离开",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -27767,11 +27795,11 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "离开；走开；断掉(水、 i"
+        "meaning": "离开；走开；断掉（水、电等）；完；光"
       },
       {
         "pos": "prep.",
-        "meaning": "脱离，(走)开；从……"
+        "meaning": "脱离；（走）开；从……离开"
       }
     ]
   },
@@ -27987,7 +28015,7 @@
     "word": "on",
     "phonetic": "[ɒn]",
     "pos": "prep.; adv.; adj.",
-    "meaning": "prep. 在……之上；在……时刻；关于\nadv. (2. Wee) 上；(水、电等)接通；进行下去\nadj. 在上映的；开着的",
+    "meaning": "prep. 在……之上；在……时刻；关于\nadv. （穿、放……）上；（水、电等）接通；进行下去\nadj. 在上映的；开着的",
     "forms": [],
     "collocations": [
       "on the roof 在屋顶上"
@@ -28011,7 +28039,7 @@
       },
       {
         "pos": "adv.",
-        "meaning": "(2. Wee) 上；(水、电等)接通；进行下去"
+        "meaning": "（穿、放……）上；（水、电等）接通；进行下去"
       },
       {
         "pos": "adj.",
@@ -28023,8 +28051,8 @@
     "number": 1089,
     "word": "once",
     "phonetic": "[wɒns]",
-    "pos": "adv.; n.",
-    "meaning": "adv. 一次；一度；从前；曾经\nn. 一次",
+    "pos": "adv.; n.; conj.",
+    "meaning": "adv. 一次；一度；从前；曾经\nn. 一次\nconj. 一旦……（就）……",
     "forms": [
       "one pron. 一"
     ],
@@ -28053,6 +28081,10 @@
       {
         "pos": "n.",
         "meaning": "一次"
+      },
+      {
+        "pos": "conj.",
+        "meaning": "一旦……（就）……"
       }
     ]
   },
@@ -28359,7 +28391,7 @@
     "word": "order",
     "phonetic": "['ɔ:də(r)]",
     "pos": "n.; v.",
-    "meaning": "n. 命令；指示；顺序\nv. aS；订购；点 (菜、饮料等)",
+    "meaning": "n. 命令；指示；顺序\nv. 命令；订购；点（菜、饮料等）",
     "forms": [],
     "collocations": [
       "in order to 为了"
@@ -28381,7 +28413,7 @@
       },
       {
         "pos": "v.",
-        "meaning": "aS；订购；点 (菜、饮料等)"
+        "meaning": "命令；订购；点（菜、饮料等）"
       }
     ]
   },
@@ -28572,7 +28604,7 @@
     "word": "outing",
     "phonetic": "['aʊtɪŋ]",
     "pos": "n.",
-    "meaning": "远足；郊游；〈集体) 外出游玩 (或学习等)",
+    "meaning": "远足；郊游；（集体）外出游玩（或学习等）",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -28586,7 +28618,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "远足；郊游；〈集体) 外出游玩 (或学习等)"
+        "meaning": "远足；郊游；（集体）外出游玩（或学习等）"
       }
     ]
   },
@@ -28788,7 +28820,7 @@
     "word": "page",
     "phonetic": "[peɪdʒ]",
     "pos": "n.",
-    "meaning": "寻(书刊或纸张的) 页；页码",
+    "meaning": "（书刊或纸张的）页；页码",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -28802,7 +28834,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "寻(书刊或纸张的) 页；页码"
+        "meaning": "（书刊或纸张的）页；页码"
       }
     ]
   },
@@ -28811,7 +28843,7 @@
     "word": "pain",
     "phonetic": "[peɪn]",
     "pos": "n.; v.",
-    "meaning": "n. 疼痛；使疼痛\nv. 疼痛；使疼痛",
+    "meaning": "疼痛；疼",
     "forms": [
       "painful adj. 疼痛的"
     ],
@@ -28829,12 +28861,8 @@
     ],
     "definitions": [
       {
-        "pos": "n.",
-        "meaning": "疼痛；使疼痛"
-      },
-      {
-        "pos": "v.",
-        "meaning": "疼痛；使疼痛"
+        "pos": "n.; v.",
+        "meaning": "疼痛；疼"
       }
     ]
   },
@@ -28842,11 +28870,11 @@
     "number": 1119,
     "word": "paint",
     "phonetic": "[peɪnt]",
-    "pos": "v.",
-    "meaning": "油漆；粉刷；绘画",
+    "pos": "v.; n.",
+    "meaning": "v. 油漆；粉刷；绘画\nn. 油漆；涂料；颜料",
     "forms": [
-      "painter 7. 画家",
-      "painting n. 画，油画，水彩画"
+      "painter n. 画家",
+      "painting n. 画；油画；水彩画"
     ],
     "collocations": [],
     "examples": [
@@ -28861,6 +28889,10 @@
       {
         "pos": "v.",
         "meaning": "油漆；粉刷；绘画"
+      },
+      {
+        "pos": "n.",
+        "meaning": "油漆；涂料；颜料"
       }
     ]
   },
@@ -29154,8 +29186,8 @@
     "number": 1132,
     "word": "pass",
     "phonetic": "[pɑ:s]",
-    "pos": "n.",
-    "meaning": "传；递；经过；路过；通过",
+    "pos": "v.; n.",
+    "meaning": "v. 传；递；经过；路过；通过\nn. 许可证；通行证",
     "forms": [],
     "collocations": [
       "pass on 传递；转交；(用后) 递给，传给"
@@ -29172,8 +29204,12 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
+        "pos": "v.",
         "meaning": "传；递；经过；路过；通过"
+      },
+      {
+        "pos": "n.",
+        "meaning": "许可证；通行证"
       }
     ]
   },
@@ -29250,8 +29286,8 @@
     "number": 1136,
     "word": "past",
     "phonetic": "[pɑ:st]",
-    "pos": "adj.",
-    "meaning": "(指时间等)过……；走过某处；经过",
+    "pos": "prep.; n.; adj.",
+    "meaning": "prep. （指时间等）过……；走过某处；经过\nn. 过去；昔日；往事\nadj. 过去的；以往的",
     "forms": [],
     "collocations": [
       "in the past 在过去；从前"
@@ -29268,8 +29304,16 @@
     "proverbs": [],
     "definitions": [
       {
+        "pos": "prep.",
+        "meaning": "（指时间等）过……；走过某处；经过"
+      },
+      {
+        "pos": "n.",
+        "meaning": "过去；昔日；往事"
+      },
+      {
         "pos": "adj.",
-        "meaning": "(指时间等)过……；走过某处；经过"
+        "meaning": "过去的；以往的"
       }
     ]
   },
@@ -29527,7 +29571,7 @@
     "word": "percent",
     "phonetic": "[pə'sent]",
     "pos": "n.; adj.; adv.",
-    "meaning": "n. 百分比；百分之……\nadj. 百分比；百分之……\nadv. 百分比；百分之……",
+    "meaning": "百分比；百分之……",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -29542,15 +29586,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
-        "meaning": "百分比；百分之……"
-      },
-      {
-        "pos": "adj.",
-        "meaning": "百分比；百分之……"
-      },
-      {
-        "pos": "adv.",
+        "pos": "n.; adj.; adv.",
         "meaning": "百分比；百分之……"
       }
     ]
@@ -29869,7 +29905,7 @@
     "word": "picnic",
     "phonetic": "['pɪknɪk]",
     "pos": "n.",
-    "meaning": "”野餐",
+    "meaning": "野餐",
     "forms": [],
     "collocations": [
       "go on a picnic 去野餐"
@@ -29886,7 +29922,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "”野餐"
+        "meaning": "野餐"
       }
     ]
   },
@@ -29895,7 +29931,7 @@
     "word": "picture",
     "phonetic": "['pɪktʃə(r)]",
     "pos": "n.",
-    "meaning": "图片；图画；照片；影",
+    "meaning": "图片；图画；照片；影片",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -29909,7 +29945,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "图片；图画；照片；影"
+        "meaning": "图片；图画；照片；影片"
       }
     ]
   },
@@ -30440,7 +30476,7 @@
     "word": "pleasant",
     "phonetic": "['pleznt]",
     "pos": "adj.",
-    "meaning": "邻人愉快的；舒适的",
+    "meaning": "令人愉快的；舒适的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -30454,7 +30490,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "邻人愉快的；舒适的"
+        "meaning": "令人愉快的；舒适的"
       }
     ]
   },
@@ -30918,7 +30954,7 @@
     "pos": "adj.",
     "meaning": "流行的；大众喜爱的；广受欢迎的；当红的",
     "forms": [
-      "pop 7. 流行音乐",
+      "pop n. 流行音乐",
       "popularity n. 流行"
     ],
     "collocations": [],
@@ -31038,7 +31074,7 @@
     "word": "post",
     "phonetic": "[pəʊst]",
     "pos": "n.; v.",
-    "meaning": "n. 邮政；邮件；邮寄\nv. 邮寄；发布；发帖",
+    "meaning": "n. 邮政；邮件\nv. 邮寄；发布；发帖",
     "forms": [
       "postcard n. 明信片",
       "postman n. 邮递员"
@@ -31059,7 +31095,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "邮政；邮件；邮寄"
+        "meaning": "邮政；邮件"
       },
       {
         "pos": "v.",
@@ -31118,7 +31154,7 @@
     "word": "postman",
     "phonetic": "['pəʊstmən]",
     "pos": "n.",
-    "meaning": "(复 postmen //) 邮递员",
+    "meaning": "邮递员",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -31132,7 +31168,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "(复 postmen //) 邮递员"
+        "meaning": "邮递员"
       }
     ]
   },
@@ -31374,7 +31410,7 @@
     "word": "prefer",
     "phonetic": "[prɪ'fɜ:(r)]",
     "pos": "v.",
-    "meaning": "宁愿 (选择)；更喜欢；嘉欢……多于……",
+    "meaning": "宁愿（选择）；更喜欢；喜欢……多于……",
     "forms": [
       "preference n. 偏受；偏好"
     ],
@@ -31392,7 +31428,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "宁愿 (选择)；更喜欢；嘉欢……多于……"
+        "meaning": "宁愿（选择）；更喜欢；喜欢……多于……"
       }
     ]
   },
@@ -31488,8 +31524,8 @@
     "number": 1224,
     "word": "press",
     "phonetic": "[pres]",
-    "pos": "v.",
-    "meaning": "按；压；新闻界",
+    "pos": "v.; n.",
+    "meaning": "v. 按；压\nn. 新闻界",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -31503,7 +31539,11 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "按；压；新闻界"
+        "meaning": "按；压"
+      },
+      {
+        "pos": "n.",
+        "meaning": "新闻界"
       }
     ]
   },
@@ -32238,7 +32278,7 @@
     "word": "pull",
     "phonetic": "[pʊl]",
     "pos": "v.",
-    "meaning": "拉；拖；氢",
+    "meaning": "拉；拖；拔",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -32252,7 +32292,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "拉；拖；氢"
+        "meaning": "拉；拖；拔"
       }
     ]
   },
@@ -32284,7 +32324,7 @@
     "word": "push",
     "phonetic": "[pʊʃ]",
     "pos": "v.; n.",
-    "meaning": "v. 推动(人或物)；移动 身体部位)\nn. 推动(人或物)；移动 身体部位)",
+    "meaning": "v. 推动（人或物）；移动（身体部位）\nn. 推；推动",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -32300,11 +32340,11 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "推动(人或物)；移动 身体部位)"
+        "meaning": "推动（人或物）；移动（身体部位）"
       },
       {
         "pos": "n.",
-        "meaning": "推动(人或物)；移动 身体部位)"
+        "meaning": "推；推动"
       }
     ]
   },
@@ -32537,7 +32577,7 @@
     "word": "quite",
     "phonetic": "[kwaɪt]",
     "pos": "adv.",
-    "meaning": "完全；+；相当；非常",
+    "meaning": "完全；很；相当；非常",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -32551,7 +32591,7 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "完全；+；相当；非常"
+        "meaning": "完全；很；相当；非常"
       }
     ]
   },
@@ -32657,7 +32697,7 @@
     "word": "rain",
     "phonetic": "[reɪn]",
     "pos": "n.",
-    "meaning": "雨；两水",
+    "meaning": "雨；雨水",
     "forms": [
       "rainy adj. 有雨的；多雨的"
     ],
@@ -32674,7 +32714,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "雨；两水"
+        "meaning": "雨；雨水"
       }
     ]
   },
@@ -32803,7 +32843,7 @@
     "word": "read",
     "phonetic": "[ri:d]",
     "pos": "v.",
-    "meaning": "(read /red/；read) v 读；朗读",
+    "meaning": "读；朗读",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -32820,7 +32860,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "(read /red/；read) v 读；朗读"
+        "meaning": "读；朗读"
       }
     ]
   },
@@ -32954,7 +32994,7 @@
     "word": "rebuild",
     "phonetic": "[,ri:'bɪld]",
     "pos": "v.",
-    "meaning": "重建 重组",
+    "meaning": "重建；重组",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -32968,7 +33008,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "重建 重组"
+        "meaning": "重建；重组"
       }
     ]
   },
@@ -33004,7 +33044,7 @@
     "pos": "adj.",
     "meaning": "近来的；最近的",
     "forms": [
-      "recently adv. iE；近来"
+      "recently adv. 最近；近来"
     ],
     "collocations": [],
     "examples": [
@@ -33288,7 +33328,7 @@
     "word": "relative",
     "phonetic": "['relətɪv]",
     "pos": "n.",
-    "meaning": "亲属；亲威",
+    "meaning": "亲属；亲戚",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -33302,7 +33342,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "亲属；亲威"
+        "meaning": "亲属；亲戚"
       }
     ]
   },
@@ -33491,7 +33531,7 @@
     "number": 1304,
     "word": "reply",
     "phonetic": "[rɪ'plaɪ]",
-    "pos": "n.",
+    "pos": "n.; v.",
     "meaning": "回答；答复",
     "forms": [],
     "collocations": [
@@ -33512,7 +33552,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
+        "pos": "n.; v.",
         "meaning": "回答；答复"
       }
     ]
@@ -33599,7 +33639,7 @@
     "word": "require",
     "phonetic": "[rɪ'kwaɪə(r)]",
     "pos": "v.",
-    "meaning": "需要；要求；依靠；依赖",
+    "meaning": "需要；要求",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -33615,7 +33655,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "需要；要求；依靠；依赖"
+        "meaning": "需要；要求"
       }
     ]
   },
@@ -33623,7 +33663,7 @@
     "number": 1309,
     "word": "research",
     "phonetic": "[rɪ'sɜ:tʃ]",
-    "pos": "v.",
+    "pos": "v.; n.",
     "meaning": "研究；调查",
     "forms": [],
     "collocations": [],
@@ -33637,7 +33677,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
+        "pos": "v.; n.",
         "meaning": "研究；调查"
       }
     ]
@@ -33850,8 +33890,8 @@
     "pos": "adj.",
     "meaning": "退休的",
     "forms": [
-      "retirey 退休；退役",
-      "retirement 17. 退休；退役"
+      "retire v. 退休；退役",
+      "retirement n. 退休；退役"
     ],
     "collocations": [],
     "examples": [
@@ -34011,7 +34051,7 @@
     "word": "rich",
     "phonetic": "[rɪtʃ]",
     "pos": "adj.",
-    "meaning": "富裕的；有钱的；味道浓的；重油的；丰富的",
+    "meaning": "富裕的；有钱的；味道浓的；油腻的；丰富的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -34025,7 +34065,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "富裕的；有钱的；味道浓的；重油的；丰富的"
+        "meaning": "富裕的；有钱的；味道浓的；油腻的；丰富的"
       }
     ]
   },
@@ -34276,7 +34316,7 @@
     "number": 1334,
     "word": "rock",
     "phonetic": "[rɒk]",
-    "pos": "v.",
+    "pos": "n.",
     "meaning": "岩石；摇滚乐",
     "forms": [],
     "collocations": [
@@ -34294,7 +34334,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
+        "pos": "n.",
         "meaning": "岩石；摇滚乐"
       }
     ]
@@ -34685,7 +34725,7 @@
     "word": "sadly",
     "phonetic": "['sædli]",
     "pos": "adv.",
-    "meaning": "Ah；忧愁地；令人遗憾地；不幸地",
+    "meaning": "悲哀地；忧愁地；令人遗憾地；不幸地",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -34699,7 +34739,7 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "Ah；忧愁地；令人遗憾地；不幸地"
+        "meaning": "悲哀地；忧愁地；令人遗憾地；不幸地"
       }
     ]
   },
@@ -35061,7 +35101,7 @@
     "word": "save",
     "phonetic": "[seɪv]",
     "pos": "v.",
-    "meaning": "St；节省；节约；保存",
+    "meaning": "救；挽救；节省；节约；保存",
     "forms": [],
     "collocations": [
       "save one’s life 挽救某人的生命"
@@ -35079,7 +35119,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "St；节省；节约；保存"
+        "meaning": "救；挽救；节省；节约；保存"
       }
     ]
   },
@@ -35438,7 +35478,7 @@
     "word": "second",
     "phonetic": "['sekənd]",
     "pos": "n.; adj.; adv.",
-    "meaning": "n. 第二个\nadj. 秒；第二位的\nadv. 第二位；其次",
+    "meaning": "n. 第二个；秒\nadj. 第二位的\nadv. 第二位；其次",
     "forms": [
       "secondary adj. 中等的；第二的"
     ],
@@ -35457,11 +35497,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "第二个"
+        "meaning": "第二个；秒"
       },
       {
         "pos": "adj.",
-        "meaning": "秒；第二位的"
+        "meaning": "第二位的"
       },
       {
         "pos": "adv.",
@@ -35496,8 +35536,8 @@
     "number": 1382,
     "word": "secret",
     "phonetic": "['si:krət]",
-    "pos": "n.",
-    "meaning": "秘密",
+    "pos": "n.; adj.",
+    "meaning": "n. 秘密\nadj. 秘密的",
     "forms": [
       "secretary n. 秘书",
       "secretly adv, 秘密地"
@@ -35516,6 +35556,10 @@
       {
         "pos": "n.",
         "meaning": "秘密"
+      },
+      {
+        "pos": "adj.",
+        "meaning": "秘密的"
       }
     ]
   },
@@ -35991,8 +36035,8 @@
     "number": 1402,
     "word": "several",
     "phonetic": "['sevrəl]",
-    "pos": "adj.; det.; pron.",
-    "meaning": "adj. pron. 几个；数个\ndet. pron. 几个；数个\npron. pron. 几个；数个",
+    "pos": "adj.; pron.",
+    "meaning": "几个；数个",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -36005,16 +36049,8 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "adj.",
-        "meaning": "pron. 几个；数个"
-      },
-      {
-        "pos": "det.",
-        "meaning": "pron. 几个；数个"
-      },
-      {
-        "pos": "pron.",
-        "meaning": "pron. 几个；数个"
+        "pos": "adj.; pron.",
+        "meaning": "几个；数个"
       }
     ]
   },
@@ -36496,7 +36532,7 @@
     "word": "sick",
     "phonetic": "[sɪk]",
     "pos": "adj.",
-    "meaning": "有病的；患病的；(想)呕吐的；亚心的",
+    "meaning": "有病的；患病的；（想）呕吐的；恶心的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -36510,7 +36546,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "有病的；患病的；(想)呕吐的；亚心的"
+        "meaning": "有病的；患病的；（想）呕吐的；恶心的"
       }
     ]
   },
@@ -36544,7 +36580,7 @@
     "word": "sight",
     "phonetic": "[saɪt]",
     "pos": "n.",
-    "meaning": "风景；视力",
+    "meaning": "景象；风景；视力",
     "forms": [
       "sightseeing n. 游览，观光"
     ],
@@ -36560,7 +36596,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "风景；视力"
+        "meaning": "景象；风景；视力"
       }
     ]
   },
@@ -37127,7 +37163,7 @@
     "word": "slow",
     "phonetic": "[sləʊ]",
     "pos": "adj.",
-    "meaning": "慢慢的；缓慢的",
+    "meaning": "慢的；缓慢的",
     "forms": [
       "slowly adv. 慢慢地，缓慢地"
     ],
@@ -37145,7 +37181,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "慢慢的；缓慢的"
+        "meaning": "慢的；缓慢的"
       }
     ]
   },
@@ -37225,7 +37261,7 @@
     "word": "smell",
     "phonetic": "[smel]",
     "pos": "v.",
-    "meaning": "嗅；闻到；有 (或",
+    "meaning": "嗅；闻到；有（或发出）……气味",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -37240,7 +37276,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "嗅；闻到；有 (或"
+        "meaning": "嗅；闻到；有（或发出）……气味"
       }
     ]
   },
@@ -37277,8 +37313,8 @@
     "number": 1454,
     "word": "smoke",
     "phonetic": "[sməʊk]",
-    "pos": "n.",
-    "meaning": "烟；冒烟；吸烟；抽烟",
+    "pos": "n.; v.",
+    "meaning": "n. 烟\nv. 冒烟；吸烟；抽烟",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -37293,7 +37329,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "烟；冒烟；吸烟；抽烟"
+        "meaning": "烟"
+      },
+      {
+        "pos": "v.",
+        "meaning": "冒烟；吸烟；抽烟"
       }
     ]
   },
@@ -38027,7 +38067,7 @@
     "word": "spend",
     "phonetic": "[spend]",
     "pos": "v.",
-    "meaning": "it；花费(钱、时间等)",
+    "meaning": "花费（钱、时间等）；度过",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -38041,7 +38081,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "it；花费(钱、时间等)"
+        "meaning": "花费（钱、时间等）；度过"
       }
     ]
   },
@@ -38537,7 +38577,7 @@
     "word": "stocking",
     "phonetic": "['stɒkɪŋ]",
     "pos": "n.",
-    "meaning": "长简袜",
+    "meaning": "长筒袜",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -38551,7 +38591,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "长简袜"
+        "meaning": "长筒袜"
       }
     ]
   },
@@ -39432,7 +39472,7 @@
     "word": "supper",
     "phonetic": "['sʌpə(r)]",
     "pos": "n.",
-    "meaning": "上晚餐；晚饭",
+    "meaning": "晚餐；晚饭",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -39446,7 +39486,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "上晚餐；晚饭"
+        "meaning": "晚餐；晚饭"
       }
     ]
   },
@@ -39559,7 +39599,7 @@
     "word": "surprise",
     "phonetic": "[sə'praɪz]",
     "pos": "n.",
-    "meaning": "惊奇；证异；意想不到 (或突然) 的事",
+    "meaning": "惊奇；惊异；意想不到（或突然）的事",
     "forms": [
       "surprised adj. 感到惊奇的，惊讶的，感觉意外的",
       "surprising adj. 邻人惊奇的"
@@ -39581,7 +39621,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "惊奇；证异；意想不到 (或突然) 的事"
+        "meaning": "惊奇；惊异；意想不到（或突然）的事"
       }
     ]
   },
@@ -39612,8 +39652,8 @@
     "number": 1547,
     "word": "survey",
     "phonetic": "['sɜ:veɪ]",
-    "pos": "v.; n.",
-    "meaning": "v. 调查；民意调查\nn. 调查；民意调查",
+    "pos": "n.; v.",
+    "meaning": "调查；民意调查",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -39626,11 +39666,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v.",
-        "meaning": "调查；民意调查"
-      },
-      {
-        "pos": "n.",
+        "pos": "n.; v.",
         "meaning": "调查；民意调查"
       }
     ]
@@ -39663,7 +39699,7 @@
     "word": "sweep",
     "phonetic": "[swi:p]",
     "pos": "v.",
-    "meaning": "(swept /swept/；swept) v 扫除",
+    "meaning": "扫除",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -39677,7 +39713,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "(swept /swept/；swept) v 扫除"
+        "meaning": "扫除"
       }
     ]
   },
@@ -39813,7 +39849,7 @@
     "word": "take",
     "phonetic": "[teɪk]",
     "pos": "v.",
-    "meaning": "(took /tuk/；taken /'/) vv；拿走；做；服用；乘坐(车、；船)；花费(时间)；和",
+    "meaning": "拿；拿走；做；吃；服用；乘坐（车、船）；花费（时间）；拍照",
     "forms": [],
     "collocations": [
       "take away 拿走",
@@ -39841,7 +39877,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "(took /tuk/；taken /'/) vv；拿走；做；服用；乘坐(车、；船)；花费(时间)；和"
+        "meaning": "拿；拿走；做；吃；服用；乘坐（车、船）；花费（时间）；拍照"
       }
     ]
   },
@@ -39999,8 +40035,8 @@
     "number": 1562,
     "word": "taste",
     "phonetic": "[teɪst]",
-    "pos": "v.; n.; adj.",
-    "meaning": "v. 品尝；尝起来\nn. 味道；滋味\nadj. 有……味道的",
+    "pos": "v.; n.",
+    "meaning": "v. 品尝；尝起来\nn. 味道；滋味",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -40021,10 +40057,6 @@
       {
         "pos": "n.",
         "meaning": "味道；滋味"
-      },
-      {
-        "pos": "adj.",
-        "meaning": "有……味道的"
       }
     ]
   },
@@ -40636,7 +40668,7 @@
     "word": "there",
     "phonetic": "[ðeə(r)]",
     "pos": "adv.",
-    "meaning": "在那里；往那里；〈作引导词；与 be 动词连用；表示“存在",
+    "meaning": "在那里；往那里；（作引导词，与 be 动词连用）表示“存在”",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -40653,7 +40685,7 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "在那里；往那里；〈作引导词；与 be 动词连用；表示“存在"
+        "meaning": "在那里；往那里；（作引导词，与 be 动词连用）表示“存在”"
       }
     ]
   },
@@ -41157,7 +41189,7 @@
     "word": "tip",
     "phonetic": "[tɪp]",
     "pos": "n.",
-    "meaning": "实用的提示；小费；小穹门；建议；指点",
+    "meaning": "实用的提示；小费；小窍门；建议；指点",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -41171,7 +41203,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "实用的提示；小费；小穹门；建议；指点"
+        "meaning": "实用的提示；小费；小窍门；建议；指点"
       }
     ]
   },
@@ -41228,7 +41260,7 @@
     "word": "to",
     "phonetic": "[tu:]",
     "pos": "prep.",
-    "meaning": "(表示接受动作的人或物) 给………；到……",
+    "meaning": "（表示接受动作的人或物）给……；到……",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -41242,7 +41274,7 @@
     "definitions": [
       {
         "pos": "prep.",
-        "meaning": "(表示接受动作的人或物) 给………；到……"
+        "meaning": "（表示接受动作的人或物）给……；到……"
       }
     ]
   },
@@ -41303,7 +41335,7 @@
     "word": "tomato",
     "phonetic": "[tə'mɑ:təʊ]",
     "pos": "n.",
-    "meaning": "( tomatoes) 7番茄；西红柿",
+    "meaning": "番茄；西红柿",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -41317,7 +41349,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "( tomatoes) 7番茄；西红柿"
+        "meaning": "番茄；西红柿"
       }
     ]
   },
@@ -41354,7 +41386,7 @@
     "word": "tonight",
     "phonetic": "[tə'naɪt]",
     "pos": "adv.; n.",
-    "meaning": "adv. 今晚；今\nn. 今晚；今",
+    "meaning": "adv. 今晚；今夜\nn. 今晚；今夜",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -41369,11 +41401,11 @@
     "definitions": [
       {
         "pos": "adv.",
-        "meaning": "今晚；今"
+        "meaning": "今晚；今夜"
       },
       {
         "pos": "n.",
-        "meaning": "今晚；今"
+        "meaning": "今晚；今夜"
       }
     ]
   },
@@ -41831,7 +41863,7 @@
     "word": "transport",
     "phonetic": "[træn'spɔ:t]",
     "pos": "v.; n.",
-    "meaning": "v. 运输；运送；输送；/:t/ n. 运输\nn. 输送；运送；运输机器；交通车辆；旅行方式",
+    "meaning": "v. 运输；运送；输送\nn. 输送；运送；运输工具；交通车辆；旅行方式",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -41846,11 +41878,11 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "运输；运送；输送；/:t/ n. 运输"
+        "meaning": "运输；运送；输送"
       },
       {
         "pos": "n.",
-        "meaning": "输送；运送；运输机器；交通车辆；旅行方式"
+        "meaning": "输送；运送；运输工具；交通车辆；旅行方式"
       }
     ]
   },
@@ -41959,7 +41991,7 @@
     "word": "trip",
     "phonetic": "[trɪp]",
     "pos": "n.",
-    "meaning": ".(尤指短程往返的)旅行；旅程；旅游；出行",
+    "meaning": "（尤指短程往返的）旅行；旅程；旅游；出行",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -41973,7 +42005,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ".(尤指短程往返的)旅行；旅程；旅游；出行"
+        "meaning": "（尤指短程往返的）旅行；旅程；旅游；出行"
       }
     ]
   },
@@ -42327,7 +42359,7 @@
     "word": "umbrella",
     "phonetic": "[ʌm'brelə]",
     "pos": "n.",
-    "meaning": "企",
+    "meaning": "伞；雨伞",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -42341,7 +42373,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "企"
+        "meaning": "伞；雨伞"
       }
     ]
   },
@@ -42401,7 +42433,7 @@
     "word": "underground",
     "phonetic": "['ʌndəgraʊnd]",
     "pos": "adj.; n.",
-    "meaning": "adj. 地下的\nn. (subway /'/) 地铁；地下铁路系统",
+    "meaning": "adj. 地下的\nn. 地铁；地下铁路系统",
     "forms": [],
     "collocations": [
       "take the underground 乘地铁"
@@ -42422,7 +42454,7 @@
       },
       {
         "pos": "n.",
-        "meaning": "(subway /'/) 地铁；地下铁路系统"
+        "meaning": "地铁；地下铁路系统"
       }
     ]
   },
@@ -42999,7 +43031,7 @@
     "word": "value",
     "phonetic": "['vælju:]",
     "pos": "n.",
-    "meaning": "(；价格；数值；价值观",
+    "meaning": "价值；价格；数值；价值观",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43014,7 +43046,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "(；价格；数值；价值观"
+        "meaning": "价值；价格；数值；价值观"
       }
     ]
   },
@@ -43023,7 +43055,7 @@
     "word": "variety",
     "phonetic": "[və'raɪəti]",
     "pos": "n.",
-    "meaning": ") n. 种种；种类；〈同一事物的)不同种类；多种式样",
+    "meaning": "种种；种类；（同一事物的）不同种类；多种式样",
     "forms": [
       "various adj. 各种各样的；不同的"
     ],
@@ -43039,7 +43071,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ") n. 种种；种类；〈同一事物的)不同种类；多种式样"
+        "meaning": "种种；种类；（同一事物的）不同种类；多种式样"
       }
     ]
   },
@@ -43120,7 +43152,7 @@
     "word": "victory",
     "phonetic": "['vɪktəri]",
     "pos": "n.",
-    "meaning": ") n. 胜利",
+    "meaning": "胜利",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43134,7 +43166,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ") n. 胜利"
+        "meaning": "胜利"
       }
     ]
   },
@@ -43143,7 +43175,7 @@
     "word": "video",
     "phonetic": "['vɪdɪəʊ]",
     "pos": "n.",
-    "meaning": ") n. 录像；视频；音乐短片",
+    "meaning": "录像；视频；音乐短片",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43157,7 +43189,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": ") n. 录像；视频；音乐短片"
+        "meaning": "录像；视频；音乐短片"
       }
     ]
   },
@@ -43335,8 +43367,8 @@
     "number": 1694,
     "word": "volunteer",
     "phonetic": "[,vɒlən'tiə(r)]",
-    "pos": "n.",
-    "meaning": "(D/7. 志愿者；义务工作者；人 * 自愿(做)；自愿提供",
+    "pos": "n.; v.",
+    "meaning": "n. 志愿者；义务工作者\nv. 自愿（做）；自愿提供",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43351,7 +43383,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "(D/7. 志愿者；义务工作者；人 * 自愿(做)；自愿提供"
+        "meaning": "志愿者；义务工作者"
+      },
+      {
+        "pos": "v.",
+        "meaning": "自愿（做）；自愿提供"
       }
     ]
   },
@@ -43643,7 +43679,7 @@
     "word": "waste",
     "phonetic": "[weɪst]",
     "pos": "v.; n.",
-    "meaning": "v. 浪费；当\nn. 浪费；废物；垃圾",
+    "meaning": "v. 浪费\nn. 浪费；废物；垃圾",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43658,7 +43694,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "浪费；当"
+        "meaning": "浪费"
       },
       {
         "pos": "n.",
@@ -43779,7 +43815,7 @@
     "word": "weak",
     "phonetic": "[wi:k]",
     "pos": "adj.",
-    "meaning": "53)；220)；淡的；虚弱的；无力的",
+    "meaning": "弱的；虚弱的；无力的；淡的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43793,7 +43829,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "53)；220)；淡的；虚弱的；无力的"
+        "meaning": "弱的；虚弱的；无力的；淡的"
       }
     ]
   },
@@ -43825,7 +43861,7 @@
     "word": "wear",
     "phonetic": "[weə(r)]",
     "pos": "v.",
-    "meaning": "/) v. 穿；戴",
+    "meaning": "穿；戴",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -43839,7 +43875,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "/) v. 穿；戴"
+        "meaning": "穿；戴"
       }
     ]
   },
@@ -44197,7 +44233,7 @@
     "word": "wet",
     "phonetic": "[wet]",
     "pos": "adj.",
-    "meaning": "多两的",
+    "meaning": "湿的；潮湿的；下雨的",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -44211,7 +44247,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "多两的"
+        "meaning": "湿的；潮湿的；下雨的"
       }
     ]
   },
@@ -44220,7 +44256,7 @@
     "word": "what",
     "phonetic": "[wɒt]",
     "pos": "pron.; adv.; conj.",
-    "meaning": "pron. (表示疑问)什么；(表示建议) 怎尹\nadv. (表示感叹)多么；(表示疑问) ea\nconj. 引导宾语从句",
+    "meaning": "pron. （表示疑问）什么；（表示建议）怎么样\nadv. （表示感叹）多么；（表示疑问）什么\nconj. 引导宾语从句",
     "forms": [],
     "collocations": [
       "what’s more 而且"
@@ -44241,11 +44277,11 @@
     "definitions": [
       {
         "pos": "pron.",
-        "meaning": "(表示疑问)什么；(表示建议) 怎尹"
+        "meaning": "（表示疑问）什么；（表示建议）怎么样"
       },
       {
         "pos": "adv.",
-        "meaning": "(表示感叹)多么；(表示疑问) ea"
+        "meaning": "（表示感叹）多么；（表示疑问）什么"
       },
       {
         "pos": "conj.",
@@ -44258,7 +44294,7 @@
     "word": "when",
     "phonetic": "[wen]",
     "pos": "conj.; adv.",
-    "meaning": "conj. 什么时候；Ye的时候\nadv. 什么时候；Ye的时候",
+    "meaning": "conj. ……的时候\nadv. 什么时候",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -44274,11 +44310,11 @@
     "definitions": [
       {
         "pos": "conj.",
-        "meaning": "什么时候；Ye的时候"
+        "meaning": "……的时候"
       },
       {
         "pos": "adv.",
-        "meaning": "什么时候；Ye的时候"
+        "meaning": "什么时候"
       }
     ]
   },
@@ -44341,7 +44377,7 @@
     "word": "which",
     "phonetic": "[wɪtʃ]",
     "pos": "adj.; pron.",
-    "meaning": "adj. J (哪) 一个 (些)\npron. J (哪) 一个 (些)",
+    "meaning": "adj. （哪）一个（些）\npron. （哪）一个（些）",
     "forms": [],
     "collocations": [],
     "examples": [
@@ -44356,11 +44392,11 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "J (哪) 一个 (些)"
+        "meaning": "（哪）一个（些）"
       },
       {
         "pos": "pron.",
-        "meaning": "J (哪) 一个 (些)"
+        "meaning": "（哪）一个（些）"
       }
     ]
   },
@@ -44695,7 +44731,7 @@
     "word": "win",
     "phonetic": "[wɪn]",
     "pos": "v.",
-    "meaning": "(won /wan/；won) v 获胜；赢得",
+    "meaning": "获胜；赢得",
     "forms": [
       "winner n. 获胜者；优胜者"
     ],
@@ -44711,7 +44747,7 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "(won /wan/；won) v 获胜；赢得"
+        "meaning": "获胜；赢得"
       }
     ]
   },
@@ -45075,7 +45111,7 @@
     "number": 1762,
     "word": "wonder",
     "phonetic": "['wʌndə(r)]",
-    "pos": "n.",
+    "pos": "v.",
     "meaning": "对……感到疑惑；想知道",
     "forms": [
       "wonderful adj. 美妙的，精彩的",
@@ -45093,7 +45129,7 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n.",
+        "pos": "v.",
         "meaning": "对……感到疑惑；想知道"
       }
     ]
@@ -45200,8 +45236,8 @@
     "number": 1767,
     "word": "work",
     "phonetic": "[wɜ:k]",
-    "pos": "n.",
-    "meaning": "工作；(机器等)运转；活动",
+    "pos": "n.; v.",
+    "meaning": "n. 工作\nv. （机器等）运转；活动",
     "forms": [
       "worker n. 工作者；工人"
     ],
@@ -45226,7 +45262,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "工作；(机器等)运转；活动"
+        "meaning": "工作"
+      },
+      {
+        "pos": "v.",
+        "meaning": "（机器等）运转；活动"
       }
     ]
   },
@@ -45612,7 +45652,7 @@
     "pos": "adj.",
     "meaning": "年轻的",
     "forms": [
-      "youth 7. 青年，年轻人"
+      "youth n. 青年；年轻人"
     ],
     "collocations": [],
     "examples": [
