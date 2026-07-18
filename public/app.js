@@ -34,6 +34,7 @@ const state = {
   studyQueue: [],
   studyIndex: 0,
   studyRevealed: false,
+  studyRevealByWord: new Map(),
   reviewQueue: [],
   reviewIndex: 0,
   reviewRevealed: false,
@@ -961,6 +962,7 @@ function prepareStudyQueue(force = true, resetPosition = false) {
   const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled === true;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
   state.studyQueue = queue.slice(0, limit);
+  if (resetPosition) state.studyRevealByWord.clear();
   const restoredIndex = currentWord ? state.studyQueue.findIndex((word) => word.word.toLowerCase() === currentWord.toLowerCase()) : -1;
   state.studyIndex = restoredIndex >= 0 ? restoredIndex : 0;
   state.studyRevealed = restoredIndex >= 0 && saved.word === currentWord
@@ -992,13 +994,18 @@ function renderStudyCard() {
   const card = $('#studyCard');
   $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
   if (!state.studyQueue.length || state.studyIndex >= state.studyQueue.length) {
-    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去复习中心巩固。</p><button class="primary-btn" type="button" data-restart-study>再来一轮</button></div>`;
+    const previousButton = state.studyQueue.length && state.studyIndex > 0
+      ? '<button class="ghost-btn" type="button" data-previous-study>← 返回上一个单词</button>'
+      : '';
+    card.innerHTML = `<div class="empty-state"><span>🎉</span><p>本轮学习完成。重新生成队列，或去复习中心巩固。</p><div class="empty-state-actions">${previousButton}<button class="primary-btn" type="button" data-restart-study>再来一轮</button></div></div>`;
+    $('[data-previous-study]')?.addEventListener('click', goToPreviousStudyWord);
     $('[data-restart-study]')?.addEventListener('click', () => prepareStudyQueue(true, true));
     refreshStatsOnly();
     return;
   }
 
   const word = state.studyQueue[state.studyIndex];
+  state.studyRevealByWord.set(word.word, state.studyRevealed === true);
   writeJsonStorage(STORAGE.studySession, {
     word: word.word,
     section: $('#studySection')?.value || '',
@@ -1017,6 +1024,7 @@ function renderStudyCard() {
     ? `<div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button></div>`
     : '';
   card.innerHTML = `
+    <div class="study-card-toolbar"><button class="previous-word-btn" type="button" data-previous-study aria-label="上一个单词" title="上一个单词" ${state.studyIndex === 0 ? 'disabled' : ''}>←</button></div>
     <div class="flashcard-head"><h2 class="word-title${chineseRecall && !revealed ? ' chinese-prompt' : ''}">${promptHtml}</h2></div>
     ${metadata}
     <div class="reveal-zone">
@@ -1031,6 +1039,7 @@ function renderStudyCard() {
     </div>
     <div class="card-footer"><span>${position} / ${state.studyQueue.length}</span><span class="progress-track"><i style="width:${pct}%"></i></span><span>${word.sourcePage ? `书第 ${word.sourcePage} 页` : ''}</span></div>`;
 
+  $('[data-previous-study]')?.addEventListener('click', goToPreviousStudyWord);
   $('[data-reveal-study]')?.addEventListener('click', revealStudy);
   $$('[data-study-status]').forEach((button) => button.addEventListener('click', () => markStudyWord(button.dataset.studyStatus)));
   $('[data-speak]')?.addEventListener('click', () => speakWord(word));
@@ -1051,7 +1060,27 @@ async function saveCustomNote(word) {
 
 function revealStudy() {
   state.studyRevealed = true;
+  const word = state.studyQueue[state.studyIndex];
+  if (word) state.studyRevealByWord.set(word.word, true);
   renderStudyCard();
+}
+
+function defaultStudyRevealState() {
+  return state.studyRecallMode === 'english' && state.alwaysShowMeaning;
+}
+
+function goToPreviousStudyWord() {
+  if (state.studyIndex <= 0 || !state.studyQueue.length) return showToast('已经是第一个单词');
+  if (state.autoReadActive) stopAutoReadSession();
+  const currentWord = state.studyQueue[state.studyIndex];
+  if (currentWord) state.studyRevealByWord.set(currentWord.word, state.studyRevealed === true);
+  state.studyIndex -= 1;
+  const previousWord = state.studyQueue[state.studyIndex];
+  state.studyRevealed = state.studyRevealByWord.has(previousWord.word)
+    ? state.studyRevealByWord.get(previousWord.word)
+    : defaultStudyRevealState();
+  renderStudyCard();
+  scrollStudyCardIntoView();
 }
 
 function scrollStudyCardIntoView() {
@@ -1061,11 +1090,15 @@ function scrollStudyCardIntoView() {
 async function markStudyWord(status) {
   const word = state.studyQueue[state.studyIndex];
   if (!word) return;
+  state.studyRevealByWord.set(word.word, state.studyRevealed === true);
   word.status = status;
   const sourceWord = updateLocalProgress(word.word, { status, lastReview: new Date().toISOString(), firstSeenAt: word.firstSeenAt || new Date().toISOString() });
   if (sourceWord) Object.assign(word, sourceWord);
   state.studyIndex += 1;
-  state.studyRevealed = state.studyRecallMode === 'english' && state.alwaysShowMeaning;
+  const nextWord = state.studyQueue[state.studyIndex];
+  state.studyRevealed = nextWord && state.studyRevealByWord.has(nextWord.word)
+    ? state.studyRevealByWord.get(nextWord.word)
+    : defaultStudyRevealState();
   renderStudyCard();
   scrollStudyCardIntoView();
   try {
@@ -1455,45 +1488,8 @@ function unstudiedWords(letters = selectedExportLetters()) {
   }).sort(compareWordOrder);
 }
 
-function unstudiedWordRows(words) {
-  return words.map((word, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td><strong>${escapeHtml(word.word)}</strong>${word.phonetic ? `<br><span class="phonetic">${escapeHtml(word.phonetic)}</span>` : ''}</td>
-      <td>${escapeHtml(word.pos || '')}</td>
-      <td>${escapeHtml(word.meaning || '')}${word.customNote ? `<br><em>我的注释：${escapeHtml(word.customNote)}</em>` : ''}</td>
-      <td class="check-box">□</td>
-    </tr>`).join('');
-}
-
-function unstudiedDocumentHtml(words) {
-  const date = new Date().toLocaleDateString('zh-CN');
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>未掌握单词清单</title>
-    <style>
-      @page { size: A4; margin: 12mm; }
-      body { font-family: Arial, "Microsoft YaHei", sans-serif; color: #111; font-size: 10pt; }
-      h1 { margin: 0 0 4mm; text-align: center; font-size: 18pt; }
-      .summary { margin: 0 0 4mm; text-align: center; color: #555; }
-      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-      th, td { border: 1px solid #777; padding: 2.2mm 1.8mm; vertical-align: middle; word-break: break-word; }
-      th { background: #eef3f8; }
-      th:nth-child(1), td:nth-child(1) { width: 7%; text-align: center; }
-      th:nth-child(2), td:nth-child(2) { width: 24%; }
-      th:nth-child(3), td:nth-child(3) { width: 11%; text-align: center; }
-      th:nth-child(4), td:nth-child(4) { width: 50%; }
-      th:nth-child(5), td:nth-child(5) { width: 8%; text-align: center; }
-      .phonetic { color: #555; font-size: 9pt; }
-      .check-box { font-size: 15pt; }
-      tr { break-inside: avoid; }
-    </style></head><body>
-    <h1>未掌握单词清单</h1>
-    <p class="summary">导出日期：${escapeHtml(date)}　共 ${words.length} 个单词</p>
-    <table><thead><tr><th>序号</th><th>单词 / 音标</th><th>词性</th><th>中文释义</th><th>掌握</th></tr></thead>
-    <tbody>${unstudiedWordRows(words)}</tbody></table></body></html>`;
-}
-
-function downloadTextFile(filename, content, type) {
-  const blob = new Blob(['\ufeff', content], { type });
+function downloadBinaryFile(filename, content, type) {
+  const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -1511,24 +1507,36 @@ async function exportUnstudiedWord() {
   if (!selectedExportLetters().length) return showToast('请至少选择一个字母');
   const words = unstudiedWords();
   if (!words.length) return showToast('当前选择范围内没有未掌握的单词');
-  const filename = `未掌握单词-${new Date().toISOString().slice(0, 10)}.doc`;
-  const content = unstudiedDocumentHtml(words);
-  if (window.VocabNative?.saveDocument) {
-    const result = window.VocabNative.saveDocument(filename, content, 'application/msword');
-    if (result === 'OPENED') showToast('请选择保存目录并确认文件名');
-    else showToast(`已导出 ${words.length} 个未掌握单词到下载目录`);
-    return;
+  if (!globalThis.VocabDocx?.createUnstudiedWordDocx) return showToast('DOCX 生成模块未加载，请关闭重开应用后重试');
+
+  try {
+    const filename = `未掌握单词-${new Date().toISOString().slice(0, 10)}.docx`;
+    const content = globalThis.VocabDocx.createUnstudiedWordDocx(words);
+    const contentBase64 = globalThis.VocabDocx.bytesToBase64(content);
+    const mimeType = globalThis.VocabDocx.DOCX_MIME;
+
+    if (window.VocabNative?.saveBase64Document) {
+      const result = window.VocabNative.saveBase64Document(filename, contentBase64, mimeType);
+      if (String(result).startsWith('ERROR')) throw new Error(String(result).replace(/^ERROR:?/, '') || 'APK 保存失败');
+      showToast(`已导出 ${words.length} 个未掌握单词到下载目录`);
+      return;
+    }
+
+    const filesystem = capacitorPlugin('Filesystem');
+    const share = capacitorPlugin('Share');
+    if (filesystem?.writeFile) {
+      const result = await filesystem.writeFile({ path: filename, data: contentBase64, directory: 'DOCUMENTS', recursive: true });
+      if (share?.share) await share.share({ title: '未掌握单词清单', url: result.uri, dialogTitle: '保存或分享 DOCX 文件' }).catch(() => {});
+      showToast(`已导出 ${words.length} 个未掌握单词`);
+      return;
+    }
+
+    if (isNativeApp()) throw new Error('APK 原生保存模块未加载，请安装最新版 APK');
+    downloadBinaryFile(filename, content, mimeType);
+    showToast(`已导出 ${words.length} 个未掌握单词的 DOCX 文件`);
+  } catch (error) {
+    showToast(`DOCX 导出失败：${error.message}`);
   }
-  const filesystem = capacitorPlugin('Filesystem');
-  const share = capacitorPlugin('Share');
-  if (filesystem?.writeFile) {
-    const result = await filesystem.writeFile({ path: filename, data: content, directory: 'DOCUMENTS', recursive: true });
-    if (share?.share) await share.share({ title: '未掌握单词清单', url: result.uri, dialogTitle: '保存或分享 Word 文件' }).catch(() => {});
-    showToast(`已导出 ${words.length} 个未掌握单词`);
-    return;
-  }
-  downloadTextFile(filename, content, 'application/msword;charset=utf-8');
-  showToast(`已导出 ${words.length} 个未掌握单词的 Word 文件`);
 }
 
 function renderExportLetterChoices() {
@@ -1950,15 +1958,20 @@ async function speakWordDetailsForAutoRead(word, runId) {
   return isCurrentAutoReadRun(runId);
 }
 
+function stopAutoReadSession() {
+  state.autoReadActive = false;
+  state.autoReadRunId += 1;
+  stopSpeaking();
+  window.VocabNative?.stopContinuousReading?.();
+  window.VocabNative?.stopNativeContinuousReading?.();
+  stopNativeReadingProgressPolling();
+  const button = $('#autoReadUnknown');
+  if (button) button.textContent = '朗读未掌握';
+}
+
 async function toggleAutoReadUnknown() {
   if (state.autoReadActive) {
-    state.autoReadActive = false;
-    state.autoReadRunId += 1;
-    stopSpeaking();
-    window.VocabNative?.stopContinuousReading?.();
-    window.VocabNative?.stopNativeContinuousReading?.();
-    stopNativeReadingProgressPolling();
-    $('#autoReadUnknown').textContent = '朗读未掌握';
+    stopAutoReadSession();
     return;
   }
   if (!canSpeakText()) return showToast('当前设备暂时无法朗读：请确认手机系统已安装并启用文字转语音引擎');
