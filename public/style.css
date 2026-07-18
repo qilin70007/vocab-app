@@ -119,6 +119,9 @@ select, input[type="text"], input[type="search"], input[type="number"] { min-hei
 
 .flashcard-wrap { max-width: 980px; margin: 0 auto; scroll-margin-top: 88px; }
 .flashcard { min-height: 620px; padding: clamp(28px, 5.6vw, 54px); border: 1px solid rgba(218, 225, 238, .9); border-radius: 30px; background: linear-gradient(155deg, #fff, #fbfcff 72%, #edf2ff); box-shadow: var(--shadow); }
+.study-card-toolbar { display: flex; min-height: 44px; margin-bottom: 8px; }
+.previous-word-btn { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--brand-deep); font-size: 25px; line-height: 1; box-shadow: 0 5px 14px rgba(33,48,87,.08); }
+.previous-word-btn:disabled { opacity: .35; box-shadow: none; cursor: default; }
 .flashcard-head { display: block; min-width: 0; }
 .word-title { margin: 0; font-size: clamp(46px, 8vw, 80px); letter-spacing: -.045em; line-height: 1.05; overflow-wrap: anywhere; }
 .word-title.chinese-prompt { font-size: clamp(30px, 5vw, 52px); letter-spacing: 0; line-height: 1.35; }
@@ -150,6 +153,7 @@ select, input[type="text"], input[type="search"], input[type="number"] { min-hei
 .keyboard-hint { padding: 8px; color: var(--muted); text-align: center; font-size: 15px; }
 .empty-state { display: grid; place-items: center; min-height: 260px; text-align: center; color: var(--muted); }
 .empty-state span { font-size: 42px; }
+.empty-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
 
 .review-layout { display: grid; grid-template-columns: 290px minmax(0,1fr); gap: 18px; align-items: start; }
 .review-summary { text-align: center; position: sticky; top: 92px; }
