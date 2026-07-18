@@ -1024,7 +1024,6 @@ function renderStudyCard() {
     ? `<div class="word-meta">${word.phonetic ? `<span>${escapeHtml(word.phonetic)}</span>` : ''}${word.pos ? `<span class="tag">${escapeHtml(word.pos)}</span>` : ''}<span class="tag">${statusLabel(word.status)}</span><button class="speak-btn" type="button" data-speak="${escapeHtml(word.word)}" aria-label="朗读单词">🔊</button></div>`
     : '';
   card.innerHTML = `
-    <div class="study-card-toolbar"><button class="previous-word-btn" type="button" data-previous-study aria-label="上一个单词" title="上一个单词" ${state.studyIndex === 0 ? 'disabled' : ''}>←</button></div>
     <div class="flashcard-head"><h2 class="word-title${chineseRecall && !revealed ? ' chinese-prompt' : ''}">${promptHtml}</h2></div>
     ${metadata}
     <div class="reveal-zone">
@@ -1037,7 +1036,8 @@ function renderStudyCard() {
       <button class="action-hard" type="button" data-study-status="learning">🤔 模糊</button>
       <button class="action-good" type="button" data-study-status="known">😊 认识</button>
     </div>
-    <div class="card-footer"><span>${position} / ${state.studyQueue.length}</span><span class="progress-track"><i style="width:${pct}%"></i></span><span>${word.sourcePage ? `书第 ${word.sourcePage} 页` : ''}</span></div>`;
+    <div class="card-footer"><span>${position} / ${state.studyQueue.length}</span><span class="progress-track"><i style="width:${pct}%"></i></span><span>${word.sourcePage ? `书第 ${word.sourcePage} 页` : ''}</span></div>
+    <div class="study-card-toolbar"><button class="previous-word-btn" type="button" data-previous-study aria-label="上一个单词" title="上一个单词" ${state.studyIndex === 0 ? 'disabled' : ''}>←</button></div>`;
 
   $('[data-previous-study]')?.addEventListener('click', goToPreviousStudyWord);
   $('[data-reveal-study]')?.addEventListener('click', revealStudy);
