@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手（手机离线版）</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.5.2">
+  <link rel="stylesheet" href="/style.css?v=2.5.3">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -137,7 +137,7 @@
       <section class="page" id="page-words" aria-labelledby="wordsTitle">
         <div class="page-heading">
           <div><p class="eyebrow">完整词库</p><h1 id="wordsTitle">单词本</h1></div>
-          <span class="queue-count" id="wordCount">0 词</span>
+          <div class="page-heading-actions"><button class="secondary-btn compact hidden" id="openWordbookImport" type="button">导入 words.json</button><span class="queue-count" id="wordCount">0 词</span></div>
         </div>
         <div class="word-toolbar">
           <label class="search-box"><span>⌕</span><input id="wordSearch" type="search" placeholder="搜索英文、中文、搭配或例句"></label>
@@ -209,9 +209,9 @@
           </article>
 
           <article class="panel hidden" id="wordbookPanel">
-            <div class="panel-heading"><div><p class="eyebrow">APK 词书</p><h2>更换 words.json</h2></div></div>
+            <div class="panel-heading"><div><p class="eyebrow">手机词库</p><h2>导入或更换 words.json</h2></div></div>
             <p class="muted" id="wordbookSummary"></p>
-            <div class="button-column"><label class="secondary-btn file-button">选择新的 words.json<input id="importWordbook" type="file" accept="application/json,.json"></label><button class="ghost-btn" id="restoreBuiltInWordbook" type="button">恢复内置词书</button></div>
+            <div class="button-column"><label class="secondary-btn file-button">选择 words.json<input id="importWordbook" type="file" accept="application/json,.json"></label><button class="ghost-btn" id="restoreBuiltInWordbook" type="button">恢复内置词书</button></div>
             <p class="muted">每个单词至少包含 word 和 meaning；校验失败不会覆盖当前词书。</p>
           </article>
 
@@ -253,7 +253,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>window.VOCAB_STANDALONE = true;</script>
-  <script src="/docx-export.js?v=2.5.2" defer></script>
-  <script src="/app.js?v=2.5.2" defer></script>
+  <script src="/docx-export.js?v=2.5.3" defer></script>
+  <script src="/app.js?v=2.5.3" defer></script>
 </body>
 </html>

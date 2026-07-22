@@ -1362,11 +1362,17 @@ function showWordDialog(wordText) {
   $('#wordDialog').showModal();
 }
 
-async function renderDataPage() {
+function renderWordbookControls() {
   const wordbookPanel = $('#wordbookPanel');
   if (wordbookPanel) wordbookPanel.classList.toggle('hidden', !STANDALONE_MODE);
+  const quickImportButton = $('#openWordbookImport');
+  if (quickImportButton) quickImportButton.classList.toggle('hidden', !STANDALONE_MODE);
   const wordbookSummary = $('#wordbookSummary');
   if (wordbookSummary) wordbookSummary.textContent = `当前词书：${localStorage.getItem(STORAGE.wordbookName) || '内置 words.json'} · ${state.words.length} 个单词`;
+}
+
+async function renderDataPage() {
+  renderWordbookControls();
   $('#syncCodeInput').value = state.syncCode;
   const remoteInput = $('#remoteServerInput');
   if (remoteInput) remoteInput.value = state.remoteServer || localStorage.getItem(STORAGE.remoteServer) || '';
@@ -2095,6 +2101,8 @@ function bindEvents() {
   $('#wordSearch').addEventListener('input', () => { state.wordPage = 1; renderWordList(); });
   $('#wordSection').addEventListener('change', () => { state.wordPage = 1; renderWordList(); });
   $('#wordStatus').addEventListener('change', () => { state.wordPage = 1; renderWordList(); });
+  renderWordbookControls();
+  $('#openWordbookImport')?.addEventListener('click', () => $('#importWordbook')?.click());
   $('#dialogClose').addEventListener('click', () => $('#wordDialog').close());
   $('#wordDialog').addEventListener('click', (event) => {
     if (event.target === $('#wordDialog')) $('#wordDialog').close();
