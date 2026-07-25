@@ -8,7 +8,7 @@
   <title>中考词汇背诵助手</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css?v=2.5.3">
+  <link rel="stylesheet" href="/style.css?v=2.5.4">
 </head>
 <body>
   <div class="app-shell" id="app">
@@ -212,7 +212,7 @@
             <div class="panel-heading"><div><p class="eyebrow">手机词库</p><h2>导入或更换 words.json</h2></div></div>
             <p class="muted" id="wordbookSummary"></p>
             <div class="button-column"><label class="secondary-btn file-button">选择 words.json<input id="importWordbook" type="file" accept="application/json,.json"></label><button class="ghost-btn" id="restoreBuiltInWordbook" type="button">恢复内置词书</button></div>
-            <p class="muted">每个单词至少包含 word 和 meaning；校验失败不会覆盖当前词书。</p>
+            <p class="muted">每个单词至少包含 word 和 meaning；与当前词库同名时使用新导入的词条，新文件内部同名时使用最后一条；校验失败不会覆盖当前词书。</p>
           </article>
 
           <article class="panel danger-panel">
@@ -252,7 +252,7 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="/docx-export.js?v=2.5.3" defer></script>
-  <script src="/app.js?v=2.5.3" defer></script>
+  <script src="/docx-export.js?v=2.5.4" defer></script>
+  <script src="/app.js?v=2.5.4" defer></script>
 </body>
 </html>
