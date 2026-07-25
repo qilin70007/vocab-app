@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 const multer = require('multer');
 
-const APP_VERSION = '2.5.3';
+const APP_VERSION = '2.5.4';
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 const DEFAULT_DAILY_GOAL = 45;
 const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
