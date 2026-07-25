@@ -950,6 +950,49 @@ function wordMeaningHtml(word) {
   return `<div class="answer-meaning">${escapeHtml(senses[0]?.meaning || word.meaning)}</div>`;
 }
 
+function studyWordKey(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function restoreStudyQueueFromSession(candidates, {
+  savedQueue = [],
+  currentWord = '',
+  currentIndex = 0,
+  limit = candidates.length
+} = {}) {
+  const candidateByWord = new Map();
+  candidates.forEach((word) => {
+    const key = studyWordKey(word?.word);
+    if (key && !candidateByWord.has(key)) candidateByWord.set(key, word);
+  });
+
+  const restored = [];
+  const restoredKeys = new Set();
+  const addWord = (word) => {
+    const key = studyWordKey(word?.word);
+    if (!key || restoredKeys.has(key)) return;
+    restoredKeys.add(key);
+    restored.push(word);
+  };
+
+  savedQueue.forEach((word) => {
+    const candidate = candidateByWord.get(studyWordKey(word));
+    if (candidate) addWord(candidate);
+  });
+  candidates.forEach(addWord);
+
+  const maximum = Math.min(restored.length, Math.max(0, Number(limit) || 0));
+  if (!maximum) return [];
+  const limited = restored.slice(0, maximum);
+  const current = candidateByWord.get(studyWordKey(currentWord));
+  if (current && !limited.some((word) => studyWordKey(word.word) === studyWordKey(currentWord))) {
+    const insertAt = Math.min(Math.max(0, Number(currentIndex) || 0), maximum - 1);
+    if (limited.length >= maximum) limited.pop();
+    limited.splice(insertAt, 0, current);
+  }
+  return limited;
+}
+
 function prepareStudyQueue(force = true, resetPosition = false) {
   if (!force && state.studyQueue.length) {
     renderStudyCard();
@@ -966,13 +1009,23 @@ function prepareStudyQueue(force = true, resetPosition = false) {
   const status = $('#studyStatus')?.value || 'notknown';
   const order = $('#studyOrder')?.value || 'alpha';
   let queue = filteredWords(section, status);
-  if (order === 'random') queue.sort(() => Math.random() - 0.5);
+  const canRestoreSavedQueue = !resetPosition
+    && Array.isArray(saved.queue)
+    && saved.section === section
+    && saved.status === status
+    && saved.order === order;
+  if (order === 'random' && !canRestoreSavedQueue) queue.sort(() => Math.random() - 0.5);
   else queue.sort((a, b) => a.word.localeCompare(b.word));
   const shouldLimit = status === 'notknown' && state.stats?.dailyGoalEnabled === true;
   const limit = shouldLimit ? Number(state.stats?.dailyGoal || 45) : queue.length;
-  state.studyQueue = queue.slice(0, limit);
+  state.studyQueue = restoreStudyQueueFromSession(queue, {
+    savedQueue: canRestoreSavedQueue ? saved.queue : [],
+    currentWord,
+    currentIndex: saved.index,
+    limit
+  });
   if (resetPosition) state.studyRevealByWord.clear();
-  const restoredIndex = currentWord ? state.studyQueue.findIndex((word) => word.word.toLowerCase() === currentWord.toLowerCase()) : -1;
+  const restoredIndex = currentWord ? state.studyQueue.findIndex((word) => studyWordKey(word.word) === studyWordKey(currentWord)) : -1;
   state.studyIndex = restoredIndex >= 0 ? restoredIndex : 0;
   state.studyRevealed = restoredIndex >= 0 && saved.word === currentWord
     ? saved.revealed === true
@@ -999,6 +1052,20 @@ function customNoteEditorHtml(word) {
   </section>`;
 }
 
+function persistStudySession() {
+  const word = state.studyQueue[state.studyIndex];
+  if (!word) return;
+  writeJsonStorage(STORAGE.studySession, {
+    word: word.word,
+    section: $('#studySection')?.value || '',
+    status: $('#studyStatus')?.value || 'notknown',
+    order: $('#studyOrder')?.value || 'sequence',
+    revealed: state.studyRevealed === true,
+    index: state.studyIndex,
+    queue: state.studyQueue.map((item) => item.word)
+  });
+}
+
 function renderStudyCard() {
   const card = $('#studyCard');
   $('#studyQueueCount').textContent = `${state.studyQueue.length} 词`;
@@ -1015,13 +1082,7 @@ function renderStudyCard() {
 
   const word = state.studyQueue[state.studyIndex];
   state.studyRevealByWord.set(word.word, state.studyRevealed === true);
-  writeJsonStorage(STORAGE.studySession, {
-    word: word.word,
-    section: $('#studySection')?.value || '',
-    status: $('#studyStatus')?.value || 'notknown',
-    order: $('#studyOrder')?.value || 'sequence',
-    revealed: state.studyRevealed === true
-  });
+  persistStudySession();
   const position = state.studyIndex + 1;
   const pct = Math.round((position / state.studyQueue.length) * 100);
   const chineseRecall = state.studyRecallMode === 'chinese';
@@ -1930,7 +1991,12 @@ function stopNativeReadingProgressPolling() {
   state.nativeReadingProgressTimer = null;
 }
 
+function shouldSyncNativeReadingProgress(autoReadActive, progressTimer) {
+  return autoReadActive === true || Boolean(progressTimer);
+}
+
 function syncNativeReadingProgress() {
+  if (!shouldSyncNativeReadingProgress(state.autoReadActive, state.nativeReadingProgressTimer)) return;
   if (!window.VocabNative?.getNativeReadingIndex) return;
   const active = window.VocabNative.isNativeContinuousReadingActive?.() === true;
   const index = Number(window.VocabNative.getNativeReadingIndex());
@@ -2171,7 +2237,11 @@ function bindEvents() {
   });
   window.addEventListener('offline', () => setConnectionStatus(false, '离线模式'));
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) syncNativeReadingProgress();
+    if (document.hidden) {
+      if (state.page === 'study') persistStudySession();
+      return;
+    }
+    syncNativeReadingProgress();
   });
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
