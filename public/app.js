@@ -744,6 +744,15 @@ function ensureWordArrays(word) {
   return word;
 }
 
+function preferLastDuplicateWord(words) {
+  const importedWords = new Map();
+  words.forEach((word) => {
+    const key = String(word.word).trim().toLowerCase();
+    importedWords.set(key, word);
+  });
+  return [...importedWords.values()];
+}
+
 async function refreshAll({ quiet = false } = {}) {
   if (!quiet) setConnectionStatus(navigator.onLine, '连接中');
   try {
@@ -1400,16 +1409,17 @@ async function importWordbook(file) {
     if (records.length > 20000) throw new Error('单词数量不能超过 20000');
     const normalized = records.map(ensureWordArrays);
     if (normalized.some((word) => !String(word.word || '').trim() || !String(word.meaning || '').trim())) throw new Error('每条记录必须包含非空的 word 和 meaning');
-    const unique = new Set(normalized.map((word) => word.word.toLowerCase()));
-    if (unique.size !== normalized.length) throw new Error('词书中存在重复单词');
-    writeJsonStorage(STORAGE.standaloneWords, normalized);
+    const importedWords = preferLastDuplicateWord(normalized);
+    const duplicateCount = normalized.length - importedWords.length;
+    writeJsonStorage(STORAGE.standaloneWords, importedWords);
     const savedWords = readJsonStorage(STORAGE.standaloneWords, []);
-    if (!Array.isArray(savedWords) || savedWords.length !== normalized.length) throw new Error('手机存储空间不足，未能保存新词书');
+    if (!Array.isArray(savedWords) || savedWords.length !== importedWords.length) throw new Error('手机存储空间不足，未能保存新词书');
     localStorage.setItem(STORAGE.wordbookName, file.name || 'words.json');
     localStorage.removeItem(STORAGE.studySession);
     state.studyQueue = []; state.reviewQueue = []; state.spellQueue = [];
     await refreshAll(); renderDataPage();
-    showToast(`已导入新词书，共 ${normalized.length} 个单词`);
+    const duplicateSummary = duplicateCount ? `，已用后出现的新词条覆盖 ${duplicateCount} 条重复记录` : '';
+    showToast(`已导入新词书，共 ${importedWords.length} 个单词${duplicateSummary}`);
   } catch (error) { showToast(`词书导入失败：${error.message}`); }
   finally { $('#importWordbook').value = ''; }
 }
