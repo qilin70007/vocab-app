@@ -1,7 +1,7 @@
 {
   "appId": "com.vocabmaster.app",
   "appName": "中考词汇背诵助手",
-  "webDir": "public",
+  "webDir": "mobile-dist",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "http",

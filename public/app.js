@@ -3,7 +3,8 @@
 const API_ROOT = '/api';
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
-  || globalThis.Capacitor?.isNativePlatform?.() === true;
+  || globalThis.Capacitor?.isNativePlatform?.() === true
+  || globalThis.VocabNative != null;
 const REMOTE_REVISION_POLL_MS = 15_000;
 const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
 const EXPORT_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -754,7 +755,7 @@ function preferLastDuplicateWord(words) {
 }
 
 async function refreshAll({ quiet = false } = {}) {
-  if (!quiet) setConnectionStatus(navigator.onLine, '连接中');
+  if (!quiet) setConnectionStatus(STANDALONE_MODE || navigator.onLine, STANDALONE_MODE ? '手机离线版' : '连接中');
   try {
     const [wordsPayload, stats, sections, daily] = await Promise.all([
       api('/words?status=all&limit=5000'),
@@ -777,7 +778,8 @@ async function refreshAll({ quiet = false } = {}) {
     renderCurrentPage();
   } catch (error) {
     console.error(error);
-    showToast('无法读取词库，请启动服务器');
+    setConnectionStatus(false, STANDALONE_MODE ? '本机词库读取失败' : '离线模式');
+    showToast(STANDALONE_MODE ? '无法读取 APK 内置词库，请重新安装最新版 APK' : '无法读取词库，请启动服务器');
   }
 }
 
@@ -2257,7 +2259,7 @@ async function init() {
   state.remoteServer = normalizeRemoteServer(localStorage.getItem(STORAGE.remoteServer));
   localStorage.setItem(STORAGE.syncCode, state.syncCode);
   bindEvents();
-  setConnectionStatus(navigator.onLine, '连接中');
+  setConnectionStatus(STANDALONE_MODE || navigator.onLine, STANDALONE_MODE ? '手机离线版' : '连接中');
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error));

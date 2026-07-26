@@ -34,3 +34,6 @@ data/*.bak
 Thumbs.db
 
 data/backups/
+
+# Generated Capacitor offline web bundle
+mobile-dist/
