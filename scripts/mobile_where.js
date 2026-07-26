@@ -7,7 +7,8 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const files = [
   ['手机离线入口', 'public/mobile.html'],
-  ['内置离线词库', 'public/words.json'],
+  ['APK 打包入口', 'mobile-dist/index.html'],
+  ['APK 内置离线词库', 'mobile-dist/words.json'],
   ['Capacitor 配置', 'capacitor.config.json'],
   ['APK 默认输出位置', 'android/app/build/outputs/apk/debug/app-debug.apk']
 ];
