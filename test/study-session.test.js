@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { URLSearchParams } = require('node:url');
 
-function loadStudySessionHelpers() {
+function loadStudySessionHelpers({ nativeBridge = null } = {}) {
   const appPath = path.join(__dirname, '..', 'public', 'app.js');
   const source = fs.readFileSync(appPath, 'utf8');
   const storage = new Map();
@@ -24,10 +24,11 @@ function loadStudySessionHelpers() {
       removeItem(key) { storage.delete(key); }
     }
   };
+  if (nativeBridge) context.VocabNative = nativeBridge;
   context.window = context;
   context.globalThis = context;
   vm.runInNewContext(
-    `${source}\nmodule.exports = { restoreStudyQueueFromSession, shouldSyncNativeReadingProgress };`,
+    `${source}\nmodule.exports = { STANDALONE_MODE, restoreStudyQueueFromSession, shouldSyncNativeReadingProgress };`,
     context,
     { filename: appPath }
   );
@@ -65,4 +66,10 @@ test('ignores a native reading index unless this page started continuous reading
   assert.equal(shouldSyncNativeReadingProgress(false, null), false);
   assert.equal(shouldSyncNativeReadingProgress(true, null), true);
   assert.equal(shouldSyncNativeReadingProgress(false, 123), true);
+});
+
+test('recognizes the injected Android bridge as standalone without Wi-Fi or Capacitor globals', () => {
+  const { STANDALONE_MODE } = loadStudySessionHelpers({ nativeBridge: {} });
+
+  assert.equal(STANDALONE_MODE, true);
 });
