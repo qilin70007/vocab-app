@@ -72,7 +72,8 @@
     "examples": [
       "Tell me about your family. 告诉我关于你家人的事。",
       "It's about five miles away. 大约五英里远。",
-      "He looked about the room. 他环顾房间四周。"
+      "He looked about the room. 他环顾房间四周。",
+      "How about going for a walk? 去散步怎么样？"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -102,7 +103,8 @@
     ],
     "examples": [
       "The plane is above the clouds. 飞机在云层上方。",
-      "This job requires a bachelor’s degree or above. 这份工作需要本科及以上学历。"
+      "This job requires a bachelor’s degree or above. 这份工作需要本科及以上学历。",
+      "Above all, you must be honest. 最重要的是，你必须诚实。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -191,7 +193,8 @@
     ],
     "examples": [
       "There was a car accident. 发生了一起车祸。",
-      "He was injured in a traffic accident. 他在一次交通事故中受伤。"
+      "He was injured in a traffic accident. 他在一次交通事故中受伤。",
+      "I met her by accident at the store. 我在商店偶然遇见了她。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -327,7 +330,8 @@
     ],
     "examples": [
       "He acts well in the play. 他在剧中演得很好。",
-      "Think before you act. 三思而后行。"
+      "Think before you act. 三思而后行。",
+      "The children acted out a story. 孩子们表演了一个故事。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -362,7 +366,8 @@
     ],
     "examples": [
       "She is an active student. 她是个积极的学生。",
-      "They took an active part in the singing competition yesterday. 他们昨天积极参加了唱歌比赛。"
+      "They took an active part in the singing competition yesterday. 他们昨天积极参加了唱歌比赛。",
+      "Exercise keeps you active and healthy. 运动让你保持活跃健康。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -488,7 +493,8 @@
     ],
     "examples": [
       "Please add some sugar. 请加一些糖。",
-      "Don’t add too much salt to the soup, or it will be too salty. 汤里不要加太多盐，否则会太咸。"
+      "Don’t add too much salt to the soup, or it will be too salty. 汤里不要加太多盐，否则会太咸。",
+      "Please add some milk to my coffee. 请在我的咖啡里加些牛奶。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -672,7 +678,8 @@
     ],
     "examples": [
       "Let me give you some advice. 让我给你一些建议。",
-      "The manager thought the old lady was right, but he didn’t take her advice. 经理认为这位老太太是正确的，但他没有接受她的忠告。"
+      "The manager thought the old lady was right, but he didn’t take her advice. 经理认为这位老太太是正确的，但他没有接受她的忠告。",
+      "I took his advice and bought the book. 我听从他的劝告买了这本书。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -825,7 +832,8 @@
     ],
     "examples": [
       "I play after school. 我放学后玩耍。",
-      "He left on Monday and returned two days after. 他星期一走的，两天后回来了。"
+      "He left on Monday and returned two days after. 他星期一走的，两天后回来了。",
+      "Don't be too hard on him; he is a child after all. 别对他太严厉，他毕竟还是个孩子。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -1044,7 +1052,8 @@
     ],
     "examples": [
       "Look ahead carefully. 小心向前看。",
-      "Mary looked ahead but could see nothing unusual. 玛丽目视前方，但没看到什么不寻常的。"
+      "Mary looked ahead but could see nothing unusual. 玛丽目视前方，但没看到什么不寻常的。",
+      "Go ahead, I'm listening. 说吧，我在听。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -1233,7 +1242,11 @@
     "examples": [
       "All students are here. 所有的学生都到了。",
       "Her children are all very clever. 她的孩子都很聪明。",
-      "Almost all students in Junior Three are busy preparing for the coming final exam. 几乎所有的初三学生都正忙着为即将到来的期末考试做准备。"
+      "Almost all students in Junior Three are busy preparing for the coming final exam. 几乎所有的初三学生都正忙着为即将到来的期末考试做准备。",
+      "There are books all over the room. 房间里到处都是书。",
+      "Are you all right? 你还好吗？",
+      "There are ten people in all. 总共有十个人。",
+      "I don't like it at all. 我一点也不喜欢它。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -1933,7 +1946,8 @@
     ],
     "examples": [
       "Do you have any money? 你有钱吗？",
-      "Any student can join. 任何学生都可以参加。"
+      "Any student can join. 任何学生都可以参加。",
+      "He no longer lives here. 他不再住在这里了。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -2456,7 +2470,11 @@
       "She sings as beautifully as a bird. 她唱得像鸟儿一样好听。",
       "As we all know, health is important. 众所周知，健康很重要。",
       "She works as a teacher. 她作为一名教师工作。",
-      "As it was raining, we stayed at home. 因为下雨，我们待在家里。"
+      "As it was raining, we stayed at home. 因为下雨，我们待在家里。",
+      "He is as tall as his brother. 他和他哥哥一样高。",
+      "You can stay as long as you want. 你想待多久就待多久。",
+      "I'll call you as soon as I arrive. 我一到就给你打电话。",
+      "I want to come as well. 我也想去。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -2513,7 +2531,8 @@
     ],
     "examples": [
       "May I ask you a question? 我可以问你一个问题吗？",
-      "The staff are asked to smile at every customer entering the store. 要求员工对每一位进入商店的顾客微笑。"
+      "The staff are asked to smile at every customer entering the store. 要求员工对每一位进入商店的顾客微笑。",
+      "He asked for a glass of water. 他要了一杯水。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -2953,7 +2972,8 @@
     "examples": [
       "His score is above average. 他的分数高于平均分。",
       "Her brother is above average in his reading ability. 她哥哥的阅读能力在平均水平以上。",
-      "He is just an average student. 他只是一个普通的学生。"
+      "He is just an average student. 他只是一个普通的学生。",
+      "On average, I read two books a week. 平均每周我读两本书。"
     ],
     "section": "A",
     "source": "ocr_1785",
@@ -3594,7 +3614,8 @@
     ],
     "examples": [
       "I want to be a teacher. 我想当一名老师。",
-      "I think he will be an astronaut. 我认为他会成为一名宇航员。"
+      "I think he will be an astronaut. 我认为他会成为一名宇航员。",
+      "We should be aware of the dangers. 我们应该意识到这些危险。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -3785,7 +3806,8 @@
     ],
     "examples": [
       "I like you because you are kind. 我喜欢你因为你善良。",
-      "Please be brief because I am in a hurry. 请长话短说，因为我有急事。"
+      "Please be brief because I am in a hurry. 请长话短说，因为我有急事。",
+      "The game was cancelled because of rain. 比赛因为下雨取消了。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -3951,7 +3973,8 @@
     ],
     "examples": [
       "He begged for some food. 他乞求一些食物。",
-      "He lives by begging. 他靠乞讨为生。"
+      "He lives by begging. 他靠乞讨为生。",
+      "I beg your pardon? 请再说一遍好吗？"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -4335,7 +4358,8 @@
     "examples": [
       "This one is better. 这个更好。",
       "You’d better go and see a doctor at once. 你最好马上去看医生。",
-      "We expect better of you in the future. 我们期待你将来有更好的表现。"
+      "We expect better of you in the future. 我们期待你将来有更好的表现。",
+      "You had better study hard. 你最好努力学习。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -5107,7 +5131,8 @@
     ],
     "examples": [
       "Both of them are tall. 他们两个都很高。",
-      "Mary reads both entertainment and business news. 玛丽阅读娱乐和商业新闻。"
+      "Mary reads both entertainment and business news. 玛丽阅读娱乐和商业新闻。",
+      "Both Tom and Jerry like sports. 汤姆和杰瑞都喜欢运动。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -5355,7 +5380,12 @@
     ],
     "examples": [
       "Don't break the window. 不要打破窗户。",
-      "Have a break. 休息一下。"
+      "Have a break. 休息一下。",
+      "My car broke down on the way. 我的车在路上抛锚了。",
+      "A thief broke into the house last night. 昨晚一个小偷闯入了房子。",
+      "A fire broke out in the kitchen. 厨房里突然起了火。",
+      "Let's take a fifteen-minute break. 我们休息15分钟吧。",
+      "We take a lunch break at noon. 我们中午午休。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -5839,7 +5869,8 @@
     ],
     "examples": [
       "I take a bus to school. 我坐公共汽车上学。",
-      "He asked the government to improve school bus safety. 他要求政府改善校车的安全。"
+      "He asked the government to improve school bus safety. 他要求政府改善校车的安全。",
+      "I go to school by bus. 我乘公共汽车上学。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -5869,7 +5900,8 @@
     ],
     "examples": [
       "Business is good this year. 今年生意不错。",
-      "I have two cell phones. One is for business；the other is for private matters. 我有两部手机。一部用于工作，另一部用于私人事务。"
+      "I have two cell phones. One is for business；the other is for private matters. 我有两部手机。一部用于工作，另一部用于私人事务。",
+      "He went to Beijing on business. 他去北京出差了。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -5922,7 +5954,9 @@
     ],
     "examples": [
       "I am busy with homework. 我忙于做作业。",
-      "My mum is busy making a pizza. She needs some help, doesn’t she？ 我妈妈正忙着做一个比萨饼。她需要一些帮助，不是吗？"
+      "My mum is busy making a pizza. She needs some help, doesn’t she？ 我妈妈正忙着做一个比萨饼。她需要一些帮助，不是吗？",
+      "She is busy doing her homework. 她正忙着做作业。",
+      "The project kept me busy all week. 这个项目让我忙了整整一周。"
     ],
     "section": "B",
     "source": "ocr_1785",
@@ -6519,7 +6553,10 @@
     ],
     "examples": [
       "Take care of your little sister. 照顾好你的妹妹。",
-      "I don’t care whether he comes or not. 我不介意他来不来。"
+      "I don’t care whether he comes or not. 我不介意他来不来。",
+      "She cares about the environment. 她关心环境问题。",
+      "The nurse cares for the patients. 护士照顾病人。",
+      "He handled the vase with great care. 他非常小心地拿着花瓶。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -6754,7 +6791,8 @@
     "examples": [
       "Can you catch the ball? 你能接住球吗？",
       "Don’t take off your coat, Tom! It’s easy to catch cold in spring. 汤姆，别脱外套! 春天很容易着凉。",
-      "We must catch the 8 o'clock train. 我们必须赶上8点的火车。"
+      "We must catch the 8 o'clock train. 我们必须赶上8点的火车。",
+      "I need to catch up with my classmates. 我需要赶上同学们。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -7010,7 +7048,8 @@
     ],
     "examples": [
       "I accept the challenge. 我接受挑战。",
-      "I did not think he was right, so I challenged him. 我认为他是不对的，因此向他提出质疑。"
+      "I did not think he was right, so I challenged him. 我认为他是不对的，因此向他提出质疑。",
+      "We will face a new challenge next year. 明年我们将面临新的挑战。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -7072,7 +7111,8 @@
       "I want to change my clothes. 我想换衣服。",
       "Keep the change. 不用找零了。",
       "Many old people find it difficult to cope with changes. 许多老人难以适应变化。",
-      "Can you change this 100-yuan note? 你能换开这张100元吗？"
+      "Can you change this 100-yuan note? 你能换开这张100元吗？",
+      "She changed her mind about the trip. 她改变了关于旅行的主意。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -7282,7 +7322,9 @@
     "examples": [
       "Please check your homework. 请检查你的作业。",
       "Can I pay by check or credit card？ 我能用支票或信用卡支付吗？",
-      "The teacher is checking our papers. 老师正在批改我们的试卷。"
+      "The teacher is checking our papers. 老师正在批改我们的试卷。",
+      "We need to check in at the hotel. 我们需要在酒店登记入住。",
+      "I checked out a book from the library. 我从图书馆借了一本书。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -7658,7 +7700,8 @@
     ],
     "examples": [
       "You made a good choice. 你做了一个好选择。",
-      "Life is simple. You make choices, and you don’t look back. 生活很简单。你做出选择，就不要回头。"
+      "Life is simple. You make choices, and you don’t look back. 生活很简单。你做出选择，就不要回头。",
+      "I have no choice but to accept. 我别无选择只能接受。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -7890,7 +7933,8 @@
     ],
     "examples": [
       "We have English class today. 我们今天有英语课。",
-      "Would you please tell me when we will have our class meeting？ 请你告诉我，我们什么时候开班会？"
+      "Would you please tell me when we will have our class meeting？ 请你告诉我，我们什么时候开班会？",
+      "Don't talk in class. 课上不要说话。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -8562,7 +8606,12 @@
     ],
     "examples": [
       "Please come here quickly. 请快点来这里。",
-      "Never give up trying, and success will finally come to you. 永不放弃尝试，成功最终会来到你的身边。"
+      "Never give up trying, and success will finally come to you. 永不放弃尝试，成功最终会来到你的身边。",
+      "My dream came true. 我的梦想实现了。",
+      "She came up with a good idea. 她想出了一个好主意。",
+      "She comes from Shanghai. 她来自上海。",
+      "Come on, we'll be late! 快点，我们要迟到了！",
+      "How come you didn't call me? 你怎么没给我打电话？"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -8619,7 +8668,8 @@
     ],
     "examples": [
       "Smith is a common name. 史密斯是个常见的名字。",
-      "It’s common knowledge that the sun sets down in the west. 夕阳西下，这是常识。"
+      "It’s common knowledge that the sun sets down in the west. 夕阳西下，这是常识。",
+      "We have much in common. 我们有很多共同之处。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -8652,7 +8702,8 @@
       "communicate with sb. 与某人交流"
     ],
     "examples": [
-      "We communicate by phone. 我们通过电话交流。"
+      "We communicate by phone. 我们通过电话交流。",
+      "We communicate with each other by email. 我们通过电子邮件互相交流。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -8730,7 +8781,8 @@
     ],
     "examples": [
       "Compare the two pictures. 比较这两张图片。",
-      "It is hard to compare. 很难比较。"
+      "It is hard to compare. 很难比较。",
+      "Let's compare A with B. 让我们把A和B作比较。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -8912,7 +8964,8 @@
     ],
     "examples": [
       "What is your conclusion? 你的结论是什么？",
-      "I found the conclusion of his book very interesting. 我觉得他这本书的结尾很有趣。"
+      "I found the conclusion of his book very interesting. 我觉得他这本书的结尾很有趣。",
+      "Don't jump to a conclusion too quickly. 不要太草率地下结论。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -9068,7 +9121,8 @@
     ],
     "examples": [
       "The bridge connects two cities. 这座桥连接两座城市。",
-      "You must connect this wire with that one. 你必须把这根电线和那根接起来。"
+      "You must connect this wire with that one. 你必须把这根电线和那根接起来。",
+      "The two events are connected with each other. 这两个事件互相关联。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -9123,7 +9177,8 @@
     ],
     "examples": [
       "The team consists of ten players. 这支队伍由十名队员组成。",
-      "The entire world consists of matter. 整个世界都是由物质组成的。"
+      "The entire world consists of matter. 整个世界都是由物质组成的。",
+      "Water consists of hydrogen and oxygen. 水由氢和氧组成。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -9638,7 +9693,8 @@
     ],
     "examples": [
       "I took a short course in English. 我学了一个短期英语课程。",
-      "The college course was then cut to three years. 那时大学学制缩短到 3 年。"
+      "The college course was then cut to three years. 那时大学学制缩短到 3 年。",
+      "Of course I'll help you. 我当然会帮你。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -9690,7 +9746,8 @@
     ],
     "examples": [
       "Snow covers the ground. 雪覆盖了地面。",
-      "The book needs a new cover. 这本书需要一个新封面。"
+      "The book needs a new cover. 这本书需要一个新封面。",
+      "The ground was covered with snow. 地面被雪覆盖了。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -10026,7 +10083,8 @@
     ],
     "examples": [
       "Be careful when you cut the apple. 切苹果时要小心。",
-      "He has a cut on his finger. 他手指上有一个伤口。"
+      "He has a cut on his finger. 他手指上有一个伤口。",
+      "We should cut down on sugar. 我们应该减少糖的摄入。"
     ],
     "section": "C",
     "source": "ocr_1785",
@@ -10245,7 +10303,8 @@
     ],
     "examples": [
       "Be careful, there is danger ahead. 小心，前方有危险。",
-      "Now more and more people are aware of the danger of driving after drinking alcohol. 现在，越来越多的人意识到了酒后驾车的危险。"
+      "Now more and more people are aware of the danger of driving after drinking alcohol. 现在，越来越多的人意识到了酒后驾车的危险。",
+      "The animal is in danger. 这只动物处于危险中。"
     ],
     "section": "D",
     "source": "ocr_1785",
@@ -11287,7 +11346,8 @@
     ],
     "examples": [
       "Plants will die without water. 植物没有水会死。",
-      "When we die for the people, it is a worthy death. 我们为人民而死，就是死得其所。"
+      "When we die for the people, it is a worthy death. 我们为人民而死，就是死得其所。",
+      "He died of cancer. 他死于癌症。"
     ],
     "section": "D",
     "source": "ocr_1785",
@@ -11315,7 +11375,8 @@
     ],
     "examples": [
       "I eat a healthy diet every day. 我每天饮食健康。",
-      "If you want to memorise things better, you’d better have a healthier diet. 要想记性好一点，你最好吃得健康点。"
+      "If you want to memorise things better, you’d better have a healthier diet. 要想记性好一点，你最好吃得健康点。",
+      "Please go on with your story. 请继续讲你的故事。"
     ],
     "section": "D",
     "source": "ocr_1785",
@@ -11800,7 +11861,8 @@
     ],
     "examples": [
       "Mom put the dish on the table. 妈妈把菜放在桌上。",
-      "Please remember to bring your dishes and cakes to Tom’s birthday party. 请记得带上你的菜和蛋糕去汤姆的生日聚会。"
+      "Please remember to bring your dishes and cakes to Tom’s birthday party. 请记得带上你的菜和蛋糕去汤姆的生日聚会。",
+      "I'll have a side dish, please. 请给我来一份配菜。"
     ],
     "section": "D",
     "source": "ocr_1785",
@@ -11953,7 +12015,9 @@
     ],
     "examples": [
       "What do you want? 你想做什么？",
-      "I’m sure that you will do well in your interviews. 我相信你在采访中会做得很好。"
+      "I’m sure that you will do well in your interviews. 我相信你在采访中会做得很好。",
+      "Smoking does harm to your health. 吸烟有害健康。",
+      "I need to do some shopping today. 我今天需要购物。"
     ],
     "section": "D",
     "source": "ocr_1785",
@@ -12211,7 +12275,8 @@
     ],
     "examples": [
       "She is wearing a red dress. 她穿着一条红色连衣裙。",
-      "The nurse helped to dress the patient. 护士帮助病人穿衣服。"
+      "The nurse helped to dress the patient. 护士帮助病人穿衣服。",
+      "She dressed up as a princess. 她打扮成公主的样子。"
     ],
     "section": "D",
     "source": "ocr_1785",
@@ -12473,7 +12538,9 @@
     ],
     "examples": [
       "Each student has a book. 每个学生都有一本书。",
-      "We each have different needs and interests. 我们每个人都有不同的需要和兴趣。"
+      "We each have different needs and interests. 我们每个人都有不同的需要和兴趣。",
+      "We help each other. 我们互相帮助。",
+      "Each age offers its own men of parts. 江山代有才人出。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -12825,7 +12892,8 @@
     ],
     "examples": [
       "The medicine has a good effect. 这药效果很好。",
-      "Parents have the greatest effect on their children’s behaviour. 父母对孩子的行为有最深远的影响。"
+      "Parents have the greatest effect on their children’s behaviour. 父母对孩子的行为有最深远的影响。",
+      "The special effects are amazing. 特技效果很惊人。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -13428,7 +13496,8 @@
     ],
     "examples": [
       "I study English every day. 我每天学英语。",
-      "The foreign teachers in our school are mainly from some English speaking countries. 我校的外籍教师主要来自一些讲英语的国家。"
+      "The foreign teachers in our school are mainly from some English speaking countries. 我校的外籍教师主要来自一些讲英语的国家。",
+      "Please answer in English. 请用英语回答。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -13461,7 +13530,8 @@
     ],
     "examples": [
       "I enjoy reading books. 我喜欢读书。",
-      "Enjoy yourselves at the party, boys and girls. 孩子们，在聚会上尽情地玩吧。"
+      "Enjoy yourselves at the party, boys and girls. 孩子们，在聚会上尽情地玩吧。",
+      "We enjoyed ourselves at the party. 我们在聚会上玩得很开心。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -13570,7 +13640,8 @@
     ],
     "examples": [
       "Please enter the room. 请进入房间。",
-      "Dick would rather enter a vocational school than a high school. 迪克宁愿进职业学校也不愿进入高中。"
+      "Dick would rather enter a vocational school than a high school. 迪克宁愿进职业学校也不愿进入高中。",
+      "She entered for the speech contest. 她报名参加了演讲比赛。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -13832,7 +13903,8 @@
     ],
     "examples": [
       "Even a child can do it. 连孩子都能做到。",
-      "She didn’t even apologise for her mistake. 她甚至都没为她的错误道歉。"
+      "She didn’t even apologise for her mistake. 她甚至都没为她的错误道歉。",
+      "Even though it was late, he kept working. 虽然很晚了，他还在继续工作。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -14130,7 +14202,8 @@
     ],
     "examples": [
       "Can you give me an example? 你能给我举个例子吗？",
-      "I don’t quite understand what you said. Would you please give us another example？ 我不明白你说什么。请给我们另外举一个例子好吗？"
+      "I don’t quite understand what you said. Would you please give us another example？ 我不明白你说什么。请给我们另外举一个例子好吗？",
+      "I like fruit, for example, apples. 我喜欢水果，例如苹果。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -14501,7 +14574,8 @@
     ],
     "examples": [
       "We did a science experiment. 我们做了一个科学实验。",
-      "It is better to learn how to do the experiment right now. 现在最好立刻学习如何做实验。"
+      "It is better to learn how to do the experiment right now. 现在最好立刻学习如何做实验。",
+      "We do interesting experiments in class. 我们在课上做有趣的实验。"
     ],
     "section": "E",
     "source": "ocr_1785",
@@ -14711,7 +14785,8 @@
     ],
     "examples": [
       "That is a true fact. 那是一个真实的事实。",
-      "The fact that I didn’t have enough experience was really a big disadvantage. 我没有足够的经验，这确实是一个很大的劣势。"
+      "The fact that I didn’t have enough experience was really a big disadvantage. 我没有足够的经验，这确实是一个很大的劣势。",
+      "In fact, I don't agree with you. 事实上，我不同意你的看法。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -14827,7 +14902,10 @@
     ],
     "examples": [
       "Be careful! Don't fall down. 小心！别摔倒。",
-      "I love the colors of fall. 我喜欢秋天的颜色。"
+      "I love the colors of fall. 我喜欢秋天的颜色。",
+      "I fell asleep on the sofa. 我在沙发上睡着了。",
+      "He fell ill yesterday. 他昨天生病了。",
+      "The boy fell off his bike. 男孩从自行车上摔了下来。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -14907,7 +14985,8 @@
     ],
     "examples": [
       "He is a famous singer. 他是一位著名的歌手。",
-      "We are surprised to learn the death of the famous French actor. 我们惊讶地获悉那位法国著名影星的死讯。"
+      "We are surprised to learn the death of the famous French actor. 我们惊讶地获悉那位法国著名影星的死讯。",
+      "Hangzhou is famous for tea. 杭州以茶闻名。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -14959,7 +15038,8 @@
     ],
     "examples": [
       "How far is the school? 学校有多远？",
-      "Mr. Lin gave us further information about the competition by e-mail just now. 林先生刚刚通过电子邮件给我们发来了关于比赛的进一步信息。"
+      "Mr. Lin gave us further information about the competition by e-mail just now. 林先生刚刚通过电子邮件给我们发来了关于比赛的进一步信息。",
+      "The school is far away from here. 学校离这里很远。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -15200,7 +15280,8 @@
     ],
     "examples": [
       "Can you do me a favour? 你能帮我个忙吗？",
-      "Could you please do me a favour？ 你能帮我个忙吗？"
+      "Could you please do me a favour？ 你能帮我个忙吗？",
+      "I am in favour of the plan. 我赞成这个计划。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -15581,7 +15662,8 @@
     ],
     "examples": [
       "Please fill the glass with water. 请把杯子倒满水。",
-      "Now, please fill out this form. 现在请您完整填写这张表格。"
+      "Now, please fill out this form. 现在请您完整填写这张表格。",
+      "Please fill in the form. 请填写这张表格。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -15687,7 +15769,8 @@
       "find out 找出；查明；了解"
     ],
     "examples": [
-      "I can't find my pen. 我找不到我的笔。"
+      "I can't find my pen. 我找不到我的笔。",
+      "I need to find out the truth. 我需要查明真相。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -15794,7 +15877,8 @@
     ],
     "examples": [
       "The fire is very hot. 火非常热。",
-      "The soldiers fired at the enemy. 士兵们向敌人开火。"
+      "The soldiers fired at the enemy. 士兵们向敌人开火。",
+      "They made a fire to keep warm. 他们生火取暖。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -15874,7 +15958,8 @@
     ],
     "examples": [
       "He came in first. 他第一个进来。",
-      "It is a new first. 这是一个新的开端。"
+      "It is a new first. 这是一个新的开端。",
+      "At first, I didn't like it. 起初我不喜欢它。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -15966,7 +16051,8 @@
     ],
     "examples": [
       "These shoes fit me well. 这双鞋很适合我。",
-      "You look very fit. 你看上去很健康。"
+      "You look very fit. 你看上去很健康。",
+      "Running helps you keep fit. 跑步有助于保持健康。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -16452,7 +16538,8 @@
     ],
     "examples": [
       "I hurt my foot. 我伤了脚。",
-      "My feet hurt awfully. 我的脚很痛。"
+      "My feet hurt awfully. 我的脚很痛。",
+      "I go to school on foot. 我步行上学。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -16503,7 +16590,9 @@
     ],
     "examples": [
       "This gift is for you. 这个礼物是给你的。",
-      "I asked for water, for I was thirsty. 我要了水，因为我渴了。"
+      "I asked for water, for I was thirsty. 我要了水，因为我渴了。",
+      "I saw the sea for the first time. 我第一次看到大海。",
+      "For the time being, we have enough food. 眼下我们有足够的食物。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -17092,7 +17181,8 @@
       "make friends with 与……交朋友"
     ],
     "examples": [
-      "He invited his friends to his party. 他邀请朋友们参加聚会。"
+      "He invited his friends to his party. 他邀请朋友们参加聚会。",
+      "I want to make friends with you. 我想和你交朋友。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -17245,7 +17335,9 @@
       "from time to time 不时；有时"
     ],
     "examples": [
-      "I come from China. 我来自中国。"
+      "I come from China. 我来自中国。",
+      "From then on, he studied harder. 从那时起，他更加努力学习。",
+      "I visit her from time to time. 我不时去拜访她。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -17404,7 +17496,8 @@
       "make fun of sb. 拿某人开玩笑；取笑某人"
     ],
     "examples": [
-      "We had fun at the park. 我们在公园玩得很开心。"
+      "We had fun at the park. 我们在公园玩得很开心。",
+      "Don't make fun of others. 不要取笑别人。"
     ],
     "section": "F",
     "source": "ocr_1785",
@@ -17587,7 +17680,8 @@
     ],
     "examples": [
       "She is working in the garden. 她在花园里干活。",
-      "How happily Little Tommy is playing with his cousin in the garden! 小汤米和他的表弟在花园里玩到多么快乐!"
+      "How happily Little Tommy is playing with his cousin in the garden! 小汤米和他的表弟在花园里玩到多么快乐!",
+      "She took up gardening last year. 她去年开始从事园艺。"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -17899,7 +17993,15 @@
     ],
     "examples": [
       "I get up at six. 我六点起床。",
-      "I got to the station at half past four. 我于4点半到达车站。"
+      "I got to the station at half past four. 我于4点半到达车站。",
+      "I need to get away from the city. 我需要离开城市。",
+      "Get in the car, let's go. 上车吧，我们走。",
+      "Please get off at the next stop. 请在下一站下车。",
+      "Get on the bus quickly. 快上公共汽车。",
+      "I get to school at seven. 我七点到学校。",
+      "How do you get along with your brother? 你和哥哥相处得怎样？",
+      "I want to get rid of the old books. 我想处理掉这些旧书。",
+      "I got tired of waiting. 我等得不耐烦了。"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -17972,7 +18074,8 @@
       "give up 放弃"
     ],
     "examples": [
-      "Please give me a hand. 请帮帮我。"
+      "Please give me a hand. 请帮帮我。",
+      "Never give up your dreams. 永远不要放弃你的梦想。"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -18055,7 +18158,15 @@
       "go shopping 去购物"
     ],
     "examples": [
-      "Let's go to school. 我们去上学吧。"
+      "Let's go to school. 我们去上学吧。",
+      "The lights went out suddenly. 灯突然灭了。",
+      "Let's go over the plan again. 让我们再回顾一下计划。",
+      "Let's go Dutch this time. 这次我们AA制吧。",
+      "Go for it! You can do it. 加油！你能做到。",
+      "We go hiking every weekend. 我们每周末去远足。",
+      "He goes in for sports. 他酷爱运动。",
+      "They go sailing in summer. 他们夏天去航海。",
+      "Let's go shopping this afternoon. 我们今天下午去购物吧。"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -18162,7 +18273,9 @@
     ],
     "examples": [
       "This is a good book. 这是一本好书。",
-      "Nadal is a good tennis player, but I think Djokovic is better. 纳达尔是一名优秀的网球运动员，但我认为德约科维奇更优秀。"
+      "Nadal is a good tennis player, but I think Djokovic is better. 纳达尔是一名优秀的网球运动员，但我认为德约科维奇更优秀。",
+      "She is good at math. 她擅长数学。",
+      "Milk is good for you. 牛奶对你有好处。"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -18446,7 +18559,8 @@
     ],
     "examples": [
       "She will greet the guests. 她会迎接客人。",
-      "When you first meet the interviewer, greet him or her politely. 当你第一次见到面试官时，必须有礼貌地向他或她打招呼。"
+      "When you first meet the interviewer, greet him or her politely. 当你第一次见到面试官时，必须有礼貌地向他或她打招呼。",
+      "We should greet a teacher politely. 我们应有礼貌地向老师打招呼。"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -18522,7 +18636,8 @@
     ],
     "examples": [
       "Plants grow in spring. 植物在春天生长。",
-      "Grandpa grew vegetables in his garden. 爷爷在他的园子里种了蔬菜。"
+      "Grandpa grew vegetables in his garden. 爷爷在他的园子里种了蔬菜。",
+      "What do you want to be when you grow up? 你长大后想当什么？"
     ],
     "section": "G",
     "source": "ocr_1785",
@@ -18802,7 +18917,10 @@
     "examples": [
       "Please hand me the book. 请把书递给我。",
       "Although Liu Wei has no hands, he can play the piano very beautifully. 虽然刘伟没有手，但他能非常优美地弹奏钢琴。",
-      "The minute hand is broken. 分针坏了。"
+      "The minute hand is broken. 分针坏了。",
+      "Please hand in your homework. 请交作业。",
+      "Can you give me a hand? 你能帮我一把吗？",
+      "On the other hand, it costs a lot. 另一方面，它很贵。"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -18855,7 +18973,8 @@
       "happen to sb. 发生在某人身上"
     ],
     "examples": [
-      "What happened to him? 他发生了什么事？"
+      "What happened to him? 他发生了什么事？",
+      "What happened to you? 你怎么了？"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -19141,7 +19260,8 @@
     ],
     "examples": [
       "I have a brother. 我有一个哥哥。",
-      "She had a fever last night. 她昨晚发烧了。"
+      "She had a fever last night. 她昨晚发烧了。",
+      "I have got to go now. 我现在得走了。"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -19506,7 +19626,9 @@
       "with the help of 在……的帮助下"
     ],
     "examples": [
-      "Can you help me? 你能帮我吗？"
+      "Can you help me? 你能帮我吗？",
+      "He helps me with my English. 他帮我学英语。",
+      "With the help of my friends, I succeeded. 在朋友的帮助下，我成功了。"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -19579,7 +19701,8 @@
     ],
     "examples": [
       "Come here, please. 请来这里。",
-      "I was born here. I’m quite familiar with the streets in this town. 我出生在这里。我对这个小镇的街道相当熟悉。"
+      "I was born here. I’m quite familiar with the streets in this town. 我出生在这里。我对这个小镇的街道相当熟悉。",
+      "There are flowers here and there. 到处都有花。"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -19830,7 +19953,10 @@
     ],
     "examples": [
       "Please hold this bag for me. 请帮我拿一下这个包。",
-      "An international meeting on foreign language teaching will be held in Beijing next month. 外语教学国际会议下月将在北京举行。"
+      "An international meeting on foreign language teaching will be held in Beijing next month. 外语教学国际会议下月将在北京举行。",
+      "Hold on, I'll check for you. 稍等，我帮你查一下。",
+      "They will hold a meeting tomorrow. 他们明天将举行会议。",
+      "Take hold of the rope! 抓住绳子！"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -19880,7 +20006,8 @@
     ],
     "examples": [
       "We had a great summer holiday. 我们度过了一个很棒的暑假。",
-      "— I will fly to Qingdao for my holiday this weekend. 一一这个周末我将飞往青岛度假。"
+      "— I will fly to Qingdao for my holiday this weekend. 一一这个周末我将飞往青岛度假。",
+      "We are on holiday now. 我们现在在休假。"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -20642,7 +20769,8 @@
     ],
     "examples": [
       "Hurry up, we are late! 快点，我们迟到了！",
-      "There is no hurry to finish. 不必着急完成。"
+      "There is no hurry to finish. 不必着急完成。",
+      "He left in a hurry. 他匆忙地离开了。"
     ],
     "section": "H",
     "source": "ocr_1785",
@@ -20772,7 +20900,8 @@
     ],
     "examples": [
       "That is a good idea. 那是个好主意。",
-      "The idea to go to Shanghai Chenshan Botanical Garden sounds wonderful. 去上海辰山植物园，这个主意好极了。"
+      "The idea to go to Shanghai Chenshan Botanical Garden sounds wonderful. 去上海辰山植物园，这个主意好极了。",
+      "I have no idea where she is. 我不知道她在哪里。"
     ],
     "section": "I",
     "source": "ocr_1785",
@@ -21061,7 +21190,8 @@
     ],
     "examples": [
       "I want to improve my English. 我想提高我的英语。",
-      "To improve our English, our teacher asks us to read English newspapers every day. 为了提高我们的英语水平，老师要求我们每天阅读英文报纸。"
+      "To improve our English, our teacher asks us to read English newspapers every day. 为了提高我们的英语水平，老师要求我们每天阅读英文报纸。",
+      "She wants to improve her gardening skills. 她想提升园艺技能。"
     ],
     "section": "I",
     "source": "ocr_1785",
@@ -21087,7 +21217,8 @@
     ],
     "examples": [
       "The book is in the desk. 书在书桌里面。",
-      "Is anyone in? 里面有人吗？"
+      "Is anyone in? 里面有人吗？",
+      "He is in his fifties. 他五十多岁。"
     ],
     "section": "I",
     "source": "ocr_1785",
@@ -21441,7 +21572,8 @@
       "instead of 代替；而不是"
     ],
     "examples": [
-      "I didn't go out; instead, I read at home. 我没出门，而是在家读书。"
+      "I didn't go out; instead, I read at home. 我没出门，而是在家读书。",
+      "I'll have tea instead of coffee. 我要茶不要咖啡。"
     ],
     "section": "I",
     "source": "ocr_1785",
@@ -22166,7 +22298,8 @@
     ],
     "examples": [
       "He told a funny joke. 他讲了一个好笑的笑话。",
-      "I like to joke. 我喜欢开玩笑。"
+      "I like to joke. 我喜欢开玩笑。",
+      "Don't make jokes about others. 不要拿别人开玩笑。"
     ],
     "section": "J",
     "source": "ocr_1785",
@@ -22245,7 +22378,8 @@
     ],
     "examples": [
       "The baby brought joy to the family. 宝宝给家庭带来了欢乐。",
-      "To my great joy, my lost watch was found. 使我极为高兴的是，我丢失的手表找到了。"
+      "To my great joy, my lost watch was found. 使我极为高兴的是，我丢失的手表找到了。",
+      "The children jumped for joy. 孩子们高兴得跳了起来。"
     ],
     "section": "J",
     "source": "ocr_1785",
@@ -22428,7 +22562,8 @@
     ],
     "examples": [
       "I just finished my homework. 我刚完成了作业。",
-      "Just then a friend drove up and gave me a ride. 正在那时，一个朋友开车过来，让我搭了他的车。"
+      "Just then a friend drove up and gave me a ride. 正在那时，一个朋友开车过来，让我搭了他的车。",
+      "He was here just now. 他刚才还在这里。"
     ],
     "section": "J",
     "source": "ocr_1785",
@@ -22484,7 +22619,9 @@
     ],
     "examples": [
       "Please keep the room clean. 请保持房间干净。",
-      "The poor baby has kept crying for a long time because he can’t find his mother. 可怜的宝宝一直哭了很久，因为他找不到他的母亲。"
+      "The poor baby has kept crying for a long time because he can’t find his mother. 可怜的宝宝一直哭了很久，因为他找不到他的母亲。",
+      "Keep off the grass! 请勿践踏草坪！",
+      "Rain kept us from going out. 下雨使我们没法出去。"
     ],
     "section": "K",
     "source": "ocr_1785",
@@ -23142,7 +23279,8 @@
     "examples": [
       "It rained all last week. 上周一直在下雨。",
       "The snowstorm will last till tomorrow afternoon. 暴风雪将持续到明天下午。",
-      "He came last in the race. 他比赛最后到达。"
+      "He came last in the race. 他比赛最后到达。",
+      "At last, he found his keys. 最后，他找到了钥匙。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23250,7 +23388,8 @@
     ],
     "examples": [
       "His joke made everyone laugh. 他的笑话让大家都笑了。",
-      "She gave a happy laugh. 她开心地笑了。"
+      "She gave a happy laugh. 她开心地笑了。",
+      "Don't laugh at others. 不要嘲笑别人。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23389,7 +23528,8 @@
     ],
     "examples": [
       "She will lead the team to victory. 她将带领队伍走向胜利。",
-      "He led us to his home. 他带我们去他家。"
+      "He led us to his home. 他带我们去他家。",
+      "Hard work leads to success. 努力通向成功。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23414,7 +23554,8 @@
       "learn ... from ... 向……学习"
     ],
     "examples": [
-      "I want to learn Chinese. 我想学中文。"
+      "I want to learn Chinese. 我想学中文。",
+      "We learn from each other. 我们互相学习。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23444,7 +23585,10 @@
     ],
     "examples": [
       "He left the room quietly. 他安静地离开了房间。",
-      "He wants to ask for leave. 他想请假。"
+      "He wants to ask for leave. 他想请假。",
+      "We leave for Beijing tomorrow. 我们明天动身去北京。",
+      "Can I leave a message? 我可以留个口信吗？",
+      "He left school last year. 他去年中学毕业。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23761,7 +23905,8 @@
     "examples": [
       "Don't lie to me! 不要对我撒谎！",
       "I want to lie on the grass. 我想躺在草地上。",
-      "The story is a big lie. 这个故事是个大谎言。"
+      "The story is a big lie. 这个故事是个大谎言。",
+      "Don't tell a lie. 不要说谎。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23800,7 +23945,8 @@
       "all one’s life 一辈子"
     ],
     "examples": [
-      "Life is full of surprises. 生活充满惊喜。"
+      "Life is full of surprises. 生活充满惊喜。",
+      "He lived here all his life. 他一辈子都住在这里。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -23899,7 +24045,8 @@
     ],
     "examples": [
       "I like playing basketball. 我喜欢打篮球。",
-      "She looks like her mother. 她长得像她妈妈。"
+      "She looks like her mother. 她长得像她妈妈。",
+      "I gave a like to the post. 我给这条帖子点了个赞。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -24241,7 +24388,8 @@
     "examples": [
       "I live in a small city. 我住在一个小城市。",
       "It's a live show tonight. 今晚是现场直播节目。",
-      "Look! It's a live fish! 看！这是一条活鱼！"
+      "Look! It's a live fish! 看！这是一条活鱼！",
+      "They live on rice. 他们以大米为主食。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -24303,7 +24451,8 @@
     ],
     "examples": [
       "The school is located on Main Street. 学校坐落于主街上。",
-      "Where shall we locate our new office building? 我们的新办公楼将坐落于何处？"
+      "Where shall we locate our new office building? 我们的新办公楼将坐落于何处？",
+      "The hotel is located in the city center. 酒店位于市中心。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -24462,7 +24611,13 @@
     ],
     "examples": [
       "Look at the beautiful sky! 看那美丽的天空！",
-      "Mary looked upset because she lost her new watch last week. 玛丽看起来很沮丧，因为她上周丢了新手表。"
+      "Mary looked upset because she lost her new watch last week. 玛丽看起来很沮丧，因为她上周丢了新手表。",
+      "She looks after her grandmother. 她照顾她的祖母。",
+      "What are you looking for? 你在找什么？",
+      "I look forward to seeing you. 我期待见到你。",
+      "Look out! There's a car coming. 小心！有车来了。",
+      "I looked through the book quickly. 我快速浏览了这本书。",
+      "Let me take a look. 让我看一看。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -24498,7 +24653,8 @@
       "lose weight 减肥"
     ],
     "examples": [
-      "I lost my keys yesterday. 我昨天丢了钥匙。"
+      "I lost my keys yesterday. 我昨天丢了钥匙。",
+      "She exercises to lose weight. 她锻炼减肥。"
     ],
     "section": "L",
     "source": "ocr_1785",
@@ -25056,7 +25212,11 @@
       "make sure 尽力做到；务请；确保；查明；确信"
     ],
     "examples": [
-      "I can make a paper plane. 我会做纸飞机。"
+      "I can make a paper plane. 我会做纸飞机。",
+      "The desk is made of wood. 这张桌子是木制的。",
+      "The team is made up of ten players. 这个队由十名队员组成。",
+      "Wine is made from grapes. 葡萄酒是用葡萄酿成的。",
+      "Make sure to lock the door. 确保锁好门。"
     ],
     "section": "M",
     "source": "ocr_1785",
@@ -25913,7 +26073,8 @@
     ],
     "examples": [
       "I left a message for you. 我给你留了一条消息。",
-      "I telephoned Jane just now, but she wasn’t in. I had to leave her a message. 刚才我打电话给简，但她不在，我不得不给她留下口信。"
+      "I telephoned Jane just now, but she wasn’t in. I had to leave her a message. 刚才我打电话给简，但她不在，我不得不给她留下口信。",
+      "I got a text message from him. 我收到了他的短信。"
     ],
     "section": "M",
     "source": "ocr_1785",
@@ -26087,7 +26248,8 @@
       "make up one’s mind to do sth. 下决心做某事"
     ],
     "examples": [
-      "I changed my mind yesterday. 我昨天改变了主意。"
+      "I changed my mind yesterday. 我昨天改变了主意。",
+      "She made up a funny story. 她编了一个有趣的故事。"
     ],
     "section": "M",
     "source": "ocr_1785",
@@ -26427,7 +26589,8 @@
     ],
     "examples": [
       "I don't have enough money. 我没有足够的钱。",
-      "He saved enough money for a bike. 他攒够了买自行车的钱。"
+      "He saved enough money for a bike. 他攒够了买自行车的钱。",
+      "He makes money by selling books. 他靠卖书赚钱。"
     ],
     "section": "M",
     "source": "ocr_1785",
@@ -26573,7 +26736,8 @@
     ],
     "examples": [
       "I need more time. 我需要更多时间。",
-      "Work harder and you'll learn more. 更努力地学，你会学到更多。"
+      "Work harder and you'll learn more. 更努力地学，你会学到更多。",
+      "It's cheap, and what's more, it's good. 它很便宜，而且质量好。"
     ],
     "section": "M",
     "source": "ocr_1785",
@@ -27058,7 +27222,9 @@
     ],
     "examples": [
       "What is your name? 你叫什么名字？",
-      "Can you name the flower？ 你能叫出这花儿的名字吗？"
+      "Can you name the flower？ 你能叫出这花儿的名字吗？",
+      "My first name is Tom. 我的名字叫汤姆。",
+      "My last name is Smith. 我姓史密斯。"
     ],
     "section": "N",
     "source": "ocr_1785",
@@ -27690,7 +27856,8 @@
     ],
     "examples": [
       "The next bus is at ten. 下一班公交车在十点。",
-      "What will you do next? 你接下来做什么？"
+      "What will you do next? 你接下来做什么？",
+      "She sits next to me. 她坐在我旁边。"
     ],
     "section": "N",
     "source": "ocr_1785",
@@ -27793,7 +27960,8 @@
     ],
     "examples": [
       "Don't make noise here. 不要在这里制造噪音。",
-      "Please be quiet. We are not allowed to make much noise in the reading room. 请安静。阅览室里不允许我们制造太多噪音。"
+      "Please be quiet. We are not allowed to make much noise in the reading room. 请安静。阅览室里不允许我们制造太多噪音。",
+      "Don't make a noise in the library. 不要在图书馆里弄出声响。"
     ],
     "section": "N",
     "source": "ocr_1785",
@@ -27970,7 +28138,8 @@
       "take notes 记笔记"
     ],
     "examples": [
-      "She wrote a note to me. 她给我写了一张便条。"
+      "She wrote a note to me. 她给我写了一张便条。",
+      "Please take notes in class. 请在课上记笔记。"
     ],
     "section": "N",
     "source": "ocr_1785",
@@ -28667,7 +28836,10 @@
     "examples": [
       "I saw him once last year. 我去年见过他一次。",
       "Once you get into a bad habit, you’ll find it hard to get out of it. 一旦染上坏习惯，想改掉就难了。",
-      "He was once a famous singer. 他曾经是位著名的歌手。"
+      "He was once a famous singer. 他曾经是位著名的歌手。",
+      "Please come here at once. 请立刻来这里。",
+      "Please say it once more. 请再说一遍。",
+      "Once bitten, twice shy. 一朝被蛇咬，十年怕井绳。"
     ],
     "section": "O",
     "source": "ocr_1785",
@@ -28702,7 +28874,8 @@
       "one after another 一个接一个，连续地"
     ],
     "examples": [
-      "I have one apple. 我有一个苹果。"
+      "I have one apple. 我有一个苹果。",
+      "Students came in one after another. 学生们一个接一个地进来。"
     ],
     "section": "O",
     "source": "ocr_1785",
@@ -28755,7 +28928,8 @@
     ],
     "examples": [
       "He is only five years old. 他只有五岁。",
-      "Our only resort is to inform the police. 我们唯一的办法是向警方报案。"
+      "Our only resort is to inform the police. 我们唯一的办法是向警方报案。",
+      "He is an only child. 他是独生子。"
     ],
     "section": "O",
     "source": "ocr_1785",
@@ -28894,7 +29068,8 @@
     ],
     "examples": [
       "What is your opinion? 你的看法是什么？",
-      "In my opinion, Tim doesn’t write English as clearly as his sister. 在我看来，蒂姆的英文没有他妹妹写得清楚。"
+      "In my opinion, Tim doesn’t write English as clearly as his sister. 在我看来，蒂姆的英文没有他妹妹写得清楚。",
+      "In my opinion, you are right. 在我看来，你是对的。"
     ],
     "section": "O",
     "source": "ocr_1785",
@@ -29158,7 +29333,9 @@
     ],
     "examples": [
       "Let's go out for a walk. 我们出去散步吧。",
-      "The streetlights were out after the storm. 暴风雨过后，路灯都熄灭了。"
+      "The streetlights were out after the storm. 暴风雨过后，路灯都熄灭了。",
+      "He dropped out of school last year. 他去年辍学了。",
+      "This style is out of date. 这个款式过时了。"
     ],
     "section": "O",
     "source": "ocr_1785",
@@ -29295,7 +29472,8 @@
     "examples": [
       "The bridge is over the river. 桥在河上方。",
       "The war was over about three months ago. 大约 3 个月前战争结束了。",
-      "The game is over. 比赛结束了。"
+      "The game is over. 比赛结束了。",
+      "He read the letter over and over. 他一遍又一遍地读那封信。"
     ],
     "section": "O",
     "source": "ocr_1785",
@@ -29641,7 +29819,8 @@
       "paper cutting 剪纸"
     ],
     "examples": [
-      "I need a piece of paper. 我需要一张纸。"
+      "I need a piece of paper. 我需要一张纸。",
+      "I like Chinese paper cutting. 我喜欢中国剪纸。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -29815,7 +29994,8 @@
     ],
     "examples": [
       "Please pass me the salt. 请把盐递给我。",
-      "She applied for a visitor pass to access the government building. 她申请了一张访客通行证以进入政府大楼。"
+      "She applied for a visitor pass to access the government building. 她申请了一张访客通行证以进入政府大楼。",
+      "Please pass on this message. 请传递这个信息。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -29984,7 +30164,8 @@
     "examples": [
       "I pay for the tickets. 我付票钱。",
       "The workers demand for a twenty percent pay rise. 工人要求加薪 20%.",
-      "He got his pay on Friday. 他星期五领了工资。"
+      "He got his pay on Friday. 他星期五领了工资。",
+      "Please pay attention to the teacher. 请注意听老师讲。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -30313,7 +30494,8 @@
     ],
     "examples": [
       "She is a kind person. 她是一个善良的人。",
-      "Nobody would like to make friends with those dishonest persons. 没有人愿意和那些不诚实的人交朋友。"
+      "Nobody would like to make friends with those dishonest persons. 没有人愿意和那些不诚实的人交朋友。",
+      "She came in person. 她亲自来了。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -30393,7 +30575,10 @@
     ],
     "examples": [
       "My phone is ringing. 我的手机在响。",
-      "Yesterday he phoned Laura to see if she was better. 昨天他打电话给劳拉，问她是不是好些了。"
+      "Yesterday he phoned Laura to see if she was better. 昨天他打电话给劳拉，问她是不是好些了。",
+      "I contacted him by phone. 我通过电话联系他。",
+      "I have a new mobile phone. 我有一部新手机。",
+      "She is on the phone now. 她正在打电话。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -30523,7 +30708,8 @@
       "pick up 捡起；拾起"
     ],
     "examples": [
-      "Please pick up the pen. 请捡起那支钢笔。"
+      "Please pick up the pen. 请捡起那支钢笔。",
+      "Pick out the best one. 挑出最好的一个。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -30800,7 +30986,8 @@
     ],
     "examples": [
       "It's a pity you can't come. 你不能来真可惜。",
-      "She never asked for pity before. 她以前从未乞求过怜悯。"
+      "She never asked for pity before. 她以前从未乞求过怜悯。",
+      "We should have pity on the poor. 我们应该同情穷人。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -31055,7 +31242,10 @@
     ],
     "examples": [
       "They play football after school. 他们放学后踢足球。",
-      "Did you enjoy the play? 你喜欢那出戏吗？"
+      "Did you enjoy the play? 你喜欢那出戏吗？",
+      "They played a trick on him. 他们捉弄了他。",
+      "Don't play with fire. 不要玩火。",
+      "She acted in a play at school. 她在学校参演了戏剧。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -31213,7 +31403,8 @@
     ],
     "examples": [
       "It's a pleasure to help you. 很高兴能帮助你。",
-      "Mrs. Zhou always helps her students with great pleasure. 周老师总是非常乐意帮助她的学生。"
+      "Mrs. Zhou always helps her students with great pleasure. 周老师总是非常乐意帮助她的学生。",
+      "I'll help you with pleasure. 我乐意帮你。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -31367,7 +31558,8 @@
     ],
     "examples": [
       "Please point to the map. 请指向地图。",
-      "Then think about yourself — your strong points and weak ones. 然后想想你自己一一你的优点和缺点。"
+      "Then think about yourself — your strong points and weak ones. 然后想想你自己一一你的优点和缺点。",
+      "He pointed out my mistakes. 他指出了我的错误。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -31754,7 +31946,8 @@
     "examples": [
       "I will post the letter. 我会邮寄这封信。",
       "If you could get the book, please send it to me by post. 如果你能弄到那本书，请邮寄给我。",
-      "She posted a photo online. 她在网上发了一张照片。"
+      "She posted a photo online. 她在网上发了一张照片。",
+      "I read an online post about it. 我读了一篇关于此事的帖子。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -31930,7 +32123,8 @@
     ],
     "examples": [
       "The power is off. 停电了。",
-      "The powerful engine powered the car up the steep hill effortlessly. 强劲的发动机毫不费力地驱动汽车爬上了陡坡。"
+      "The powerful engine powered the car up the steep hill effortlessly. 强劲的发动机毫不费力地驱动汽车爬上了陡坡。",
+      "A new power station was built. 建了一座新发电站。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -32016,7 +32210,8 @@
     ],
     "examples": [
       "The teacher praised the student. 老师表扬了那个学生。",
-      "His good behaviour deserves praise. 他的良好行为值得表扬。"
+      "His good behaviour deserves praise. 他的良好行为值得表扬。",
+      "The teacher praised him for his effort. 老师因他的努力表扬了他。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -32151,7 +32346,8 @@
       "I gave her a present. 我给了她一份礼物。",
       "He insists on being present. 他一定要出席。",
       "To prove his point, Paul presented detailed evidence in his presentation. 为了证明自己的观点，保罗在介绍中展示了详细的证据。",
-      "All students were present today. 今天所有学生都出席了。"
+      "All students were present today. 今天所有学生都出席了。",
+      "At present, he is in Beijing. 目前他在北京。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -32295,7 +32491,8 @@
     ],
     "examples": [
       "Wash hands to prevent illness. 洗手以预防疾病。",
-      "How to prevent disease？ 怎么预防疾病？"
+      "How to prevent disease？ 怎么预防疾病？",
+      "The rain prevented us from going out. 下雨阻止了我们出门。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -32700,7 +32897,8 @@
     ],
     "examples": [
       "We are working on a project. 我们正在做一个项目。",
-      "Linda did her project on Chinese traditional food far more carefully than me. 琳达在做中国传统食物这个项目时，远远比我仔细。"
+      "Linda did her project on Chinese traditional food far more carefully than me. 琳达在做中国传统食物这个项目时，远远比我仔细。",
+      "We do projects in groups. 我们分组做课题。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -32808,7 +33006,8 @@
     ],
     "examples": [
       "We must protect the earth. 我们必须保护地球。",
-      "It’s necessary for us to know how to protect ourselves in an earthquake. 我们有必要知道在地震中如何保护自己。"
+      "It’s necessary for us to know how to protect ourselves in an earthquake. 我们有必要知道在地震中如何保护自己。",
+      "The coat protects you from the cold. 这件外套保护你免受寒冷。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -32910,7 +33109,8 @@
     ],
     "examples": [
       "They provide food for the poor. 他们为穷人提供食物。",
-      "The organisation provides poor children with educational resources. 这个组织向贫困儿童提供教育资源。"
+      "The organisation provides poor children with educational resources. 这个组织向贫困儿童提供教育资源。",
+      "The school provides us with books. 学校给我们提供书本。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -33069,7 +33269,10 @@
     ],
     "examples": [
       "Put the book on the desk. 把书放在桌子上。",
-      "Henry didn’t put on his scarf before he left the office. 亨利在离开办公室之前没有戴上围巾。"
+      "Henry didn’t put on his scarf before he left the office. 亨利在离开办公室之前没有戴上围巾。",
+      "They put off the meeting. 他们推迟了会议。",
+      "Please put out the fire. 请把火扑灭。",
+      "Put up your hand if you know. 知道就举手。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -34278,7 +34481,8 @@
     ],
     "examples": [
       "I am waiting for his reply. 我在等他的答复。",
-      "He never replied to the letters. 他从来都不回信。"
+      "He never replied to the letters. 他从来都不回信。",
+      "I received a reply yesterday. 我昨天收到了回复。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -34362,7 +34566,8 @@
       "the People’s Republic of China 中华人民共和国"
     ],
     "examples": [
-      "China is a republic. 中国是一个共和国。"
+      "China is a republic. 中国是一个共和国。",
+      "The People's Republic of China was founded in 1949. 中华人民共和国成立于1949年。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -34671,7 +34876,8 @@
     ],
     "examples": [
       "Please return the book tomorrow. 请明天还书。",
-      "He returned home late last night. 他昨晚很晚回家。"
+      "He returned home late last night. 他昨晚很晚回家。",
+      "I gave him a gift in return. 我回赠了他一份礼物。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -35083,7 +35289,8 @@
     ],
     "examples": [
       "He likes rock music. 他喜欢摇滚乐。",
-      "Astronauts have brought back specimens of rock from the moon. 宇航员从月球带回了岩石标本。"
+      "Astronauts have brought back specimens of rock from the moon. 宇航员从月球带回了岩石标本。",
+      "Rock climbing is exciting. 攀岩很刺激。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -35157,7 +35364,8 @@
     ],
     "examples": [
       "My room is very clean. 我的房间很干净。",
-      "There is no room for your piano in your room. 你房间里没地方放人钢琴了。"
+      "There is no room for your piano in your room. 你房间里没地方放人钢琴了。",
+      "We watch TV in the living room. 我们在客厅看电视。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -35413,7 +35621,9 @@
     "examples": [
       "He can run very fast. 他能跑得很快。",
       "He runs a company. 他经营一家公司。",
-      "He went for a run in the park. 他去公园跑步了。"
+      "He went for a run in the park. 他去公园跑步了。",
+      "The boy ran away from home. 男孩离家出走了。",
+      "I've run out of money. 我把钱用完了。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -35443,7 +35653,8 @@
     ],
     "examples": [
       "Don't rush, take your time. 别着急，慢慢来。",
-      "He left the house in a rush. 他勿匆忙忙离开了家。"
+      "He left the house in a rush. 他勿匆忙忙离开了家。",
+      "The water rushed down the hill. 水从山上冲下来。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -35863,7 +36074,8 @@
     ],
     "examples": [
       "Please pass me the sauce. 请把酱汁递给我。",
-      "The sauce tastes too sweet. 这酱汁尝起来太甜了。"
+      "The sauce tastes too sweet. 这酱汁尝起来太甜了。",
+      "Add some soy sauce to the dish. 菜里加点酱油。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -35889,7 +36101,8 @@
     ],
     "examples": [
       "He saved a boy from the river. 他从河里救了一个男孩。",
-      "Although the doctors did everything they could to save the sick boy, they failed at last. 虽然医生们尽力挽救这个生病的孩子，但最终还是失败了。"
+      "Although the doctors did everything they could to save the sick boy, they failed at last. 虽然医生们尽力挽救这个生病的孩子，但最终还是失败了。",
+      "The doctor saved his life. 医生救了他的命。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -36170,7 +36383,8 @@
     ],
     "examples": [
       "They searched for the lost dog. 他们搜寻走失的狗。",
-      "The lost book came to light after a long search. 经过长时间的寻找，那本遗失的书得以重见天日。"
+      "The lost book came to light after a long search. 经过长时间的寻找，那本遗失的书得以重见天日。",
+      "They are searching for the lost child. 他们在搜寻走失的孩子。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -36415,7 +36629,8 @@
     ],
     "examples": [
       "I can see a bird in the tree. 我能看到树上有一只鸟。",
-      "The light is on. I see them watching a slide show. 灯亮着。我看见他们正在看幻灯片。"
+      "The light is on. I see them watching a slide show. 灯亮着。我看见他们正在看幻灯片。",
+      "I went to the airport to see him off. 我去机场为他送行。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -36541,7 +36756,8 @@
     ],
     "examples": [
       "They sell fresh fruit here. 他们在这里卖新鲜水果。",
-      "The book written by that writer didn’t sell well last year. 那位作家写的这本书，去年销售情况不好。"
+      "The book written by that writer didn’t sell well last year. 那位作家写的这本书，去年销售情况不好。",
+      "The tickets are sold out. 票卖完了。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -36793,7 +37009,9 @@
       "She set the cup on the table. 她把杯子放在桌上。",
       "He set an example of wholehearted service to the people. 他树立了全心全意为人民服务的榜样。",
       "I bought a new set of dishes. 我买了一套新盘子。",
-      "She set the table for dinner. 她摆好桌子准备吃晚饭。"
+      "She set the table for dinner. 她摆好桌子准备吃晚饭。",
+      "They set out early in the morning. 他们一早就出发了。",
+      "He set up a new company. 他创办了一家新公司。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -36875,7 +37093,8 @@
     ],
     "examples": [
       "Shake the bottle before drinking. 喝之前摇一摇瓶子。",
-      "Shaking hands is a traditional way to greet each other in many places. 在许多地方握手是一种传统的问候方式。"
+      "Shaking hands is a traditional way to greet each other in many places. 在许多地方握手是一种传统的问候方式。",
+      "They shook hands with each other. 他们互相握手。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -36978,7 +37197,8 @@
     ],
     "examples": [
       "Let's share the cake. 让我们分享蛋糕吧。",
-      "Ideas are always shared by my students in class. 在课堂上，学生总是分享各自的想法。"
+      "Ideas are always shared by my students in class. 在课堂上，学生总是分享各自的想法。",
+      "I share a room with my brother. 我和弟弟共用一个房间。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -37314,7 +37534,8 @@
     ],
     "examples": [
       "Please shut the window. 请关上窗户。",
-      "Lucy shut her eyes. 露西阁上了眼睛。"
+      "Lucy shut her eyes. 露西阁上了眼睛。",
+      "Shut up and listen! 闭嘴听着！"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -37388,7 +37609,8 @@
     ],
     "examples": [
       "There is a garden on the side. 侧面有一个花园。",
-      "With a two-screen phone, you can watch movies on one side and check emails on the other. 有了双屏手机，你可以在一边看电影，在另一边查看电子邮件。"
+      "With a two-screen phone, you can watch movies on one side and check emails on the other. 有了双屏手机，你可以在一边看电影，在另一边查看电子邮件。",
+      "I'm on your side. 我站在你这边。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -38305,7 +38527,9 @@
     ],
     "examples": [
       "He is a social person. 他是个好社交的人。",
-      "Team sports help to develop a child’s social skills. 集体体育运动有助于培养孩子的社交能力。"
+      "Team sports help to develop a child’s social skills. 集体体育运动有助于培养孩子的社交能力。",
+      "Don't spend too much time on social media. 不要花太多时间在社交媒体上。",
+      "We have social study on Mondays. 我们周一有社会研究课。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -38481,7 +38705,8 @@
     ],
     "examples": [
       "I have some money left. 我还剩一些钱。",
-      "He asked for money and I gave him some. 他向我要钱，我给了他一些。"
+      "He asked for money and I gave him some. 他向我要钱，我给了他一些。",
+      "I'll visit Paris some day. 将来有一天我要去巴黎。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -38631,7 +38856,8 @@
     ],
     "examples": [
       "I will be back soon. 我很快就回来。",
-      "We must finish cleaning the office as soon as possible. 我们必须尽快打扫完办公室。"
+      "We must finish cleaning the office as soon as possible. 我们必须尽快打扫完办公室。",
+      "Sooner or later, you'll succeed. 迟早你会成功的。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -38996,7 +39222,10 @@
     ],
     "examples": [
       "My favorite sport is basketball. 我最喜欢的运动是篮球。",
-      "More than two hundred students took part in the school sports meeting yesterday. 昨日，200 多名学生参加了学校运动会。"
+      "More than two hundred students took part in the school sports meeting yesterday. 昨日，200 多名学生参加了学校运动会。",
+      "Swimming is an individual sport. 游泳是个人运动。",
+      "We have sports after school. 我们放学后进行体育活动。",
+      "The students are on the sports ground. 学生们在操场上。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -39152,7 +39381,8 @@
     ],
     "examples": [
       "Please stand in line. 请站成一排。",
-      "We stood because there were no seats. 没有座位，我们只好站着。"
+      "We stood because there were no seats. 没有座位，我们只好站着。",
+      "WHO stands for World Health Organization. WHO代表世界卫生组织。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -39202,7 +39432,8 @@
     ],
     "examples": [
       "Let's start the game. 让我们开始游戏吧。",
-      "The runners lined up at the start. 赛跑选手在起跑线排成一行。"
+      "The runners lined up at the start. 赛跑选手在起跑线排成一行。",
+      "We started off at six. 我们六点出发。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -39286,7 +39517,8 @@
     "examples": [
       "Please stay here for the night. 请在这里过夜。",
       "We had a short stay in Beijing. 我们在北京短暂停留。",
-      "Old people had better exercise every day to stay healthy. 老年人最好每天锻炼以保持健康。"
+      "Old people had better exercise every day to stay healthy. 老年人最好每天锻炼以保持健康。",
+      "Don't stay up late. 不要熬夜。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -39545,7 +39777,8 @@
     ],
     "examples": [
       "Please stop the car here. 请把车停在这里。",
-      "There’s a bus stop near the school. 学校附近有个公共汽车站。"
+      "There’s a bus stop near the school. 学校附近有个公共汽车站。",
+      "We must stop him from leaving. 我们必须阻止他离开。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -40087,7 +40320,8 @@
     ],
     "examples": [
       "I have never seen such a thing. 我从没见过这样的事。",
-      "He was proud of having such a good friend. 他为有这样的好朋友而自豪。"
+      "He was proud of having such a good friend. 他为有这样的好朋友而自豪。",
+      "I like fruit such as apples and bananas. 我喜欢水果，例如苹果和香蕉。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -40445,7 +40679,8 @@
     ],
     "examples": [
       "I suppose he is right. 我猜想他是对的。",
-      "Suppose rooms are fully booked on that day 一 what then？"
+      "Suppose rooms are fully booked on that day 一 what then？",
+      "You are supposed to be here at eight. 你应该八点到。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -40526,7 +40761,9 @@
     ],
     "examples": [
       "What a surprise! 真令人惊讶！",
-      "The fans were so surprised to know his death. 粉丝们惊讶地得知他去世的消息。"
+      "The fans were so surprised to know his death. 粉丝们惊讶地得知他去世的消息。",
+      "She looked at me in surprise. 她惊讶地看着我。",
+      "I was surprised at the news. 我对这个消息感到惊奇。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -40788,7 +41025,16 @@
     "examples": [
       "Please take this bag. 请拿这个包。",
       "Take this medicine three times a day. 这种药一天服三次。",
-      "Take bus No. 5 to the park. 乘5路公交车去公园。"
+      "Take bus No. 5 to the park. 乘5路公交车去公园。",
+      "Please take away these books. 请把这些书拿走。",
+      "Take off your coat. 脱掉你的外套。",
+      "Take out your books. 把书拿出来。",
+      "We all take part in the game. 我们都参加了比赛。",
+      "The meeting will take place tomorrow. 会议明天举行。",
+      "I take pleasure in reading. 我从阅读中获得乐趣。",
+      "Robots will take the place of humans? 机器人会取代人类吗？",
+      "She took up painting last year. 她去年开始学画画。",
+      "It takes me an hour to do homework. 做作业花我一小时。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -40839,7 +41085,8 @@
     ],
     "examples": [
       "Let's talk about it. 我们谈谈吧。",
-      "President gave a talk on TV. 总统在电视上作了一次演讲。"
+      "President gave a talk on TV. 总统在电视上作了一次演讲。",
+      "I need to talk to you. 我需要和你谈谈。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -41247,7 +41494,8 @@
     ],
     "examples": [
       "Please tell me the truth. 请告诉我真相。",
-      "Who can tell me the meaning of that sign？ 谁能告诉我那个标志的含义？"
+      "Who can tell me the meaning of that sign？ 谁能告诉我那个标志的含义？",
+      "Can you tell right from wrong? 你能辨别对错吗？"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -41510,7 +41758,8 @@
     ],
     "examples": [
       "I am thankful for your help. 我感激你的帮助。",
-      "The old man is so thankful that he almost comes to tears. 这位老人感激得差点儿流泪了。"
+      "The old man is so thankful that he almost comes to tears. 这位老人感激得差点儿流泪了。",
+      "I am thankful to my parents. 我很感激我的父母。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -41749,7 +41998,10 @@
     ],
     "examples": [
       "I think you are right. 我认为你是对的。",
-      "We all think James will possibly be an artist when he grows up. 我们都认为詹姆斯长大后可能会成为一名艺术家。"
+      "We all think James will possibly be an artist when he grows up. 我们都认为詹姆斯长大后可能会成为一名艺术家。",
+      "I'm thinking about the problem. 我在考虑这个问题。",
+      "What do you think of the movie? 你觉得这部电影怎么样？",
+      "Please think it over. 请仔细考虑。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -41927,7 +42179,8 @@
     ],
     "examples": [
       "Don't throw the ball. 不要扔球。",
-      "Don’t throw rubbish everywhere! 别乱丢垃圾!"
+      "Don’t throw rubbish everywhere! 别乱丢垃圾!",
+      "Don't throw away the paper. 不要把纸扔掉。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -42118,7 +42371,12 @@
     "examples": [
       "What time is it now? 现在几点了？",
       "That was a difficult time in my life. 那是我人生中一个艰难的时期。",
-      "How many times have Mr. and Mrs. Black been to China？ 布莱克夫妇来过中国几次？"
+      "How many times have Mr. and Mrs. Black been to China？ 布莱克夫妇来过中国几次？",
+      "We arrived in time for the meeting. 我们及时赶到开会。",
+      "We laughed and cried at the same time. 我们同时笑了又哭了。",
+      "He finished in no time. 他很快就完成了。",
+      "The train arrived on time. 火车准时到达。",
+      "We had a good time at the park. 我们在公园玩得很愉快。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -42170,7 +42428,8 @@
     ],
     "examples": [
       "I feel very tired. 我觉得很累。",
-      "They were all very tired, but none of them stopped to have a rest. 他们都非常疲惫，但没有一个人停下来休息。"
+      "They were all very tired, but none of them stopped to have a rest. 他们都非常疲惫，但没有一个人停下来休息。",
+      "I am tired of this song. 我厌倦了这首歌。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -42376,7 +42635,8 @@
     ],
     "examples": [
       "I like it too. 我也喜欢它。",
-      "The box is too heavy. 这个箱子太重了。"
+      "The box is too heavy. 这个箱子太重了。",
+      "It's too heavy to carry. 这太重了搬不动。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -42527,7 +42787,8 @@
     "examples": [
       "Don't touch the hot water. 不要碰热水。",
       "The blind man relied on his sense of touch to navigate through the unfamiliar room. 这个盲人靠触党在陌生的房间里寻找方向。",
-      "His story touched everyone. 他的故事感动了每个人。"
+      "His story touched everyone. 他的故事感动了每个人。",
+      "I keep in touch with my old friends. 我和老朋友保持联系。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -42996,7 +43257,8 @@
     "examples": [
       "I have some trouble with math. 我数学有些困难。",
       "Losing a little money doesn’t trouble me. 损失一点钱，我并不在意。",
-      "May I trouble you for a pen? 麻烦你借我一支笔吗？"
+      "May I trouble you for a pen? 麻烦你借我一支笔吗？",
+      "He is in trouble now. 他现在处于困境中。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -43156,7 +43418,8 @@
     ],
     "examples": [
       "I will try my best. 我会尽力的。",
-      "Have another try! 再试一试!"
+      "Have another try! 再试一试!",
+      "Can I try on this shirt? 我能试穿这件衬衫吗？"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -43906,7 +44169,9 @@
     ],
     "examples": [
       "May I use your pen? 我可以用你的笔吗？",
-      "Is this book any use？ 这本书有用吗？"
+      "Is this book any use？ 这本书有用吗？",
+      "I am used to getting up early. 我习惯早起。",
+      "I used to play football after school. 我过去常常放学后踢足球。"
     ],
     "section": "U",
     "source": "ocr_1785",
@@ -43984,7 +44249,8 @@
     ],
     "examples": [
       "I usually get up at six. 我通常六点起床。",
-      "”He came home later than usual. 他回家比平时晚。"
+      "”He came home later than usual. 他回家比平时晚。",
+      "As usual, he arrived late. 像往常一样，他迟到了。"
     ],
     "section": "U",
     "source": "ocr_1785",
@@ -44623,7 +44889,8 @@
     ],
     "examples": [
       "The water is warm. 水是温的。",
-      "It is warm in spring. 春天天气暖和。"
+      "It is warm in spring. 春天天气暖和。",
+      "Let's warm up before running. 跑步前我们先热身。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -44733,7 +45000,8 @@
     "examples": [
       "My watch is broken. 我的表坏了。",
       "I watch TV every evening. 我每天晚上看电视。",
-      "Watch carefully how I do it. 仔细看我是怎么做的。"
+      "Watch carefully how I do it. 仔细看我是怎么做的。",
+      "Watch out for the car! 小心汽车！"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -44817,7 +45085,9 @@
     ],
     "examples": [
       "Which is the best way? 哪条是最好的路？",
-      "Beating and scolding a child is not a good way to make the child successful. 让孩子成坟，打加不是一个好方法。"
+      "Beating and scolding a child is not a good way to make the child successful. 让孩子成坟，打加不是一个好方法。",
+      "In this way, we can save water. 以这种方式，我们可以节约用水。",
+      "This is a good way of learning. 这是一种好的学习方式。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -45013,7 +45283,8 @@
     ],
     "examples": [
       "I'll see you next week. 下周见。",
-      "Some questions were raised in their class meeting last week. 在上星期的班会上有人提了一些问题。"
+      "Some questions were raised in their class meeting last week. 在上星期的班会上有人提了一些问题。",
+      "We'll meet the week after next. 我们下下周见面。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -45295,7 +45566,8 @@
     ],
     "examples": [
       "What about going for a walk？ 去散散步怎么样？",
-      "What an important city in the history of China Yan’an was! 在中国历史上延安是一座多么重要的城市啊!"
+      "What an important city in the history of China Yan’an was! 在中国历史上延安是一座多么重要的城市啊!",
+      "He is smart, and what's more, he is kind. 他很聪明，而且很善良。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -46268,7 +46540,8 @@
     ],
     "examples": [
       "Can you say that word again? 你能把那个单词再说一遍吗？",
-      "Learn ten new words every day. 每天学十个新单词。"
+      "Learn ten new words every day. 每天学十个新单词。",
+      "In other words, you don't want to go. 也就是说，你不想去。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -46301,7 +46574,10 @@
       "My father goes to work by bus. 我爸爸坐公交车去上班。",
       "The watch just stopped working. 这块手表刚坏了。",
       "This is a great work of art. 这是一件伟大的艺术品。",
-      "The machine doesn't work. 这台机器不运转了。"
+      "The machine doesn't work. 这台机器不运转了。",
+      "She works as a nurse. 她从事护士工作。",
+      "Let's work out the problem. 让我们算出这道题。",
+      "Work makes the workman. 勤工出巧匠。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -46439,7 +46715,9 @@
     ],
     "examples": [
       "Would you like some tea? 你想喝点茶吗？",
-      "She said she would come. 她说过她会来的。"
+      "She said she would come. 她说过她会来的。",
+      "I would like a cup of tea. 我想喝杯茶。",
+      "I would rather stay at home. 我宁愿待在家里。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -46589,7 +46867,8 @@
     ],
     "examples": [
       "We have a long holiday this year. 我们今年有一个长假。",
-      "What changeable weather it is this year! 今年的天气真是多变啊!"
+      "What changeable weather it is this year! 今年的天气真是多变啊!",
+      "The Olympics are held once every four years. 奥运会每四年举办一次。"
     ],
     "section": "Y",
     "source": "ocr_1785",
