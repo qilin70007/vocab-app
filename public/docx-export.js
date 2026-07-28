@@ -131,14 +131,36 @@
     return cell(paragraph(run(text, { bold: true, size: 18 }), { align: 'center' }), width, { shading: 'EAF0FA' });
   }
 
+  function printableItems(values) {
+    const source = Array.isArray(values) ? values : (values == null ? [] : [values]);
+    return source.map((value) => String(value ?? '').trim()).filter(Boolean);
+  }
+
+  function printableListSection(title, values, options = {}) {
+    const items = printableItems(values);
+    if (!items.length) return '';
+    const color = options.color || '3157D5';
+    const heading = paragraph(run(title, { bold: true, color, size: 17 }), { before: 70, after: 20 });
+    const lines = items.map((value, index) => {
+      const marker = options.numbered ? `${index + 1}. ` : '• ';
+      return paragraph(
+        run(marker, { bold: true, color, size: 16 }) + run(value, { size: 16 }),
+        { after: 20, line: 220 }
+      );
+    }).join('');
+    return heading + lines;
+  }
+
   function wordRow(word, index) {
     const wordCell = paragraph(run(word.word || '', { bold: true, size: 19 }), { after: word.phonetic ? 20 : 0 })
       + (word.phonetic ? paragraph(run(word.phonetic, { color: '5F6B7D', size: 16 })) : '');
     const meaningCell = textParagraphs(word.meaning || '', { size: 18 })
+      + printableListSection('常用词组', word.collocations, { color: '3157D5' })
+      + printableListSection('对应例句', word.examples, { color: '2F6A45', numbered: true })
       + (word.customNote
         ? paragraph(run(`我的注释：${word.customNote}`, { italic: true, color: '3157D5', size: 16 }), { before: 50 })
         : '');
-    return `<w:tr><w:trPr><w:cantSplit/></w:trPr>`
+    return '<w:tr>'
       + cell(paragraph(run(String(index + 1), { size: 17 }), { align: 'center' }), COLUMN_WIDTHS[0])
       + cell(wordCell, COLUMN_WIDTHS[1])
       + cell(textParagraphs(word.pos || ' ', { align: 'center', size: 17 }), COLUMN_WIDTHS[2])
@@ -148,7 +170,7 @@
   }
 
   function documentXml(words, displayDate) {
-    const header = `<w:tr><w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>${['序号', '单词 / 音标', '词性', '中文释义', '掌握'].map((label, index) => headerCell(label, COLUMN_WIDTHS[index])).join('')}</w:tr>`;
+    const header = `<w:tr><w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>${['序号', '单词 / 音标', '词性', '释义 / 词组 / 例句', '掌握'].map((label, index) => headerCell(label, COLUMN_WIDTHS[index])).join('')}</w:tr>`;
     const rows = words.map(wordRow).join('');
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">

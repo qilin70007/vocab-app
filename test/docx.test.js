@@ -26,7 +26,18 @@ function storedZipEntries(bytes) {
 
 test('creates a standard DOCX package with printable vocabulary rows', () => {
   const bytes = createUnstudiedWordDocx([
-    { word: 'ability', phonetic: "[ə'bɪləti]", pos: 'n.', meaning: '能力', customNote: '搭配：have the ability to do sth.' },
+    {
+      word: 'ability',
+      phonetic: "[ə'bɪləti]",
+      pos: 'n.',
+      meaning: '能力',
+      collocations: ['have the ability to do sth. 具备做某事的能力'],
+      examples: [
+        'She has the ability to sing well. 她有唱歌的天赋。',
+        'Sue has the ability to succeed in business. 苏有能力在商业上取得成功。'
+      ],
+      customNote: '容易与 capability 混淆'
+    },
     { word: 'A&B <test>', pos: 'n.', meaning: '测试 & 检查' }
   ], { createdAt: new Date('2026-07-18T12:00:00Z'), displayDate: '2026/7/18' });
 
@@ -47,10 +58,17 @@ test('creates a standard DOCX package with printable vocabulary rows', () => {
   const document = new TextDecoder().decode(entries.get('word/document.xml'));
   assert.match(document, /未掌握单词清单/);
   assert.match(document, /共 2 个单词/);
+  assert.match(document, /释义 \/ 词组 \/ 例句/);
+  assert.match(document, /常用词组/);
   assert.match(document, /have the ability to do sth\./);
+  assert.match(document, /对应例句/);
+  assert.match(document, /She has the ability to sing well\. 她有唱歌的天赋。/);
+  assert.match(document, /Sue has the ability to succeed in business\. 苏有能力在商业上取得成功。/);
+  assert.match(document, /容易与 capability 混淆/);
   assert.match(document, /A&amp;B &lt;test&gt;/);
   assert.match(document, /测试 &amp; 检查/);
   assert.match(document, /<w:tblHeader\/>/);
+  assert.equal((document.match(/<w:cantSplit\/>/g) || []).length, 1, 'only the repeating header row should be kept together');
 
   const decoded = Buffer.from(bytesToBase64(bytes), 'base64');
   assert.deepEqual(decoded, Buffer.from(bytes));
