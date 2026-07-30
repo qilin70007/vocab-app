@@ -30,6 +30,11 @@ fs.copyFileSync(mobileEntry, mobileIndex);
 fs.copyFileSync(source, mobileWords);
 
 const words = JSON.parse(fs.readFileSync(mobileWords, 'utf8'));
+const departure = words.find((word) => String(word.word || '').toLowerCase() === 'departure');
+if (departure?.forms?.some((form) => /\bdeparty\b/i.test(String(form)))) {
+  console.error('Invalid words.json: departure still contains the misspelling "departy"');
+  process.exit(1);
+}
 const serializedWords = JSON.stringify(words)
   .replace(/\u2028/g, '\\u2028')
   .replace(/\u2029/g, '\\u2029');
