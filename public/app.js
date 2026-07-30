@@ -1,10 +1,23 @@
 'use strict';
 
 const API_ROOT = '/api';
+const APP_VERSION = '2.5.8';
+const PACKAGED_ANDROID_WEBVIEW = (() => {
+  const mode = document.querySelector?.('meta[name="vocab-mode"]')?.getAttribute('content');
+  if (mode === 'standalone') return true;
+  const userAgent = String(navigator.userAgent || '');
+  const hostname = String(location.hostname || '').toLowerCase();
+  const isLocalOrigin = hostname === 'localhost' || hostname === '127.0.0.1';
+  return /VocabMasterAndroid\//i.test(userAgent)
+    || (isLocalOrigin && /Android/i.test(userAgent) && (/\bwv\b/i.test(userAgent) || /Version\/4\.0/i.test(userAgent)));
+})();
 const STANDALONE_MODE = new URLSearchParams(location.search).get('standalone') === '1'
   || globalThis.VOCAB_STANDALONE === true
+  || Array.isArray(globalThis.VOCAB_BUILTIN_WORDS)
   || globalThis.Capacitor?.isNativePlatform?.() === true
-  || globalThis.VocabNative != null;
+  || globalThis.VocabNative != null
+  || PACKAGED_ANDROID_WEBVIEW;
+const MOBILE_OFFLINE_LABEL = `手机离线版 v${APP_VERSION}`;
 const REMOTE_REVISION_POLL_MS = 15_000;
 const AUTO_BACKUP_INTERVAL_MS = 30 * 60_000;
 const EXPORT_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -103,13 +116,28 @@ function writeJsonStorage(key, value) {
   }
 }
 
+async function fetchWithTimeout(resource, options = {}, timeoutMs = 6000) {
+  const controller = new AbortController();
+  const externalSignal = options.signal;
+  const abortFromExternalSignal = () => controller.abort();
+  if (externalSignal?.aborted) controller.abort();
+  else externalSignal?.addEventListener?.('abort', abortFromExternalSignal, { once: true });
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(resource, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+    externalSignal?.removeEventListener?.('abort', abortFromExternalSignal);
+  }
+}
+
 function pendingMutationCount() {
   return readJsonStorage(STORAGE.pending, []).length;
 }
 
 function setConnectionStatus(online, label) {
   state.online = online;
-  const count = pendingMutationCount();
+  const count = STANDALONE_MODE ? 0 : pendingMutationCount();
   const pill = $('#connectionPill');
   if (!pill) return;
   pill.classList.toggle('online', online && count === 0);
@@ -134,8 +162,12 @@ function enqueueMutation(path, options) {
 
 async function loadStandaloneWords() {
   const cached = readJsonStorage(STORAGE.standaloneWords, null);
+  const customWordbookName = localStorage.getItem(STORAGE.wordbookName);
+  if (customWordbookName && cached?.length) return cached;
+  const bundled = globalThis.VOCAB_BUILTIN_WORDS;
+  if (Array.isArray(bundled) && bundled.length) return bundled;
   if (cached?.length) return cached;
-  const response = await fetch('/words.json');
+  const response = await fetchWithTimeout('/words.json', { cache: 'no-store' }, 5000);
   if (!response.ok) throw new Error('无法读取手机内置词库');
   const words = await response.json();
   writeJsonStorage(STORAGE.standaloneWords, words);
@@ -451,7 +483,7 @@ async function standaloneApi(path, options = {}) {
 
 async function api(path, options = {}, config = {}) {
   if (STANDALONE_MODE) {
-    setConnectionStatus(true, '手机离线版');
+    setConnectionStatus(true, MOBILE_OFFLINE_LABEL);
     return standaloneApi(path, options);
   }
   const method = options.method || 'GET';
@@ -462,7 +494,7 @@ async function api(path, options = {}, config = {}) {
   }
 
   try {
-    const response = await fetch(`${API_ROOT}${path}`, { ...options, headers });
+    const response = await fetchWithTimeout(`${API_ROOT}${path}`, { ...options, headers }, 6000);
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
       throw new Error(payload.error || `请求失败：${response.status}`);
@@ -486,7 +518,7 @@ async function api(path, options = {}, config = {}) {
 }
 
 async function flushPendingMutations() {
-  if (!navigator.onLine) return;
+  if (STANDALONE_MODE || !navigator.onLine) return;
   const queue = readJsonStorage(STORAGE.pending, []);
   if (!queue.length) return;
   const remaining = [];
@@ -495,11 +527,11 @@ async function flushPendingMutations() {
     try {
       const headers = { 'X-Sync-Code': item.syncCode };
       if (item.body) headers['Content-Type'] = 'application/json';
-      const response = await fetch(`${API_ROOT}${item.path}`, {
+      const response = await fetchWithTimeout(`${API_ROOT}${item.path}`, {
         method: item.method,
         headers,
         body: item.body
-      });
+      }, 6000);
       if (!response.ok) remaining.push(item);
     } catch {
       remaining.push(item);
@@ -755,7 +787,7 @@ function preferLastDuplicateWord(words) {
 }
 
 async function refreshAll({ quiet = false } = {}) {
-  if (!quiet) setConnectionStatus(STANDALONE_MODE || navigator.onLine, STANDALONE_MODE ? '手机离线版' : '连接中');
+  if (!quiet) setConnectionStatus(STANDALONE_MODE || navigator.onLine, STANDALONE_MODE ? MOBILE_OFFLINE_LABEL : '连接中');
   try {
     const [wordsPayload, stats, sections, daily] = await Promise.all([
       api('/words?status=all&limit=5000'),
@@ -790,10 +822,10 @@ async function checkForServerRevisionChange({ force = false } = {}) {
 
   state.revisionPollInFlight = true;
   try {
-    const response = await fetch(`${API_ROOT}/sync/summary`, {
+    const response = await fetchWithTimeout(`${API_ROOT}/sync/summary`, {
       headers: { 'X-Sync-Code': state.syncCode },
       cache: 'no-store'
-    });
+    }, 6000);
     if (!response.ok) return;
     const summary = await response.json();
     const revision = Number(summary.revision || 0);
@@ -1543,7 +1575,7 @@ async function exportData() {
       await saveJsonFile(`vocab-mobile-backup-${state.syncCode}.json`, payload, { preferPublic: true });
       return;
     }
-    const response = await fetch(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } });
+    const response = await fetchWithTimeout(`${API_ROOT}/progress/download`, { headers: { 'X-Sync-Code': state.syncCode } }, 6000);
     if (!response.ok) throw new Error('导出失败');
     const payload = await response.json();
     await saveJsonFile(`vocab-backup-${state.syncCode}.json`, payload);
@@ -2234,10 +2266,16 @@ function bindEvents() {
   });
 
   window.addEventListener('online', () => {
+    if (STANDALONE_MODE) {
+      setConnectionStatus(true, MOBILE_OFFLINE_LABEL);
+      return;
+    }
     setConnectionStatus(true, '正在同步');
     flushPendingMutations();
   });
-  window.addEventListener('offline', () => setConnectionStatus(false, '离线模式'));
+  window.addEventListener('offline', () => {
+    setConnectionStatus(STANDALONE_MODE, STANDALONE_MODE ? MOBILE_OFFLINE_LABEL : '离线模式');
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (state.page === 'study') persistStudySession();
@@ -2253,15 +2291,32 @@ function bindEvents() {
   });
 }
 
+async function disableStandaloneWebCaches() {
+  if ('serviceWorker' in navigator && typeof navigator.serviceWorker.getRegistrations === 'function') {
+    const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
+    await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
+  }
+  if ('caches' in globalThis && typeof globalThis.caches.keys === 'function') {
+    const keys = await globalThis.caches.keys().catch(() => []);
+    await Promise.all(
+      keys
+        .filter((key) => String(key).startsWith('vocab-master-'))
+        .map((key) => globalThis.caches.delete(key).catch(() => false))
+    );
+  }
+}
+
 async function init() {
   const storedCode = normalizeSyncCode(localStorage.getItem(STORAGE.syncCode));
   state.syncCode = storedCode.length >= 6 ? storedCode : generateSyncCode();
   state.remoteServer = normalizeRemoteServer(localStorage.getItem(STORAGE.remoteServer));
   localStorage.setItem(STORAGE.syncCode, state.syncCode);
   bindEvents();
-  setConnectionStatus(STANDALONE_MODE || navigator.onLine, STANDALONE_MODE ? '手机离线版' : '连接中');
+  setConnectionStatus(STANDALONE_MODE || navigator.onLine, STANDALONE_MODE ? MOBILE_OFFLINE_LABEL : '连接中');
 
-  if ('serviceWorker' in navigator) {
+  if (STANDALONE_MODE) {
+    await disableStandaloneWebCaches().catch((error) => console.warn('Standalone cache cleanup failed:', error));
+  } else if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error));
   }
 
