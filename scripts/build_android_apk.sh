@@ -37,6 +37,14 @@ if [ ! -f "$APK" ]; then
 fi
 
 mkdir -p dist
-cp "$APK" dist/vocab-app-mobile-debug.apk
+OUTPUT="dist/vocab-app-v2.5.8-debug.apk"
+cp "$APK" "$OUTPUT"
 
-echo "Generated APK: dist/vocab-app-mobile-debug.apk"
+echo "==> Verifying APK offline entry and embedded word list"
+unzip -t "$OUTPUT"
+unzip -p "$OUTPUT" assets/public/index.html | grep -F 'window.VOCAB_STANDALONE = true'
+unzip -p "$OUTPUT" assets/public/index.html | grep -F '/words-data.js'
+unzip -l "$OUTPUT" | grep -F 'assets/public/words-data.js'
+unzip -p "$OUTPUT" assets/public/app.js | grep -F 'VOCAB_BUILTIN_WORDS'
+
+echo "Generated APK: $OUTPUT"
