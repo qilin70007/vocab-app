@@ -84,7 +84,7 @@ public class MainActivity extends BridgeActivity {
     String userAgent = webView.getSettings().getUserAgentString();
     if (userAgent == null) userAgent = "";
     if (!userAgent.contains("VocabMasterAndroid/")) {
-      webView.getSettings().setUserAgentString(userAgent + " VocabMasterAndroid/2.5.8");
+      webView.getSettings().setUserAgentString(userAgent + " VocabMasterAndroid/2.5.9");
     }
     webView.clearCache(true);
     webView.addJavascriptInterface(new VocabNativeBridge(), "VocabNative");
@@ -748,8 +748,8 @@ if (fs.existsSync(variablesGradle)) {
 if (fs.existsSync(appGradle)) {
   let gradle = fs.readFileSync(appGradle, 'utf8');
   gradle = gradle
-    .replace(/versionCode\s+\d+/g, 'versionCode 20508')
-    .replace(/versionName\s+"[^"]+"/g, 'versionName "2.5.8"');
+    .replace(/versionCode\s+\d+/g, 'versionCode 20509')
+    .replace(/versionName\s+"[^"]+"/g, 'versionName "2.5.9"');
   fs.writeFileSync(appGradle, gradle, 'utf8');
-  console.log('Patched Android app version: versionCode=20508 versionName=2.5.8');
+  console.log('Patched Android app version: versionCode=20509 versionName=2.5.9');
 }
