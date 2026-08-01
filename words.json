@@ -29660,15 +29660,18 @@
     "word": "paint",
     "phonetic": "[peɪnt]",
     "pos": "v.; n.",
-    "meaning": "v. 油漆；粉刷；绘画\nn. 油漆；涂料；颜料",
+    "meaning": "v. 给……油漆；粉刷；绘画\nn. 油漆；涂料；颜料",
     "forms": [
-      "painter n. 画家",
-      "painting n. 画；油画；水彩画"
+      "painter n. 画家；油漆工",
+      "painting n. 绘画；油画"
     ],
-    "collocations": [],
+    "collocations": [
+      "paint ... blue 把……漆成蓝色"
+    ],
     "examples": [
+      "They painted the door blue. 他们把门漆成了蓝色。",
       "She likes to paint flowers. 她喜欢画花。",
-      "He bought me a box of paints. 他给我买了一金颜料。"
+      "He bought me a box of paints. 他给我买了一盒颜料。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -29678,7 +29681,11 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "油漆；粉刷；绘画"
+        "meaning": "给……油漆；粉刷"
+      },
+      {
+        "pos": "v.",
+        "meaning": "绘画；画"
       },
       {
         "pos": "n.",
@@ -29965,10 +29972,14 @@
     "pos": "n.",
     "meaning": "聚会；晚会；政党；党派",
     "forms": [],
-    "collocations": [],
+    "collocations": [
+      "have a party 举办聚会",
+      "political party 政党"
+    ],
     "examples": [
-      "We had a birthday party. 我们办了一个生日聚会。",
-      "The family are having a party to celebrate their child’s fifth birthday. 这户人家正在举行一个聚会，庆祝他们孩子的 5 周岁生日。"
+      "We had a birthday party. 我们举办了一场生日聚会。",
+      "The family is having a party to celebrate their child’s fifth birthday. 这家人正在举行聚会，庆祝孩子的五岁生日。",
+      "She is a member of the political party. 她是这个政党的成员。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -29978,7 +29989,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "聚会；晚会；政党；党派"
+        "meaning": "聚会；晚会"
+      },
+      {
+        "pos": "n.",
+        "meaning": "政党；党派"
       }
     ]
   },
@@ -30018,12 +30033,15 @@
     "word": "passage",
     "phonetic": "['pæsɪdʒ]",
     "pos": "n.",
-    "meaning": "(文章等的)一节；一段；通道",
+    "meaning": "（文章、讲话等的）一段；一节；通道；过道",
     "forms": [],
-    "collocations": [],
+    "collocations": [
+      "a narrow passage 狭窄的通道"
+    ],
     "examples": [
-      "Read this passage carefully. 仔细阅读这一段。",
-      "People have different interpretations of the passage. 人们对这一段文字有不同的解释。"
+      "Read this passage carefully. 仔细阅读这篇短文。",
+      "People have different interpretations of the passage. 人们对这段文字有不同的理解。",
+      "A narrow passage leads to the back door. 一条狭窄的通道通向后门。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -30033,7 +30051,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "(文章等的)一节；一段；通道"
+        "meaning": "（文章、讲话等的）一段；一节"
+      },
+      {
+        "pos": "n.",
+        "meaning": "通道；过道"
       }
     ]
   },
@@ -30430,15 +30452,19 @@
     "word": "performance",
     "phonetic": "[pə'fɔ:məns]",
     "pos": "n.",
-    "meaning": "表演；演出；行动",
+    "meaning": "表演；演出；表现；成绩；性能",
     "forms": [
-      "perform v. 表演；演出",
+      "perform v. 表演；演出；执行；表现",
       "performer n. 表演者"
     ],
-    "collocations": [],
+    "collocations": [
+      "give a performance 演出",
+      "academic performance 学习表现"
+    ],
     "examples": [
       "Her performance was wonderful. 她的表演很精彩。",
-      "The performance of Class A students is much better than that of Class B students. 人A 班学生的表演明显优于也 班学生。"
+      "The performance of the students in Class A is much better than that of the students in Class B. A班学生的表现比B班学生好得多。",
+      "The new computer offers better performance. 这台新电脑的性能更好。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -30448,7 +30474,15 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "表演；演出；行动"
+        "meaning": "表演；演出"
+      },
+      {
+        "pos": "n.",
+        "meaning": "表现；成绩"
+      },
+      {
+        "pos": "n.",
+        "meaning": "性能；工作情况"
       }
     ]
   },
@@ -31630,14 +31664,15 @@
     "word": "polite",
     "phonetic": "[pə'laɪt]",
     "pos": "adj.",
-    "meaning": "有礼貌的",
-    "forms": [
-      "impolite adj. 不礼貌的"
+    "meaning": "有礼貌的；客气的",
+    "forms": [],
+    "collocations": [
+      "be polite to sb. 对某人有礼貌"
     ],
-    "collocations": [],
     "examples": [
-      "Be polite to others. 对他人要有礼貌。",
-      "I’ve never seen such a polite clerk. 我从未见过这么有礼貌的店员。"
+      "Be polite to others. 待人要有礼貌。",
+      "I’ve never seen such a polite clerk. 我从未见过这么有礼貌的店员。",
+      "It is polite to say “Thank you”. 说声“谢谢”是有礼貌的。"
     ],
     "section": "P",
     "source": "ocr_1785",
@@ -31649,7 +31684,7 @@
     "definitions": [
       {
         "pos": "adj.",
-        "meaning": "有礼貌的"
+        "meaning": "有礼貌的；客气的"
       }
     ]
   },
