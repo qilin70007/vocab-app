@@ -1,9 +1,13 @@
-name: Build Android APK v2
+name: Build Android APK v2.5.10
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
+      - main
       - mobile-apk
 
 jobs:
@@ -94,17 +98,24 @@ jobs:
         run: |
           test -f android/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/vocab-app-mobile-debug.apk
-          ls -lh dist/vocab-app-mobile-debug.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/vocab-app-v2.5.10-debug.apk
+          ls -lh dist/vocab-app-v2.5.10-debug.apk
 
-      - name: Verify APK archive
-        run: unzip -t dist/vocab-app-mobile-debug.apk
+      - name: Verify APK archive and offline entry
+        run: |
+          set -o pipefail
+          APK=dist/vocab-app-v2.5.10-debug.apk
+          unzip -t "$APK"
+          unzip -p "$APK" assets/public/index.html | grep -F 'window.VOCAB_STANDALONE = true'
+          unzip -p "$APK" assets/public/index.html | grep -F '/words-data.js'
+          unzip -l "$APK" | grep -F 'assets/public/words-data.js'
+          unzip -p "$APK" assets/public/app.js | grep -F 'VOCAB_BUILTIN_WORDS'
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vocab-app-mobile-debug-apk
-          path: dist/vocab-app-mobile-debug.apk
+          name: vocab-app-v2.5.10-debug-apk
+          path: dist/vocab-app-v2.5.10-debug.apk
           if-no-files-found: error
 
       - name: Upload Android build diagnostics

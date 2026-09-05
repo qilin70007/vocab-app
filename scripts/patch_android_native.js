@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const mainActivity = path.join(root, 'android', 'app', 'src', 'main', 'java', 'com', 'vocabmaster', 'app', 'MainActivity.java');
 const readingService = path.join(path.dirname(mainActivity), 'ContinuousReadingService.java');
 const androidManifest = path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
+const appGradle = path.join(root, 'android', 'app', 'build.gradle');
 const variablesGradle = path.join(root, 'android', 'variables.gradle');
 
 if (!fs.existsSync(mainActivity)) {
@@ -32,6 +33,7 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.media.AudioManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -78,8 +80,15 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    getBridge().getWebView().addJavascriptInterface(new VocabNativeBridge(), "VocabNative");
-    getBridge().getWebView().post(() -> getBridge().getWebView().reload());
+    WebView webView = getBridge().getWebView();
+    String userAgent = webView.getSettings().getUserAgentString();
+    if (userAgent == null) userAgent = "";
+    if (!userAgent.contains("VocabMasterAndroid/")) {
+      webView.getSettings().setUserAgentString(userAgent + " VocabMasterAndroid/2.5.10");
+    }
+    webView.clearCache(true);
+    webView.addJavascriptInterface(new VocabNativeBridge(), "VocabNative");
+    webView.post(webView::reload);
     initializePreferredTts();
   }
 
@@ -734,4 +743,13 @@ if (fs.existsSync(variablesGradle)) {
     .replace(/targetSdkVersion\s*=\s*\d+/g, 'targetSdkVersion = 35');
   fs.writeFileSync(variablesGradle, gradle, 'utf8');
   console.log('Patched Android SDK versions: minSdkVersion=26 compileSdkVersion=35 targetSdkVersion=35');
+}
+
+if (fs.existsSync(appGradle)) {
+  let gradle = fs.readFileSync(appGradle, 'utf8');
+  gradle = gradle
+    .replace(/versionCode\s+\d+/g, 'versionCode 20510')
+    .replace(/versionName\s+"[^"]+"/g, 'versionName "2.5.10"');
+  fs.writeFileSync(appGradle, gradle, 'utf8');
+  console.log('Patched Android app version: versionCode=20510 versionName=2.5.10');
 }

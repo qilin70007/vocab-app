@@ -7,7 +7,14 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { URLSearchParams } = require('node:url');
 
-function loadStudySessionHelpers({ nativeBridge = null } = {}) {
+function loadStudySessionHelpers({
+  nativeBridge = null,
+  userAgent = '',
+  hostname = '',
+  builtinWords = null,
+  serviceWorker = null,
+  cacheStorage = null
+} = {}) {
   const appPath = path.join(__dirname, '..', 'public', 'app.js');
   const source = fs.readFileSync(appPath, 'utf8');
   const storage = new Map();
@@ -15,9 +22,9 @@ function loadStudySessionHelpers({ nativeBridge = null } = {}) {
     module: { exports: {} },
     console,
     URLSearchParams,
-    location: { search: '' },
-    navigator: { onLine: true },
-    document: { addEventListener() {} },
+    location: { search: '', hostname },
+    navigator: { onLine: true, userAgent, ...(serviceWorker ? { serviceWorker } : {}) },
+    document: { addEventListener() {}, querySelector() { return null; } },
     localStorage: {
       getItem(key) { return storage.get(key) ?? null; },
       setItem(key, value) { storage.set(key, String(value)); },
@@ -25,10 +32,12 @@ function loadStudySessionHelpers({ nativeBridge = null } = {}) {
     }
   };
   if (nativeBridge) context.VocabNative = nativeBridge;
+  if (builtinWords) context.VOCAB_BUILTIN_WORDS = builtinWords;
+  if (cacheStorage) context.caches = cacheStorage;
   context.window = context;
   context.globalThis = context;
   vm.runInNewContext(
-    `${source}\nmodule.exports = { STANDALONE_MODE, restoreStudyQueueFromSession, shouldSyncNativeReadingProgress };`,
+    `${source}\nmodule.exports = { STANDALONE_MODE, disableStandaloneWebCaches, flushPendingMutations, restoreStudyQueueFromSession, shouldSyncNativeReadingProgress };`,
     context,
     { filename: appPath }
   );
@@ -72,4 +81,50 @@ test('recognizes the injected Android bridge as standalone without Wi-Fi or Capa
   const { STANDALONE_MODE } = loadStudySessionHelpers({ nativeBridge: {} });
 
   assert.equal(STANDALONE_MODE, true);
+});
+
+test('recognizes the packaged local Android WebView as standalone without injected globals', () => {
+  const { STANDALONE_MODE } = loadStudySessionHelpers({
+    hostname: 'localhost',
+    userAgent: 'Mozilla/5.0 (Linux; Android 16; Device Build/TEST; wv) Version/4.0 Chrome/140 Mobile Safari/537.36'
+  });
+
+  assert.equal(STANDALONE_MODE, true);
+});
+
+test('recognizes the embedded APK word list as an authoritative standalone marker', () => {
+  const { STANDALONE_MODE } = loadStudySessionHelpers({
+    builtinWords: [{ word: 'offline' }]
+  });
+
+  assert.equal(STANDALONE_MODE, true);
+});
+
+test('never attempts desktop API mutation flushing during standalone APK startup', async () => {
+  const { flushPendingMutations } = loadStudySessionHelpers({
+    builtinWords: [{ word: 'offline' }]
+  });
+
+  await flushPendingMutations();
+});
+
+test('removes stale web service workers and only the app caches in standalone mode', async () => {
+  let unregisterCount = 0;
+  const deleted = [];
+  const { disableStandaloneWebCaches } = loadStudySessionHelpers({
+    serviceWorker: {
+      async getRegistrations() {
+        return [{ async unregister() { unregisterCount += 1; return true; } }];
+      }
+    },
+    cacheStorage: {
+      async keys() { return ['vocab-master-v2.5.7', 'another-app-cache']; },
+      async delete(key) { deleted.push(key); return true; }
+    }
+  });
+
+  await disableStandaloneWebCaches();
+
+  assert.equal(unregisterCount, 1);
+  assert.deepEqual(deleted, ['vocab-master-v2.5.7']);
 });
