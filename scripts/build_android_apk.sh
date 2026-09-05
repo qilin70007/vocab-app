@@ -37,7 +37,7 @@ if [ ! -f "$APK" ]; then
 fi
 
 mkdir -p dist
-OUTPUT="dist/vocab-app-v2.5.9-debug.apk"
+OUTPUT="dist/vocab-app-v2.5.10-debug.apk"
 cp "$APK" "$OUTPUT"
 
 echo "==> Verifying APK offline entry and embedded word list"

@@ -48,7 +48,7 @@ let mobileHtml = fs.readFileSync(mobileIndex, 'utf8');
 if (!mobileHtml.includes('/words-data.js')) {
   mobileHtml = mobileHtml.replace(
     '<script src="/docx-export.js',
-    '<script src="/words-data.js?v=2.5.9"></script>\n  <script src="/docx-export.js'
+    '<script src="/words-data.js?v=2.5.10"></script>\n  <script src="/docx-export.js'
   );
   fs.writeFileSync(mobileIndex, mobileHtml, 'utf8');
 }

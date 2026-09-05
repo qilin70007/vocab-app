@@ -56,7 +56,7 @@ test('mobile entry declares offline mode before the application script starts', 
 
   assert.match(mobileHtml, /name="vocab-mode" content="standalone"/);
   assert.match(mobileHtml, /window\.VOCAB_STANDALONE = true/);
-  assert.match(mobileHtml, /手机离线版 v2\.5\.9/);
+  assert.match(mobileHtml, /手机离线版 v2\.5\.10/);
   assert.doesNotMatch(mobileHtml, /id="connectionPill"[^>]*>.*<span>连接中<\/span>/);
 });
 
@@ -66,8 +66,8 @@ test('APK build verifies the packaged offline entry and uses a visible app versi
 
   assert.match(workflow, /branches:\s*\n\s*- main/);
   assert.match(workflow, /assets\/public\/words-data\.js/);
-  assert.match(workflow, /vocab-app-v2\.5\.9-debug\.apk/);
-  assert.match(nativePatch, /VocabMasterAndroid\/2\.5\.9/);
-  assert.match(nativePatch, /versionCode 20509/);
-  assert.match(nativePatch, /versionName "2\.5\.9"/);
+  assert.match(workflow, /vocab-app-v2\.5\.10-debug\.apk/);
+  assert.match(nativePatch, /VocabMasterAndroid\/2\.5\.10/);
+  assert.match(nativePatch, /versionCode 20510/);
+  assert.match(nativePatch, /versionName "2\.5\.10"/);
 });

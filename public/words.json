@@ -32332,11 +32332,21 @@
     "word": "raise",
     "phonetic": "[reɪz]",
     "pos": "v.",
-    "meaning": "举起；使升高；提升；饲养；抚养；筹钱；筹集",
+    "meaning": "举起；抬起；提高；增加；抚养；养育；饲养；筹集",
     "forms": [],
-    "collocations": [],
+    "collocations": [
+      "raise one's hand 举手",
+      "raise prices 提高价格",
+      "raise a child 抚养孩子",
+      "raise animals 饲养动物",
+      "raise money 筹款"
+    ],
     "examples": [
-      "The government’s decision on building a factory in the city centre has raised many questions among the local people. 政府决定在市中心建造一家工厂，这在当地人中引发了许多质疑。"
+      "Please raise your hand. 请举手。",
+      "The shop raised its prices last week. 这家商店上周提高了商品价格。",
+      "Her grandparents raised her. 她由祖父母抚养长大。",
+      "They raise chickens on the farm. 他们在农场养鸡。",
+      "We are raising money for the sick child. 我们正在为这个生病的孩子筹款。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -32346,7 +32356,19 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "举起；使升高；提升；饲养；抚养；筹钱；筹集"
+        "meaning": "举起；抬起"
+      },
+      {
+        "pos": "v.",
+        "meaning": "提高；增加"
+      },
+      {
+        "pos": "v.",
+        "meaning": "抚养；养育；饲养"
+      },
+      {
+        "pos": "v.",
+        "meaning": "筹集（资金）"
       }
     ]
   },
@@ -33892,9 +33914,12 @@
     "pos": "n.",
     "meaning": "火箭",
     "forms": [],
-    "collocations": [],
+    "collocations": [
+      "launch a rocket 发射火箭"
+    ],
     "examples": [
-      "This space rocket carries two satellites. 这枚字宙火箭搭载了两颗卫星。"
+      "The rocket flew into space. 火箭飞入了太空。",
+      "This rocket carries two satellites. 这枚火箭搭载了两颗卫星。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -34214,15 +34239,18 @@
     "number": 1348,
     "word": "rush",
     "phonetic": "[rʌʃ]",
-    "pos": "v. & n.",
-    "meaning": "v. & n. 冲；奔跑；迅速移动；急促",
+    "pos": "v.; n.",
+    "meaning": "v. 冲；奔；急忙\nn. 匆忙；仓促",
     "forms": [],
     "collocations": [
-      "rush down 冲下来，冲过去"
+      "in a rush 匆忙地；急急忙忙地",
+      "rush down 冲下来；冲下去",
+      "rush to ... 急忙赶往……"
     ],
     "examples": [
-      "He left the house in a rush. 他勿匆忙忙离开了家。",
-      "The students rushed into the classroom as Soon as the bell rang. 铃声一响，学生就奔跑进教室。"
+      "Don't rush; take your time. 别着急，慢慢来。",
+      "He left the house in a rush. 他匆匆忙忙地离开了家。",
+      "The water rushed down the hill. 水从山上冲了下来。"
     ],
     "section": "R",
     "source": "ocr_1785",
@@ -34231,8 +34259,12 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "v. & n.",
-        "meaning": "冲；奔跑；迅速移动；急促"
+        "pos": "v.",
+        "meaning": "冲；奔；急忙"
+      },
+      {
+        "pos": "n.",
+        "meaning": "匆忙；仓促"
       }
     ]
   },
@@ -39035,14 +39067,16 @@
     "word": "suppose",
     "phonetic": "[sʌ'pəʊz]",
     "pos": "v.",
-    "meaning": "猜想；假定；料想",
+    "meaning": "猜想；认为；料想；假定；假设",
     "forms": [],
     "collocations": [
-      "be supposed to do 应该/被要求做……"
+      "suppose (that) ... 猜想；认为……",
+      "be supposed to do sth. 应该做某事"
     ],
     "examples": [
-      "I suppose prices will go down. 我想物价会下降。",
-      "Suppose rooms are fully booked on that day 一 what then?"
+      "I suppose he is right. 我想他是对的。",
+      "Suppose all the rooms are fully booked that day—what then? 假如那天所有房间都订满了，那怎么办？",
+      "You are supposed to be here at eight. 你应该八点到这里。"
     ],
     "section": "S",
     "source": "ocr_1785",
@@ -39052,7 +39086,11 @@
     "definitions": [
       {
         "pos": "v.",
-        "meaning": "猜想；假定；料想"
+        "meaning": "猜想；认为；料想"
+      },
+      {
+        "pos": "v.",
+        "meaning": "假定；假设"
       }
     ]
   },
@@ -41568,13 +41606,17 @@
     "number": 1644,
     "word": "trust",
     "phonetic": "[trʌst]",
-    "pos": "n. & v.",
-    "meaning": "n. & v. 信任；相信",
+    "pos": "n.; v.",
+    "meaning": "n. 信任；信赖\nv. 信任；相信",
     "forms": [],
-    "collocations": [],
+    "collocations": [
+      "trust sb. 信任某人",
+      "trust in sb./sth. 信任某人或某事物"
+    ],
     "examples": [
-      "Sr Theresa feeling of warmth and trust here. 这里有一种温暖和信任的感觉。",
-      "Ben didn’t trust anyone to look after his pets properly. 本不相信有人能照看好他的宠物。"
+      "I trust my best friend. 我信任我最好的朋友。",
+      "I trust that you will keep your promise. 我相信你会信守诺言。",
+      "There is a feeling of warmth and trust here. 这里洋溢着温暖和信任。"
     ],
     "section": "T",
     "source": "ocr_1785",
@@ -41583,7 +41625,11 @@
     "proverbs": [],
     "definitions": [
       {
-        "pos": "n. & v.",
+        "pos": "n.",
+        "meaning": "信任；信赖"
+      },
+      {
+        "pos": "v.",
         "meaning": "信任；相信"
       }
     ]
@@ -43220,15 +43266,18 @@
     "word": "way",
     "phonetic": "[weɪ]",
     "pos": "n.",
-    "meaning": "路；路线；路途；方法；手段",
+    "meaning": "路；路线；路途；方法；方式；手段",
     "forms": [],
     "collocations": [
-      "in this way 以这种方式",
+      "in this way 用这种方法；这样",
       "on the/one’s way to 在去……的路上",
-      "way of doing sth. 做某事的方式"
+      "way of doing sth. 做某事的方法"
     ],
     "examples": [
-      "Beating and scolding a child is not a good way to make the child successful. 让孩子成坟，打加不是一个好方法。"
+      "Which is the best way to the station? 去车站走哪条路最好？",
+      "Beating and scolding a child is not a good way to help the child succeed. 打骂孩子不是帮助孩子取得成功的好方法。",
+      "In this way, we can save water. 用这种方法，我们可以节约用水。",
+      "This is a good way of learning English. 这是学习英语的一种好方法。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -43238,7 +43287,11 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "路；路线；路途；方法；手段"
+        "meaning": "路；路线；路途"
+      },
+      {
+        "pos": "n.",
+        "meaning": "方法；方式；手段"
       }
     ]
   },
@@ -44239,11 +44292,15 @@
     "word": "wine",
     "phonetic": "[waɪn]",
     "pos": "n.",
-    "meaning": "酒；葡萄酒",
+    "meaning": "葡萄酒；果酒",
     "forms": [],
-    "collocations": [],
+    "collocations": [
+      "a glass of wine 一杯葡萄酒",
+      "make wine 酿酒"
+    ],
     "examples": [
-      "Choose the perfect grapes only, or you won’t be able to make the best wine. 只有选用极好的葡欧，才能酿造出最好的酒。"
+      "Would you like some wine? 你想喝点葡萄酒吗？",
+      "Choose only the best grapes, or you won’t be able to make the best wine. 只有选用最好的葡萄，才能酿造出最好的葡萄酒。"
     ],
     "section": "W",
     "source": "ocr_1785",
@@ -44253,7 +44310,7 @@
     "definitions": [
       {
         "pos": "n.",
-        "meaning": "酒；葡萄酒"
+        "meaning": "葡萄酒；果酒"
       }
     ]
   },

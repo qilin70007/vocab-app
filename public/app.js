@@ -1,7 +1,7 @@
 'use strict';
 
 const API_ROOT = '/api';
-const APP_VERSION = '2.5.9';
+const APP_VERSION = '2.5.10';
 const PACKAGED_ANDROID_WEBVIEW = (() => {
   const mode = document.querySelector?.('meta[name="vocab-mode"]')?.getAttribute('content');
   if (mode === 'standalone') return true;
